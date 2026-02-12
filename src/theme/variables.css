@@ -1,0 +1,56 @@
+/* Buddhist Uposatha Theme */
+/* Deep Purple (Robes/Devotion) & Warm Gold (Illumination/Dhamma) */
+
+:root {
+  /* Primary: Deep Purple */
+  --ion-color-primary: #4A148C;
+  --ion-color-primary-rgb: 74, 20, 140;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #3E1178;
+  --ion-color-primary-tint: #5C2C98;
+
+  /* Secondary: Warm Gold/Amber */
+  --ion-color-secondary: #F9A825;
+  --ion-color-secondary-rgb: 249, 168, 37;
+  --ion-color-secondary-contrast: #000000;
+  --ion-color-secondary-contrast-rgb: 0, 0, 0;
+  --ion-color-secondary-shade: #DB9420;
+  --ion-color-secondary-tint: #FAB13B;
+
+  /* Background: Off-white/Parchment */
+  --ion-background-color: #FAF8F5;
+  --ion-background-color-rgb: 250, 248, 245;
+  --ion-text-color: #212121;
+  --ion-text-color-rgb: 33, 33, 33;
+
+  /* Custom Uposatha Colors */
+  --uposatha-full-moon: #F9A825;  /* Gold */
+  --uposatha-new-moon: #212121;   /* Dark alignment */
+  --uposatha-half-moon: #7B1FA2;  /* Lighter purple */
+  --festival-color: #E65100;      /* Deep Orange */
+  
+  /* Typography */
+  --ion-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Dark Mode Overrides (Automatic) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-background-color: #121212;
+    --ion-background-color-rgb: 18, 18, 18;
+    --ion-text-color: #ffffff;
+    --ion-text-color-rgb: 255, 255, 255;
+
+    --ion-color-primary: #7B1FA2; /* Lighter purple for dark mode visibility */
+    --ion-color-primary-rgb: 123, 31, 162;
+    --ion-color-primary-shade: #6C1B8E;
+    --ion-color-primary-tint: #8835AB;
+
+    --ion-color-secondary: #FBC02D; /* Brighter gold */
+    --ion-color-secondary-rgb: 251, 192, 45;
+    
+    --uposatha-full-moon: #FBC02D;
+    --uposatha-new-moon: #E0E0E0; /* Light grey for visibility */
+  }
+}

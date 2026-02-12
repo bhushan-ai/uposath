@@ -1,0 +1,139 @@
+/* Global CSS */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Reset Ionic typography to Inter */
+:root,
+ion-app,
+ion-content {
+    font-family: var(--ion-font-family);
+}
+
+/* --- Typography Utilities --- */
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-base {
+    font-size: 1rem;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.uppercase {
+    text-transform: uppercase;
+}
+
+.tracking-wide {
+    letter-spacing: 0.05em;
+}
+
+/* Non-selectable for app-like feel */
+body {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* --- Card Styles --- */
+.card-glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+    .card-glass {
+        background: rgba(30, 30, 30, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* --- Calendar Grid Utilities --- */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 8px;
+}
+
+.day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: relative;
+    font-size: 0.9rem;
+}
+
+.day-cell.today {
+    border: 2px solid var(--ion-color-primary);
+    font-weight: bold;
+}
+
+.day-cell.selected {
+    background-color: var(--ion-color-primary);
+    color: white;
+}
+
+.festival-dot {
+    width: 4px;
+    height: 4px;
+    background-color: var(--festival-color);
+    border-radius: 50%;
+    margin-top: 2px;
+}
+
+/* --- Uposatha Dots --- */
+.moon-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 2px;
+}
+
+.moon-full {
+    background-color: var(--uposatha-full-moon);
+    box-shadow: 0 0 4px var(--uposatha-full-moon);
+}
+
+.moon-new {
+    background-color: var(--uposatha-new-moon);
+    border: 1px solid #666;
+}
+
+.moon-half {
+    background-color: var(--uposatha-half-moon);
+}
+
+/* --- Graha Grid --- */
+.graha-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 8px;
+}
