@@ -1,0 +1,115 @@
+.mantra-list-header {
+    margin-bottom: 24px;
+    padding: 0 8px;
+}
+
+.mantra-list-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin: 0 0 4px;
+    font-family: var(--font-family-display);
+}
+
+.mantra-list-header p {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--color-bg-secondary);
+    border-radius: 16px;
+    margin-top: 20px;
+}
+
+.mantra-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mantra-card {
+    background: var(--color-bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.1s linear;
+}
+
+.mantra-card:active {
+    transform: scale(0.98);
+}
+
+.card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.mantra-icon {
+    font-size: 1.8rem;
+    background: var(--color-bg-secondary);
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mantra-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.mantra-info .deity {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: var(--color-accent-primary, #2563eb);
+    font-weight: 600;
+}
+
+.mantra-preview-text {
+    font-family: 'Noto Serif', serif;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.mantra-transliteration {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin-bottom: 16px;
+}
+
+.card-stats {
+    font-size: 0.8rem;
+    color: var(--color-text-tertiary);
+    margin-bottom: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding-top: 12px;
+}
+
+.practice-btn {
+    --border-radius: 8px;
+    font-weight: 700;
+    height: 32px;
+    font-size: 0.85rem;
+}

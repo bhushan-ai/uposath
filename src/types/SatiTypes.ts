@@ -65,6 +65,60 @@ export interface SatiPreferences {
     paliTextSize: 'small' | 'medium' | 'large' | 'xl';
 }
 
+// --- Emptiness Contemplation Types ---
+
+export interface EmptinessStep {
+    number: number;
+    title: { [key: string]: string };
+    pali: string;
+    translation: { [key: string]: string };
+    guidance: { [key: string]: string };
+}
+
+export interface EmptinessSection {
+    id: string;
+    order: number;
+    tradition: 'theravada' | 'mahayana';
+    source: {
+        reference: string;
+        composed?: string;
+        name: { [key: string]: string };
+    };
+    disclaimer?: { [key: string]: string };
+    title: { [key: string]: string };
+    icon: string;
+    color: string;
+    content?: string;
+    steps: EmptinessStep[];
+}
+
+export interface EmptinessData {
+    title: { [key: string]: string };
+    sections: EmptinessSection[];
+}
+
+export interface EmptinessSession {
+    id: string;
+    timestamp: string; // ISO
+    durationMinutes: number;
+    focus: string; // section id (e.g. 'anatta', 'heart_sutra')
+    tradition: 'theravada' | 'mahayana';
+    completed: boolean;
+    quality?: number; // 1-5
+    tags?: string[];
+}
+
+export interface EmptinessStats {
+    totalSessions: number;
+    totalMinutes: number;
+    currentStreak: number;
+    lastPracticeDate: string | null;
+    byTradition: {
+        theravada: number; // count
+        mahayana: number; // count
+    };
+}
+
 export const DEFAULT_PREFERENCES: SatiPreferences = {
     quickButtons: [108, 54, 27, 100, 50],
     reminderEnabled: false,
@@ -74,3 +128,67 @@ export const DEFAULT_PREFERENCES: SatiPreferences = {
     showTranslations: true,
     paliTextSize: "medium"
 };
+
+// --- Custom Mantras Types ---
+
+export type MantraTradition =
+    | 'theravada'
+    | 'mahayana'
+    | 'tibetan'
+    | 'zen'
+    | 'pureland'
+    | 'hindu'
+    | 'custom';
+
+export interface MantraBasicInfo {
+    name: string;
+    deity?: string; // Optional Deity name
+    icon: string; // Emoji
+}
+
+export interface MantraText {
+    primaryScript: string; // 'roman', 'devanagari', etc.
+    primaryText: string;
+    transliteration?: string;
+    translation?: string;
+}
+
+export interface MantraPracticeSettings {
+    defaultReps: number;
+    defaultDurationMinutes: number;
+    bellAtCompletion: boolean;
+}
+
+export interface MantraStats {
+    totalSessions: number;
+    totalReps: number;
+    totalDurationMinutes: number;
+    lastPracticeDate?: string;
+    currentStreak: number;
+}
+
+export interface Mantra {
+    id: string;
+    created: string;
+    updated: string;
+
+    basic: MantraBasicInfo;
+    text: MantraText;
+
+    tradition: MantraTradition;
+    purpose?: string;
+
+    practice: MantraPracticeSettings;
+    stats: MantraStats;
+}
+
+export interface MantraSession {
+    id: string;
+    mantraId: string;
+    timestamp: string;
+    durationMinutes: number;
+    reps: number;
+    completed: boolean;
+    quality?: number; // 1-5
+    notes?: string;
+}

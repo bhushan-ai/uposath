@@ -37,7 +37,12 @@ const TripleGemCard: React.FC<TripleGemCardProps> = ({ recollection, prefs }) =>
             {/* Header */}
             <div className="triple-gem-header" style={{ borderLeft: `6px solid ${recollection.color}` }}>
                 <div className="triple-gem-icon">{recollection.icon}</div>
-                <h3>{title}</h3>
+                <div>
+                    <h3 style={{ margin: 0 }}>{getPaliScriptText(recollection.title, prefs.paliScript)}</h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.9rem', color: 'var(--color-text-secondary, #6b7280)' }}>
+                        {getLocalizedText(recollection.title, prefs.translationLanguage)}
+                    </p>
+                </div>
             </div>
 
             <div className="triple-gem-content">

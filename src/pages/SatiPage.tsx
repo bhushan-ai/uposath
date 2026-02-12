@@ -16,6 +16,8 @@ import { ellipsisVertical, chevronForward } from 'ionicons/icons';
 import { MalaService } from '../services/MalaService';
 import AnapanasatiCard from '../components/sati/AnapanasatiCard';
 import TripleGemNavCard from '../components/sati/TripleGemNavCard';
+import EmptinessNavCard from '../components/sati/EmptinessNavCard';
+import MantraNavCard from '../components/sati/MantraNavCard';
 import { getUposathaStatus } from '../services/uposathaCalculator';
 import { Observer } from '@ishubhamx/panchangam-js';
 import { getSavedLocation } from '../services/locationManager';
@@ -89,6 +91,12 @@ const SatiPage: React.FC = () => {
 
                 {/* Triple Gem Recollection Card */}
                 <TripleGemNavCard />
+
+                {/* Emptiness Contemplation Card */}
+                <EmptinessNavCard />
+
+                {/* Custom Mantras Card */}
+                <MantraNavCard />
 
                 {/* Anapanasati Card */}
                 <AnapanasatiCard />

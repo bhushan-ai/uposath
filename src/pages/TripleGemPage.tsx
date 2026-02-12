@@ -109,10 +109,10 @@ const TripleGemPage: React.FC = () => {
                 {/* Title Section */}
                 <div className="triple-gem-header-card">
                     <h1 className="triple-gem-title">
-                        {getLocalizedText(data.title, prefs.translationLanguage)}
+                        {getPaliScriptText(data.subtitle, prefs.paliScript)}
                     </h1>
                     <p className="triple-gem-subtitle">
-                        {getPaliScriptText(data.subtitle, prefs.paliScript)}
+                        {getLocalizedText(data.title, prefs.translationLanguage)}
                     </p>
                 </div>
 

@@ -27,6 +27,7 @@
             "id": "buddha",
             "order": 1,
             "title": {
+                "pali": "Buddhānussati",
                 "en": "Recollection of the Buddha",
                 "hi": "बुद्ध अनुस्मृति",
                 "pa": "ဘုရားဂုဏ်တော်",
@@ -170,6 +171,7 @@
             "id": "dhamma",
             "order": 2,
             "title": {
+                "pali": "Dhammānussati",
                 "en": "Recollection of the Dhamma",
                 "hi": "धम्म अनुस्मृति",
                 "es": "Recuerdo del Dhamma"
@@ -267,6 +269,7 @@
             "id": "sangha",
             "order": 3,
             "title": {
+                "pali": "Saṅghānussati",
                 "en": "Recollection of the Sangha",
                 "hi": "संघ अनुस्मृति",
                 "es": "Recuerdo del Sangha"

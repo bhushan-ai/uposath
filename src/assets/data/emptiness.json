@@ -1,0 +1,288 @@
+{
+    "title": {
+        "pali": "Suññatā Bhāvanā",
+        "sanskrit": "Śūnyatā Bhāvanā",
+        "en": "Emptiness Contemplation"
+    },
+    "sections": [
+        {
+            "id": "anatta",
+            "order": 1,
+            "tradition": "theravada",
+            "source": {
+                "reference": "SN 22.59",
+                "name": {
+                    "pali": "Anattalakkhaṇa Sutta",
+                    "en": "Discourse on the Not-Self Characteristic"
+                }
+            },
+            "title": {
+                "pali": "Anattā",
+                "en": "Emptiness of Self"
+            },
+            "icon": "∅",
+            "color": "#6B7280",
+            "content": "Foundation Teaching: The Five Aggregates (Pañca-khandha)",
+            "steps": [
+                {
+                    "number": 1,
+                    "title": {
+                        "pali": "Rūpa",
+                        "en": "Form"
+                    },
+                    "pali": "Rūpaṁ anattā. Rūpañca hidaṁ attā abhavissa, nayidaṁ rūpaṁ ābādhāya saṁvatteyya.",
+                    "translation": {
+                        "en": "Form is not-self. If form were self, this form would not lead to affliction, and one could control form as 'Let my form be thus, let my form not be thus.'"
+                    },
+                    "guidance": {
+                        "en": "Observe your body. Can you control aging? Can you stop sickness? If the body were truly 'yours', you would have full control. Notice how it changes without permission."
+                    }
+                },
+                {
+                    "number": 2,
+                    "title": {
+                        "pali": "Vedanā",
+                        "en": "Feeling"
+                    },
+                    "pali": "Vedanā anattā...",
+                    "translation": {
+                        "en": "Feeling is not-self..."
+                    },
+                    "guidance": {
+                        "en": "Observe feelings arising and passing. Can you command 'Let me only feel pleasure'? They arise dependent on contact."
+                    }
+                },
+                {
+                    "number": 3,
+                    "title": {
+                        "pali": "Saññā",
+                        "en": "Perception"
+                    },
+                    "pali": "Saññā anattā...",
+                    "translation": {
+                        "en": "Perception is not-self..."
+                    },
+                    "guidance": {
+                        "en": "Observe how the mind labels and recognizes. These labels are not you."
+                    }
+                },
+                {
+                    "number": 4,
+                    "title": {
+                        "pali": "Saṅkhāra",
+                        "en": "Mental Formations"
+                    },
+                    "pali": "Saṅkhārā anattā...",
+                    "translation": {
+                        "en": "Mental formations are not-self..."
+                    },
+                    "guidance": {
+                        "en": "Thoughts, intentions, and volitions arise and pass. You are not your thoughts."
+                    }
+                },
+                {
+                    "number": 5,
+                    "title": {
+                        "pali": "Viññāṇa",
+                        "en": "Consciousness"
+                    },
+                    "pali": "Viññāṇaṁ anattā...",
+                    "translation": {
+                        "en": "Consciousness is not-self..."
+                    },
+                    "guidance": {
+                        "en": "Even the awareness that knows is a process, arising and passing. It is not a permanent self."
+                    }
+                }
+            ]
+        },
+        {
+            "id": "progressive",
+            "order": 2,
+            "tradition": "theravada",
+            "source": {
+                "reference": "MN 121",
+                "name": {
+                    "pali": "Cūḷasuññata Sutta",
+                    "en": "Lesser Discourse on Emptiness"
+                }
+            },
+            "title": {
+                "pali": "Anupubba-suññatā-vihāra",
+                "en": "Progressive Dwelling in Emptiness"
+            },
+            "icon": "🏔️",
+            "color": "#60A5FA",
+            "steps": [
+                {
+                    "number": 1,
+                    "title": {
+                        "en": "Empty of Village Perception"
+                    },
+                    "pali": "Suññaṁ idaṁ gāma-saññāya",
+                    "translation": {
+                        "en": "This is empty of the perception of village."
+                    },
+                    "guidance": {
+                        "en": "What is present: Forest perception. What is absent: Village perception."
+                    }
+                },
+                {
+                    "number": 2,
+                    "title": {
+                        "en": "Empty of Forest Perception"
+                    },
+                    "pali": "Suññaṁ idaṁ arañña-saññāya",
+                    "translation": {
+                        "en": "This is empty of the perception of forest."
+                    },
+                    "guidance": {
+                        "en": "What is present: Earth perception. What is absent: Forest perception."
+                    }
+                },
+                {
+                    "number": 3,
+                    "title": {
+                        "en": "Empty of Earth Perception"
+                    },
+                    "pali": "Suññaṁ idaṁ pathavī-saññāya",
+                    "translation": {
+                        "en": "This is empty of the perception of earth."
+                    },
+                    "guidance": {
+                        "en": "What is present: Infinite Space. What is absent: Earth perception."
+                    }
+                },
+                {
+                    "number": 4,
+                    "title": {
+                        "en": "Empty of Space Perception"
+                    },
+                    "pali": "Ākāsānañcāyatana",
+                    "translation": {
+                        "en": "Base of Infinite Space."
+                    },
+                    "guidance": {
+                        "en": "Enter the first formless jhana."
+                    }
+                },
+                {
+                    "number": 5,
+                    "title": {
+                        "en": "Empty of Infinite Space"
+                    },
+                    "pali": "Viññāṇañcāyatana",
+                    "translation": {
+                        "en": "Base of Infinite Consciousness."
+                    },
+                    "guidance": {
+                        "en": "The second formless jhana. Space dissolves."
+                    }
+                },
+                {
+                    "number": 6,
+                    "title": {
+                        "en": "Empty of Infinite Consciousness"
+                    },
+                    "pali": "Ākiñcaññāyatana",
+                    "translation": {
+                        "en": "Base of Nothingness."
+                    },
+                    "guidance": {
+                        "en": "The third formless jhana. 'There is nothing'."
+                    }
+                },
+                {
+                    "number": 7,
+                    "title": {
+                        "en": "Empty of Nothingness"
+                    },
+                    "pali": "Nevasaññānāsaññāyatana",
+                    "translation": {
+                        "en": "Base of Neither-Perception-Nor-Non-Perception."
+                    },
+                    "guidance": {
+                        "en": "The fourth formless jhana. The edge of perception."
+                    }
+                },
+                {
+                    "number": 8,
+                    "title": {
+                        "en": "Signless Concentration"
+                    },
+                    "pali": "Animittaṁ cetosamādhiṁ",
+                    "translation": {
+                        "en": "Signless concentration of mind."
+                    },
+                    "guidance": {
+                        "en": "The highest emptiness. Liberation from taints."
+                    }
+                }
+            ]
+        },
+        {
+            "id": "heart_sutra",
+            "order": 3,
+            "tradition": "mahayana",
+            "source": {
+                "reference": "Mahāyāna Sūtra",
+                "composed": "~400 CE",
+                "name": {
+                    "sanskrit": "Prajñāpāramitāhṛdaya Sūtra",
+                    "en": "Heart Sutra"
+                }
+            },
+            "disclaimer": {
+                "en": "This text is NOT part of the Pali Canon. It is a Mahayana text included for educational purposes.",
+                "hi": "यह पाठ पाली कैनन का हिस्सा नहीं है। यह शैक्षिक उद्देश्यों के लिए शामिल एक महायान पाठ है।"
+            },
+            "title": {
+                "sanskrit": "Prajñāpāramitāhṛdaya",
+                "en": "Heart Sutra"
+            },
+            "icon": "💎",
+            "color": "#EC4899",
+            "steps": [
+                {
+                    "number": 1,
+                    "title": {
+                        "en": "Form is Emptiness"
+                    },
+                    "pali": "Rūpaṁ śūnyatā śūnyataiva rūpaṁ",
+                    "translation": {
+                        "en": "Form is emptiness, emptiness is form."
+                    },
+                    "guidance": {
+                        "en": "This is not nihilism. Form appears, but is empty of inherent existence."
+                    }
+                },
+                {
+                    "number": 2,
+                    "title": {
+                        "en": "Five Aggregates are Empty"
+                    },
+                    "pali": "Iha Śāriputra! rūpaṁ śūnyatā...",
+                    "translation": {
+                        "en": "Here, Shariputra! Form is emptiness, feeling is emptiness..."
+                    },
+                    "guidance": {
+                        "en": "Direct parallel to Anattalakkhana Sutta (SN 22.59)."
+                    }
+                },
+                {
+                    "number": 3,
+                    "title": {
+                        "en": "The Great Mantra"
+                    },
+                    "pali": "Gate gate pāragate pārasaṁgate bodhi svāhā",
+                    "translation": {
+                        "en": "Gone, gone, gone beyond, gone completely beyond, awakening, hail!"
+                    },
+                    "guidance": {
+                        "en": "Recite as a focusing mantra."
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -117,10 +117,10 @@ const AnapanasatiPage: React.FC = () => {
                 {/* Header Card */}
                 <div className="anapanasati-header-card">
                     <h2 className="anapanasati-title">
-                        {content.title.en}
+                        {content.title.pali}
                     </h2>
                     <p className="anapanasati-subtitle">
-                        {content.description.en}
+                        {content.title.en}
                     </p>
                 </div>
 

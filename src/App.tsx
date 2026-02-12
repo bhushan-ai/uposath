@@ -49,6 +49,10 @@ import TripleGemPage from './pages/TripleGemPage';
 import AnapanasatiPage from './pages/AnapanasatiPage';
 import AnapanasatiSessionPage from './pages/AnapanasatiSessionPage';
 import AnapanasatiStatsPage from './pages/AnapanasatiStatsPage';
+import EmptinessPage from './pages/EmptinessPage';
+import MantraListPage from './pages/MantraListPage';
+import MantraEditPage from './pages/MantraEditPage';
+import MantraPracticePage from './pages/MantraPracticePage';
 
 const NotificationRouterBridge: React.FC = () => {
   const history = useHistory();
@@ -101,17 +105,16 @@ const App: React.FC = () => (
           <Route exact path="/sati/anapanasati/session">
             <AnapanasatiSessionPage />
           </Route>
-          <Route exact path="/sati/anapanasati/stats">
-            <AnapanasatiStatsPage />
-          </Route>
+          <Route exact path="/sati/anapanasati/stats" component={AnapanasatiStatsPage} />
+          <Route exact path="/sati/emptiness" component={EmptinessPage} />
+          <Route exact path="/sati/mantras" component={MantraListPage} />
+          <Route exact path="/sati/mantras/edit/:id" component={MantraEditPage} />
+          <Route exact path="/sati/mantras/practice/:id" component={MantraPracticePage} />
           <Route exact path="/sati/stats">
             <SatiStatsPage />
           </Route>
           <Route exact path="/festivals">
             <FestivalsPage />
-          </Route>
-          <Route exact path="/settings">
-            <SettingsPage />
           </Route>
           <Route path="/day/:dateStr">
             <DayDetailPage />
@@ -150,7 +153,7 @@ const App: React.FC = () => (
         </IonTabBar>
       </IonTabs>
     </IonReactRouter>
-  </IonApp>
+  </IonApp >
 );
 
 export default App;

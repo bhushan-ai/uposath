@@ -36,16 +36,17 @@ const TetradCard: React.FC<TetradCardProps> = ({ tetrad, language = 'en', script
         return obj[lang] || obj['en'] || Object.values(obj)[0];
     };
 
-    const getPaliText = (paliObj: { roman: string;[key: string]: string }) => {
+    const getPaliText = (paliObj: { roman?: string; pali?: string;[key: string]: any }) => {
         // If exact script exists, use it
         if (paliObj[script]) return paliObj[script];
 
-        // Otherwise, transliterate from Roman
-        if (paliObj.roman) {
-            return PaliTransliterator.transliterate(paliObj.roman, script as any);
+        // Use 'pali' or 'roman' as source for transliteration
+        const source = paliObj.pali || paliObj.roman || (typeof paliObj === 'string' ? paliObj : '');
+        if (source && script !== 'roman') {
+            return PaliTransliterator.transliterate(source, script as any);
         }
 
-        return '';
+        return source;
     };
 
     return (
@@ -61,9 +62,9 @@ const TetradCard: React.FC<TetradCardProps> = ({ tetrad, language = 'en', script
                 <div className="tetrad-info">
                     <div className="tetrad-icon">{tetrad.icon}</div>
                     <div className="tetrad-text">
-                        <h3>{getLocalized(tetrad.title, language)}</h3>
+                        <h3>{getPaliText(tetrad.title as any)}</h3>
                         <div className="tetrad-desc">
-                            {getLocalized(tetrad.description, language)}
+                            {getLocalized(tetrad.title, language)}
                         </div>
                     </div>
                 </div>
