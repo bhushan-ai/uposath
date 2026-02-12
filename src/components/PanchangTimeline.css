@@ -64,7 +64,8 @@
 
 /* Labels Column */
 .labels-column {
-    width: 110px;
+    width: 140px;
+    /* Increased from 110px to prevent truncation */
     flex-shrink: 0;
     z-index: 50;
     position: sticky;
@@ -95,12 +96,13 @@
 }
 
 .row-text {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    /* Slightly increased for better legibility */
     font-weight: 600;
     color: #a0a0b0;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    /* Allow overflow if needed, but width should be enough */
     min-width: 0;
 }
 
@@ -389,7 +391,8 @@
     }
 
     .labels-column {
-        width: 100px;
+        width: 120px;
+        /* Adjusted for mobile to still show full names */
     }
 
     .row-text {
