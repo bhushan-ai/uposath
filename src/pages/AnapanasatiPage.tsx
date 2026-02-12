@@ -34,6 +34,7 @@ const SUPPORTED_SCRIPTS = [
 const SUPPORTED_LANGUAGES = [
     { code: 'en', label: 'English' },
     { code: 'hi', label: 'Hindi (हिंदी)' },
+    { code: 'mr', label: 'Marathi (मराठी)' },
     { code: 'pa', label: 'Punjabi (ਪੰਜਾਬੀ)' }
 ];
 

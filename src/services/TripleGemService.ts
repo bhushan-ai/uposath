@@ -40,7 +40,8 @@ export const getPaliScriptText = (textObj: any, script: string): string => {
 export const AVAILABLE_LANGUAGES = [
     { code: 'en', label: 'English' },
     { code: 'hi', label: 'Hindi (हिंदी)' },
-    { code: 'pa', label: 'Punjabi (ပဉ္စ)' }, // Placeholder label
+    { code: 'mr', label: 'Marathi (मराठी)' },
+    { code: 'pa', label: 'Punjabi (ਪੰਜਾਬੀ)' }, // Placeholder label
     { code: 'si', label: 'Sinhala (සිංහල)' },
     { code: 'th', label: 'Thai (ไทย)' },
     { code: 'my', label: 'Burmese (မြန်မာ)' },
