@@ -18,6 +18,7 @@ import { AVAILABLE_LANGUAGES, AVAILABLE_SCRIPTS, getTripleGemData, getLocalizedT
 import { SatiPreferences, DEFAULT_PREFERENCES } from '../types/SatiTypes';
 import { MalaService } from '../services/MalaService';
 import TripleGemCard from '../components/sati/TripleGemCard';
+import './TripleGemPage.css';
 
 const TripleGemPage: React.FC = () => {
     const [prefs, setPrefs] = useState<SatiPreferences>(DEFAULT_PREFERENCES);
@@ -49,41 +50,13 @@ const TripleGemPage: React.FC = () => {
 
     return (
         <IonPage>
-            <IonHeader>
+            <IonHeader className="ion-no-border">
                 <IonToolbar>
                     <IonButtons slot="start">
                         <IonBackButton defaultHref="/sati" />
                     </IonButtons>
                     <IonTitle>Triple Gem</IonTitle>
                     <IonButtons slot="end">
-                        {/* Script Selector */}
-                        <IonSelect
-                            value={prefs.paliScript}
-                            interface="popover"
-                            onIonChange={handleScriptChange}
-                            placeholder="文 Script"
-                        >
-                            {AVAILABLE_SCRIPTS.map(s => (
-                                <IonSelectOption key={s.code} value={s.code}>
-                                    {s.label}
-                                </IonSelectOption>
-                            ))}
-                        </IonSelect>
-
-                        {/* Language Selector */}
-                        <IonSelect
-                            value={prefs.translationLanguage}
-                            interface="popover"
-                            onIonChange={handleLanguageChange}
-                            placeholder="🌐 Lang"
-                        >
-                            {AVAILABLE_LANGUAGES.map(l => (
-                                <IonSelectOption key={l.code} value={l.code}>
-                                    {l.label}
-                                </IonSelectOption>
-                            ))}
-                        </IonSelect>
-
                         <IonButton routerLink="/settings">
                             <IonIcon icon={ellipsisVertical} />
                         </IonButton>
@@ -92,20 +65,69 @@ const TripleGemPage: React.FC = () => {
             </IonHeader>
 
             <IonContent fullscreen className="ion-padding">
-                {/* Title Card */}
-                <div style={{ textAlign: 'center', marginBottom: '32px', padding: '16px 0' }}>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#333', marginBottom: '8px' }}>
+                {/* Preferences Control Row */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderRadius: '12px'
+                }}>
+                    <IonSelect
+                        value={prefs.paliScript}
+                        interface="action-sheet"
+                        onIonChange={handleScriptChange}
+                        className="toggle-button"
+                        style={{ '--background': 'var(--color-bg-secondary)', width: 'auto' }}
+                        placeholder="Script"
+                    >
+                        {AVAILABLE_SCRIPTS.map(s => (
+                            <IonSelectOption key={s.code} value={s.code}>
+                                {s.label}
+                            </IonSelectOption>
+                        ))}
+                    </IonSelect>
+
+                    <IonSelect
+                        value={prefs.translationLanguage}
+                        interface="action-sheet"
+                        onIonChange={handleLanguageChange}
+                        className="toggle-button"
+                        style={{ '--background': 'var(--color-bg-secondary)', width: 'auto' }}
+                        placeholder="Language"
+                    >
+                        {AVAILABLE_LANGUAGES.map(l => (
+                            <IonSelectOption key={l.code} value={l.code}>
+                                {l.label}
+                            </IonSelectOption>
+                        ))}
+                    </IonSelect>
+                </div>
+
+                {/* Title Section */}
+                <div className="triple-gem-header-card">
+                    <h1 className="triple-gem-title">
                         {getLocalizedText(data.title, prefs.translationLanguage)}
-                    </h2>
-                    <p style={{ fontSize: '1.1rem', color: '#555', fontStyle: 'italic', fontFamily: '"Noto Serif", serif' }}>
+                    </h1>
+                    <p className="triple-gem-subtitle">
                         {getPaliScriptText(data.subtitle, prefs.paliScript)}
                     </p>
                 </div>
 
                 {/* Triple Gem Cards */}
-                {data.recollections.map(rec => (
-                    <TripleGemCard key={rec.id} recollection={rec} prefs={prefs} />
-                ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {data.recollections.map(rec => (
+                        <TripleGemCard
+                            key={`${rec.id}-${prefs.translationLanguage}-${prefs.paliScript}`}
+                            recollection={rec}
+                            prefs={prefs}
+                        />
+                    ))}
+                </div>
+
+                <div style={{ height: '40px' }} />
             </IonContent>
         </IonPage>
     );

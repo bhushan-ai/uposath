@@ -66,19 +66,23 @@ const SatiPage: React.FC = () => {
                 {/* Uposatha Banner */}
                 {uposathaLabel && (
                     <div style={{
-                        backgroundColor: '#FFF3E0',
-                        border: '1px solid #FFB74D',
-                        color: '#E65100',
-                        padding: '12px',
-                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+                        border: '1px solid #FDE68A',
+                        color: '#92400E',
+                        padding: '16px',
+                        borderRadius: '16px',
                         marginBottom: '24px',
                         textAlign: 'center',
-                        fontWeight: 'bold',
+                        fontWeight: '700',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '8px'
+                        gap: '10px',
+                        boxShadow: '0 4px 12px rgba(251, 191, 36, 0.12)',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.4'
                     }}>
+                        <span style={{ fontSize: '1.5rem' }}>✨</span>
                         {uposathaLabel}
                     </div>
                 )}

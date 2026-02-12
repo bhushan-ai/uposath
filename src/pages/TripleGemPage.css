@@ -1,0 +1,198 @@
+/* Triple Gem Recollection Styling */
+
+.triple-gem-header-card {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 24px 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.triple-gem-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text-primary, #111827);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+    font-family: var(--font-family-display, sans-serif);
+}
+
+.triple-gem-subtitle {
+    font-size: 1.1rem;
+    color: var(--color-text-secondary, #6b7280);
+    line-height: 1.5;
+    font-style: italic;
+    font-family: 'Noto Serif', serif;
+}
+
+.triple-gem-card {
+    border-radius: 16px !important;
+    margin: 0 0 24px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+    background: var(--color-bg-card, #fff) !important;
+    contain: content;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.triple-gem-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.triple-gem-icon {
+    font-size: 2.25rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.triple-gem-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary, #111827);
+    letter-spacing: -0.01em;
+}
+
+.triple-gem-content {
+    padding: 20px;
+}
+
+.verse-display {
+    text-align: center;
+    line-height: 1.8;
+    margin-bottom: 24px;
+    color: var(--color-text-primary, #1f2937);
+    padding: 0 8px;
+}
+
+.action-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.toggle-button {
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --color: var(--color-text-secondary, #6b7280);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    --background: var(--color-bg-secondary, #f3f4f6);
+    --border-radius: 10px;
+}
+
+.translation-panel {
+    margin-top: 12px;
+    padding: 16px;
+    background: var(--color-bg-secondary, #f9fafb);
+    border-radius: 12px;
+    border-left: 4px solid #ccc;
+    /* Border color set dynamically */
+    animation: fadeIn 0.3s ease-out;
+}
+
+.translation-text {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary, #4b5563);
+}
+
+.qualities-panel {
+    margin-top: 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding-top: 20px;
+    animation: slideDown 0.4s ease-out;
+}
+
+.qualities-title {
+    margin: 0 0 16px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-tertiary, #9ca3af);
+}
+
+.quality-item {
+    margin-bottom: 20px;
+    padding-left: 16px;
+    position: relative;
+}
+
+.quality-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.quality-number {
+    font-weight: 800;
+    font-size: 0.9rem;
+    opacity: 0.5;
+}
+
+.quality-pali {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-text-primary, #111827);
+}
+
+.quality-name {
+    color: var(--color-text-secondary, #6b7280);
+    font-size: 0.95rem;
+}
+
+.quality-explanation {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary, #4b5563);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    to {
+        opacity: 1;
+        max-height: 2000px;
+    }
+}
+
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+    .triple-gem-card {
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .toggle-button {
+        --background: rgba(255, 255, 255, 0.05);
+    }
+
+    .translation-panel {
+        background: rgba(255, 255, 255, 0.03);
+    }
+}

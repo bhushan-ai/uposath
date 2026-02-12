@@ -177,3 +177,36 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
 }
+
+/* --- Global Toolbar Title Overhaul --- */
+/* Target all toolbar titles to ensure a consistent Premium Brutalist look */
+ion-toolbar ion-title {
+    --color: var(--ion-color-primary) !important;
+    font-family: var(--font-family-display) !important;
+    font-weight: 800 !important;
+    /* Extra bold for Brutalist feel */
+    letter-spacing: -0.03em !important;
+    /* Tight spacing for premium look */
+    font-size: 1.4rem !important;
+    text-transform: none;
+    filter: drop-shadow(0 0 8px rgba(255, 198, 112, 0.15));
+    /* Subtle glow */
+}
+
+/* Material Design (MD) specific refinements for better alignment and weight */
+ion-title.md {
+    padding-inline: 16px;
+    font-size: 1.5rem;
+}
+
+/* Ensure back button label matches or is hidden if preferred */
+ion-back-button {
+    --color: var(--ion-color-primary);
+}
+
+/* Toolbar responsiveness */
+ion-toolbar {
+    --min-height: 64px;
+    --padding-top: 4px;
+    --padding-bottom: 4px;
+}
