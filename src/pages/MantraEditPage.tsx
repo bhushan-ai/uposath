@@ -154,15 +154,6 @@ const MantraEditPage: React.FC = () => {
                                     onIonChange={e => setMantra({ ...mantra, text: { ...mantra.text, transliteration: e.detail.value! } })}
                                 />
                             </IonItem>
-                            <IonItem>
-                                <IonLabel position="stacked">Translation (Optional)</IonLabel>
-                                <IonTextarea
-                                    rows={2}
-                                    value={mantra.text.translation}
-                                    placeholder="English meaning..."
-                                    onIonChange={e => setMantra({ ...mantra, text: { ...mantra.text, translation: e.detail.value! } })}
-                                />
-                            </IonItem>
                         </IonList>
 
                         <IonList inset={true}>

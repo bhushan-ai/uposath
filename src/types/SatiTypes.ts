@@ -150,7 +150,6 @@ export interface MantraText {
     primaryScript: string; // 'roman', 'devanagari', etc.
     primaryText: string;
     transliteration?: string;
-    translation?: string;
 }
 
 export interface MantraPracticeSettings {

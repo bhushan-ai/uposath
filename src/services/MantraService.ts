@@ -17,8 +17,7 @@ const DEFAULT_MANTRAS: Mantra[] = [
         text: {
             primaryScript: 'devanagari',
             primaryText: 'ॐ मणि पद्मे हूँ',
-            transliteration: 'Oṃ Maṇipadme Hūṃ',
-            translation: 'Om, the jewel in the lotus, hum'
+            transliteration: 'Oṃ Maṇi Padme Hūṃ'
         },
         tradition: 'mahayana',
         purpose: 'Cultivating compassion for all beings',
@@ -46,8 +45,7 @@ const DEFAULT_MANTRAS: Mantra[] = [
         text: {
             primaryScript: 'devanagari',
             primaryText: 'ॐ तारे तुत्तारे तुरे स्वाहा',
-            transliteration: 'Oṃ Tāre Tuttāre Ture Svāhā',
-            translation: 'Om, O Tara, I pray O Tara, O Swift One, So Be It!'
+            transliteration: 'Oṃ Tāre Tuttāre Ture Svāhā'
         },
         tradition: 'tibetan',
         purpose: 'Protection and overcoming fear',
@@ -75,8 +73,7 @@ const DEFAULT_MANTRAS: Mantra[] = [
         text: {
             primaryScript: 'devanagari',
             primaryText: 'ॐ भैषज्ये भैषज्ये महाभैषज्ये भैषज्य समुद्गते स्वाहा',
-            transliteration: 'Oṃ Bhaiṣajye Bhaiṣajye Mahābhaiṣajye Bhaiṣajya Samudgate Svāhā',
-            translation: 'Om, healing, healing, great healing, healing perfectly arisen, hail!'
+            transliteration: 'Oṃ Bhaiṣajye Bhaiṣajye Mahābhaiṣajye Bhaiṣajya Samudgate Svāhā'
         },
         tradition: 'mahayana',
         purpose: 'Healing and purification',
