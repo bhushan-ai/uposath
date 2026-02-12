@@ -19,6 +19,12 @@ import {
 import { Preferences } from '@capacitor/preferences';
 import { getSavedLocation, saveLocation, getCurrentGPS, type SavedLocation } from '../services/locationManager';
 import { scheduleUposathaNotifications, scheduleFestivalNotifications, cancelAllNotifications } from '../services/notificationScheduler';
+import {
+    cancelDailyVerseNotifications,
+    requestDailyVersePermissionIfNeeded,
+    scheduleDailyVerseNotifications,
+    type DailyVerseTime
+} from '../services/dailyVerseNotificationService';
 import { Observer } from '@ishubhamx/panchangam-js';
 import { getTimezones } from '../services/timeUtils';
 import { MAJOR_CITIES } from '../services/locationData';
@@ -29,6 +35,10 @@ const SettingsPage: React.FC = () => {
     const [location, setLocation] = useState<SavedLocation | null>(null);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [festivalsEnabled, setFestivalsEnabled] = useState(false);
+    const [dailyVerseEnabled, setDailyVerseEnabled] = useState(true);
+    const [dailyVerseTime, setDailyVerseTime] = useState<DailyVerseTime>({ hour: 6, minute: 0 });
+    const [dailyVerseTimeLabel, setDailyVerseTimeLabel] = useState('06:00');
+    const [showDailyVerseCard, setShowDailyVerseCard] = useState(true);
     const [timezones] = useState(getTimezones());
 
     useIonViewWillEnter(() => {
@@ -44,6 +54,27 @@ const SettingsPage: React.FC = () => {
 
         const { value: fest } = await Preferences.get({ key: 'notifications_festivals' });
         setFestivalsEnabled(fest === 'true');
+
+        const { value: dailyVerseEnabledRaw } = await Preferences.get({ key: 'notifications_daily_verse_enabled' });
+        setDailyVerseEnabled(dailyVerseEnabledRaw === null || dailyVerseEnabledRaw === '' || dailyVerseEnabledRaw === 'true');
+
+        const { value: dailyVerseTimeRaw } = await Preferences.get({ key: 'notifications_daily_verse_time' });
+        if (dailyVerseTimeRaw) {
+            try {
+                const parsed = JSON.parse(dailyVerseTimeRaw) as DailyVerseTime;
+                if (typeof parsed.hour === 'number' && typeof parsed.minute === 'number') {
+                    setDailyVerseTime(parsed);
+                    const hh = String(parsed.hour).padStart(2, '0');
+                    const mm = String(parsed.minute).padStart(2, '0');
+                    setDailyVerseTimeLabel(`${hh}:${mm}`);
+                }
+            } catch {
+                // ignore and keep default
+            }
+        }
+
+        const { value: showVerse } = await Preferences.get({ key: 'settings_show_daily_verse' });
+        setShowDailyVerseCard(showVerse === null || showVerse === '' || showVerse === 'true');
     };
 
     const handleTimezoneChange = async (tz: string) => {
@@ -94,6 +125,45 @@ const SettingsPage: React.FC = () => {
         setFestivalsEnabled(enabled);
         await Preferences.set({ key: 'notifications_festivals', value: String(enabled) });
         updateSchedules(notificationsEnabled, enabled);
+    };
+
+    const toggleDailyVerse = async (enabled: boolean) => {
+        setDailyVerseEnabled(enabled);
+        await Preferences.set({ key: 'notifications_daily_verse_enabled', value: String(enabled) });
+
+        if (enabled) {
+            const granted = await requestDailyVersePermissionIfNeeded();
+            if (!granted) {
+                setDailyVerseEnabled(false);
+                await Preferences.set({ key: 'notifications_daily_verse_enabled', value: 'false' });
+                alert('Daily verse notifications are disabled because notification permission was not granted. You can enable notifications in system settings.');
+                return;
+            }
+            await cancelDailyVerseNotifications();
+            await scheduleDailyVerseNotifications(dailyVerseTime);
+        } else {
+            await cancelDailyVerseNotifications();
+        }
+    };
+
+    const handleDailyVerseTimeChange = async (timeString: string) => {
+        setDailyVerseTimeLabel(timeString);
+        const [hh, mm] = timeString.split(':').map(part => parseInt(part, 10));
+        if (Number.isNaN(hh) || Number.isNaN(mm)) return;
+
+        const time: DailyVerseTime = { hour: hh, minute: mm };
+        setDailyVerseTime(time);
+        await Preferences.set({ key: 'notifications_daily_verse_time', value: JSON.stringify(time) });
+
+        if (dailyVerseEnabled) {
+            await cancelDailyVerseNotifications();
+            await scheduleDailyVerseNotifications(time);
+        }
+    };
+
+    const toggleShowDailyVerseCard = async (enabled: boolean) => {
+        setShowDailyVerseCard(enabled);
+        await Preferences.set({ key: 'settings_show_daily_verse', value: String(enabled) });
     };
 
     const updateSchedules = async (uposatha: boolean, festivals: boolean) => {
@@ -213,10 +283,66 @@ const SettingsPage: React.FC = () => {
                             onIonChange={e => toggleFestivals(e.detail.checked)}
                         />
                     </IonItem>
+                    <IonItem>
+                        <IonLabel>Daily Dhammapada Verse</IonLabel>
+                        <IonToggle
+                            slot="end"
+                            checked={dailyVerseEnabled}
+                            onIonChange={e => toggleDailyVerse(e.detail.checked)}
+                        />
+                    </IonItem>
+                    <IonItem>
+                        <IonLabel className="ion-text-wrap">
+                            <h2>Daily Verse Time</h2>
+                            <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>Local time for the daily verse notification.</p>
+                        </IonLabel>
+                        <IonSelect
+                            slot="end"
+                            interface="action-sheet"
+                            placeholder="Select time"
+                            style={{ maxWidth: '40%' }}
+                            value={dailyVerseTimeLabel}
+                            onIonChange={e => handleDailyVerseTimeChange(e.detail.value)}
+                        >
+                            {['04:30', '05:00', '05:30', '06:00', '06:30', '07:00', '07:30', '08:00'].map(t => (
+                                <IonSelectOption key={t} value={t}>
+                                    {t}
+                                </IonSelectOption>
+                            ))}
+                        </IonSelect>
+                    </IonItem>
                     <IonItem lines="none">
                         <IonNote className="ion-text-wrap" style={{ fontSize: '0.8rem' }}>
                             Notifications are scheduled locally on your device based on your location's astronomical data.
                         </IonNote>
+                    </IonItem>
+                </IonList>
+
+                <IonList inset>
+                    <IonItemDivider>
+                        <IonLabel>Daily Verse Display</IonLabel>
+                    </IonItemDivider>
+                    <IonItem>
+                        <IonLabel>Show verse card on Calendar screen</IonLabel>
+                        <IonToggle
+                            slot="end"
+                            checked={showDailyVerseCard}
+                            onIonChange={e => toggleShowDailyVerseCard(e.detail.checked)}
+                        />
+                    </IonItem>
+                </IonList>
+
+                <IonList inset>
+                    <IonItemDivider>
+                        <IonLabel>About & Credits</IonLabel>
+                    </IonItemDivider>
+                    <IonItem lines="none">
+                        <IonLabel className="ion-text-wrap">
+                            <h2>Texts & Sources</h2>
+                            <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                                Dhammapada verses translated by F. Max Müller (public domain). Text source: Project Gutenberg eBook #2017.
+                            </p>
+                        </IonLabel>
                     </IonItem>
                 </IonList>
 

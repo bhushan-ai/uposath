@@ -1,5 +1,5 @@
-import React from 'react';
-import { Redirect, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Redirect, Route, useHistory } from 'react-router-dom';
 import {
   IonApp,
   IonIcon,
@@ -12,6 +12,7 @@ import {
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { calendar, rose, settings, today } from 'ionicons/icons';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 /* Core CSS */
 import '@ionic/react/css/core.css';
@@ -43,11 +44,37 @@ import FestivalsPage from './pages/FestivalsPage';
 import SettingsPage from './pages/SettingsPage';
 import DayDetailPage from './pages/DayDetailPage';
 
+const NotificationRouterBridge: React.FC = () => {
+  const history = useHistory();
+
+  useEffect(() => {
+    const listenerPromise = LocalNotifications.addListener(
+      'localNotificationActionPerformed',
+      (event) => {
+        const extra = event.notification.extra as { route?: string } | null | undefined;
+        const route = extra?.route;
+        if (route) {
+          history.push(route);
+        }
+      },
+    );
+
+    return () => {
+      listenerPromise.then((listener) => {
+        listener.remove();
+      });
+    };
+  }, [history]);
+
+  return null;
+};
+
 setupIonicReact();
 
 const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
+      <NotificationRouterBridge />
       <IonTabs>
         <IonRouterOutlet>
           <Route exact path="/calendar">

@@ -4,7 +4,6 @@ import {
     IonContent,
     IonHeader,
     IonPage,
-    IonTitle,
     IonToolbar,
     IonButtons,
     IonButton,
@@ -15,17 +14,18 @@ import {
 import {
     chevronBack,
     chevronForward,
-    calendarNumber,
-    list,
     locationOutline,
     todayOutline
 } from 'ionicons/icons';
 import { useHistory } from 'react-router';
+import { Preferences } from '@capacitor/preferences';
 import { getUposathaStatus, type UposathaStatus } from '../services/uposathaCalculator';
 import { checkFestival, type BuddhistFestival, getTraditionColors } from '../services/buddhistFestivalService';
 import { Observer, getPanchangam } from '@ishubhamx/panchangam-js';
 import YearView from '../components/YearView';
 import { getSavedLocation } from '../services/locationManager';
+import DhammapadaVerseCard from '../components/DhammapadaVerseCard';
+import { DhammapadaVerse, getVerseForDate, getRandomVerse } from '../services/dhammapadaService';
 import './CalendarPage.css';
 
 const CalendarPage: React.FC = () => {
@@ -35,9 +35,13 @@ const CalendarPage: React.FC = () => {
     const [daysInMonth, setDaysInMonth] = useState<{ date: Date; uposatha: UposathaStatus; festival: BuddhistFestival | null }[]>([]);
     const [locationName, setLocationName] = useState('Loading...');
     const [observer, setObserver] = useState(new Observer(24.7914, 85.0002, 111));
+    const [showVerseCard, setShowVerseCard] = useState(true);
+    const [primaryVerse, setPrimaryVerse] = useState<DhammapadaVerse | null>(null);
+    const [currentVerse, setCurrentVerse] = useState<DhammapadaVerse | null>(null);
 
     useIonViewWillEnter(() => {
         loadLocation();
+        loadVerseSettingsAndVerse();
     });
 
     const loadLocation = async () => {
@@ -46,6 +50,18 @@ const CalendarPage: React.FC = () => {
             setObserver(new Observer(loc.latitude, loc.longitude, loc.altitude));
             setLocationName(loc.name);
         }
+    };
+
+    const loadVerseSettingsAndVerse = async () => {
+        const { value } = await Preferences.get({ key: 'settings_show_daily_verse' });
+        // Default: on
+        const enabled = value === null || value === '' || value === 'true';
+        setShowVerseCard(enabled);
+
+        const today = new Date();
+        const verse = getVerseForDate(today);
+        setPrimaryVerse(verse);
+        setCurrentVerse(verse);
     };
 
     useEffect(() => {
@@ -63,7 +79,7 @@ const CalendarPage: React.FC = () => {
         for (let d = 1; d <= days; d++) {
             const dayDate = new Date(year, month, d, 12, 0, 0);
             const status = getUposathaStatus(dayDate, observer);
-            const festival = checkFestival(dayDate, observer);
+            const festival = checkFestival(dayDate, observer, status.panchangam);
             data.push({ date: dayDate, uposatha: status, festival });
         }
         setDaysInMonth(data);
@@ -83,6 +99,18 @@ const CalendarPage: React.FC = () => {
         setCurrentDate(newDate);
     };
 
+    const changeYear = (delta: number) => {
+        const newDate = new Date(currentDate);
+        newDate.setFullYear(newDate.getFullYear() + delta);
+        setCurrentDate(newDate);
+    };
+
+    const handleShowAnotherVerse = () => {
+        if (!primaryVerse) return;
+        const next = getRandomVerse(primaryVerse.globalVerseNumber);
+        setCurrentVerse(next);
+    };
+
     const goToToday = () => {
         setCurrentDate(new Date());
         setViewMode('month');
@@ -96,10 +124,13 @@ const CalendarPage: React.FC = () => {
     };
 
     const getMoonIcon = (status: UposathaStatus) => {
-        if (!status.isUposatha) return null;
-        if (status.isFullMoon) return '🌕';
-        if (status.isNewMoon) return '🌑';
-        return '🌗';
+        if (status.isUposatha) {
+            if (status.isFullMoon) return '🌕';
+            if (status.isNewMoon) return '🌑';
+            return '🌗';
+        }
+        if (status.isOptional) return '○';
+        return null;
     };
 
     const renderMonthGrid = () => {
@@ -108,7 +139,7 @@ const CalendarPage: React.FC = () => {
 
         return (
             <div className="calendar-grid">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                {['Rav', 'Som', 'Man', 'Bud', 'Gur', 'Shu', 'Sha'].map(d => (
                     <div key={d} className="weekday-header">{d}</div>
                 ))}
 
@@ -145,23 +176,69 @@ const CalendarPage: React.FC = () => {
             <IonHeader className="ion-no-border">
                 <IonToolbar>
                     <IonButtons slot="start">
-                        <IonButton onClick={() => {
-                            if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-                            setViewMode(viewMode === 'month' ? 'year' : 'month');
-                        }}>
-                            <IonIcon icon={viewMode === 'month' ? list : calendarNumber} />
+                        <IonButton
+                            size="small"
+                            fill="clear"
+                            className={`mode-toggle-button ${viewMode === 'month' ? 'mode-toggle-button--active' : ''}`}
+                            onClick={() => {
+                                if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                                setViewMode('month');
+                            }}
+                            aria-pressed={viewMode === 'month'}
+                            aria-label="Switch to month view"
+                        >
+                            <IonLabel>Month</IonLabel>
+                        </IonButton>
+                        <IonButton
+                            size="small"
+                            fill="clear"
+                            className={`mode-toggle-button ${viewMode === 'year' ? 'mode-toggle-button--active' : ''}`}
+                            onClick={() => {
+                                if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                                setViewMode('year');
+                            }}
+                            aria-pressed={viewMode === 'year'}
+                            aria-label="Switch to year view"
+                        >
+                            <IonLabel>Year</IonLabel>
                         </IonButton>
                     </IonButtons>
-                    <IonTitle style={{ textAlign: 'center' }}>
-                        {viewMode === 'month'
-                            ? currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
-                            : currentDate.getFullYear()
-                        }
-                    </IonTitle>
                     <IonButtons slot="end">
-                        <IonButton onClick={goToToday}>
-                            <IonIcon icon={todayOutline} />
-                        </IonButton>
+                        {viewMode === 'month' ? (
+                            <IonButton
+                                onClick={goToToday}
+                                fill="clear"
+                                className="header-today-button"
+                                aria-label="Go to today"
+                            >
+                                <IonLabel>Today</IonLabel>
+                            </IonButton>
+                        ) : (
+                            <>
+                                <IonButton
+                                    fill="clear"
+                                    size="small"
+                                    onClick={() => {
+                                        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                                        changeYear(-1);
+                                    }}
+                                    aria-label="Previous year"
+                                >
+                                    <IonIcon icon={chevronBack} />
+                                </IonButton>
+                                <IonButton
+                                    fill="clear"
+                                    size="small"
+                                    onClick={() => {
+                                        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                                        changeYear(1);
+                                    }}
+                                    aria-label="Next year"
+                                >
+                                    <IonIcon icon={chevronForward} />
+                                </IonButton>
+                            </>
+                        )}
                     </IonButtons>
                 </IonToolbar>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 16px 8px', background: 'var(--ion-toolbar-background)' }}>
@@ -178,17 +255,28 @@ const CalendarPage: React.FC = () => {
                         <div className="insight-card">
                             <div className="insight-header">
                                 <span className="insight-masa">{todayData.p.masa.name} Masa</span>
-                                <span className="insight-tithi">{todayData.p.masa.index + 1}th Month</span>
+                                <span className="insight-tithi">{todayData.p.masa.index + 1}th Masa</span>
                             </div>
                             <div className="insight-tithi" style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Day {todayData.p.tithi + 1} — {todayData.p.paksha} Paksha</span>
+                                <span>{todayData.p.tithi + 1} Tithi — {todayData.p.paksha} Paksha</span>
                                 <span style={{
                                     color: todayData.u.isUposatha ? 'var(--color-accent-primary)' : 'inherit',
                                     fontWeight: todayData.u.isUposatha ? 'bold' : 'normal'
                                 }}>
-                                    {todayData.u.isUposatha ? `✨ ${todayData.u.paliLabel || 'Uposatha'}` : 'Regular Day'}
+                                    {todayData.u.isUposatha
+                                        ? `✨ ${todayData.u.paliLabel || 'Uposatha'}`
+                                        : todayData.u.isOptional
+                                            ? `○ ${todayData.u.isKshaya ? 'Kshaya' : 'Vridhi'}`
+                                            : 'No Uposatha Day'}
                                 </span>
                             </div>
+                            {todayData.u.isOptional && (
+                                <div style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '8px', lineHeight: '1.3' }}>
+                                    {todayData.u.isKshaya
+                                        ? 'Note: Kshaya (Skipped) — This tithi started and ended between sunrises, missing the standard calendar count.'
+                                        : 'Note: Vridhi (Extended) — This tithi spans across two sunrises, making today an additional observance day.'}
+                                </div>
+                            )}
                             {todayData.f && (
                                 <div className="insight-festival">
                                     <span style={{ fontSize: '1.2rem' }}>☸️</span>
@@ -197,6 +285,16 @@ const CalendarPage: React.FC = () => {
                             )}
                         </div>
 
+                        {showVerseCard && currentVerse && (
+                            <div className="ion-padding-horizontal" style={{ marginBottom: '12px' }}>
+                                <DhammapadaVerseCard
+                                    verse={currentVerse}
+                                    isPrimaryForDay={primaryVerse !== null && currentVerse.globalVerseNumber === primaryVerse.globalVerseNumber}
+                                    onShowAnother={handleShowAnotherVerse}
+                                />
+                            </div>
+                        )}
+
                         <div className="ion-padding-horizontal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <IonButton fill="clear" size="small" onClick={() => {
                                 if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
@@ -204,7 +302,9 @@ const CalendarPage: React.FC = () => {
                             }}>
                                 <IonIcon icon={chevronBack} />
                             </IonButton>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', opacity: 0.6 }}>LUNAR CALENDAR</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', opacity: 0.6 }}>
+                                {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                            </span>
                             <IonButton fill="clear" size="small" onClick={() => {
                                 if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
                                 changeMonth(1);
@@ -214,31 +314,41 @@ const CalendarPage: React.FC = () => {
                         </div>
 
                         {renderMonthGrid()}
-
-                        <div className="calendar-legend">
-                            <div className="legend-title">Moon & Tradition Legend</div>
-                            <div className="legend-grid">
-                                <div className="legend-item"><span>🌕</span> Full Moon (Purnima)</div>
-                                <div className="legend-item"><span>🌑</span> New Moon (Amavasya)</div>
-                                <div className="legend-item"><span>🌗</span> 8th / 14th Day (Uposatha)</div>
-                                <div className="legend-item">
-                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF9933' }} />
-                                    Theravada
-                                </div>
-                                <div className="legend-item">
-                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E34234' }} />
-                                    Mahayana
-                                </div>
-                                <div className="legend-item">
-                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1E3A5F' }} />
-                                    Vajrayana
-                                </div>
-                            </div>
-                        </div>
                     </>
                 ) : (
                     <YearView year={currentDate.getFullYear()} observer={observer} />
                 )}
+
+                <div className="calendar-legend">
+                    <div className="legend-title">Moon & Tradition Legend</div>
+                    <div className="legend-grid">
+                        <div className="legend-item"><span>🌕</span> Purnima Uposatha</div>
+                        <div className="legend-item"><span>🌑</span> Amavasya Uposatha</div>
+                        <div className="legend-item"><span>🌗</span> Ashtami / Chaturdashi</div>
+                        <div className="legend-item"><span>○</span> Kshaya / Vridhi (Optional)</div>
+                        <div className="legend-item">
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF9933' }} />
+                            Theravada
+                        </div>
+                        <div className="legend-item">
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E34234' }} />
+                            Mahayana
+                        </div>
+                        <div className="legend-item">
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1E3A5F' }} />
+                            Vajrayana
+                        </div>
+                    </div>
+                    <div style={{ marginTop: '12px', fontSize: '0.75rem', opacity: 0.8, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px', lineHeight: '1.4' }}>
+                        <div style={{ marginBottom: '6px' }}><strong>Liturgical Meanings:</strong></div>
+                        <div style={{ marginBottom: '4px' }}>
+                            • <strong>Kshaya (Skipped):</strong> Occurs when a Tithi starts after one sunrise and ends before the next. It never exists at the moment of sunrise, causing it to be "skipped" in the primary udaya-based count. These are marked as optional observances.
+                        </div>
+                        <div>
+                            • <strong>Vridhi (Extended):</strong> Occurs when a Tithi is long enough to span across two consecutive sunrises. The same Tithi is counted twice; the first is the primary day, and the second is marked as an optional/extended day.
+                        </div>
+                    </div>
+                </div>
             </IonContent>
         </IonPage>
     );
