@@ -29,3 +29,13 @@ yarn-error.log*
 
 # Optional eslint cache
 .eslintcache
+
+# Local debug / diagnosis artifacts
+debug_output.txt
+debug_*.txt
+diagnosis_*.txt
+debug_*.ts
+debug_*.test.ts
+diagnose_*.ts
+verify_*.ts
+verify_*.test.ts
