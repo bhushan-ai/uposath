@@ -99,7 +99,17 @@ export function getUposathaStatus(date: Date, observer: Observer): UposathaStatu
     const p = getPanchangam(date, observer);
     const tithi = p.tithi; // 0-indexed, computed at sunrise
     const tithiNumber = tithi + 1; // 1-30
-    const isUposatha = UPOSATHA_INDICES.has(tithi);
+    let isUposatha = UPOSATHA_INDICES.has(tithi);
+
+    // Skip the second day of a Tithi Vridhi (extended tithi) for Uposatha markers
+    if (isUposatha) {
+        const yesterday = new Date(date);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const pYesterday = getPanchangam(yesterday, observer);
+        if (pYesterday.tithi === tithi) {
+            isUposatha = false; // Suppress duplicate marker
+        }
+    }
 
     const paliLabel = PALI_LABELS[tithi] ?? '';
     const uposathaType = UPOSATHA_TYPE[tithi] ?? '';

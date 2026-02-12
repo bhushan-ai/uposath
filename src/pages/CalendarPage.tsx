@@ -70,9 +70,11 @@ const CalendarPage: React.FC = () => {
     };
 
     const todayData = useMemo(() => {
-        const p = getPanchangam(new Date(), observer);
-        const f = checkFestival(new Date(), observer, p);
-        return { p, f };
+        const now = new Date();
+        const p = getPanchangam(now, observer);
+        const f = checkFestival(now, observer, p);
+        const u = getUposathaStatus(now, observer);
+        return { p, f, u };
     }, [observer]);
 
     const changeMonth = (delta: number) => {
@@ -172,8 +174,14 @@ const CalendarPage: React.FC = () => {
                                 <span className="insight-masa">{todayData.p.masa.name} Masa</span>
                                 <span className="insight-tithi">{todayData.p.masa.index + 1}th Month</span>
                             </div>
-                            <div className="insight-tithi" style={{ marginBottom: '8px' }}>
-                                Day {todayData.p.tithi + 1} — {todayData.f ? 'Festival Day' : 'Normal Day'}
+                            <div className="insight-tithi" style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                                <span>Day {todayData.p.tithi + 1} — {todayData.p.paksha} Paksha</span>
+                                <span style={{
+                                    color: todayData.u.isUposatha ? 'var(--color-accent-primary)' : 'inherit',
+                                    fontWeight: todayData.u.isUposatha ? 'bold' : 'normal'
+                                }}>
+                                    {todayData.u.isUposatha ? `✨ ${todayData.u.paliLabel || 'Uposatha'}` : 'Regular Day'}
+                                </span>
                             </div>
                             {todayData.f && (
                                 <div className="insight-festival">
@@ -187,7 +195,7 @@ const CalendarPage: React.FC = () => {
                             <IonButton fill="clear" size="small" onClick={() => changeMonth(-1)}>
                                 <IonIcon icon={chevronBack} />
                             </IonButton>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', opacity: 0.6 }}>MONTHLY FLOW</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', opacity: 0.6 }}>LUNAR CALENDAR</span>
                             <IonButton fill="clear" size="small" onClick={() => changeMonth(1)}>
                                 <IonIcon icon={chevronForward} />
                             </IonButton>
@@ -198,9 +206,9 @@ const CalendarPage: React.FC = () => {
                         <div className="calendar-legend">
                             <div className="legend-title">Moon & Tradition Legend</div>
                             <div className="legend-grid">
-                                <div className="legend-item"><span>🌕</span> Full Moon (Uposatha)</div>
-                                <div className="legend-item"><span>🌑</span> New Moon (Uposatha)</div>
-                                <div className="legend-item"><span>🌗</span> Half Moon</div>
+                                <div className="legend-item"><span>🌕</span> Full Moon (Purnima)</div>
+                                <div className="legend-item"><span>🌑</span> New Moon (Amavasya)</div>
+                                <div className="legend-item"><span>🌗</span> 8th / 14th Day (Uposatha)</div>
                                 <div className="legend-item">
                                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF9933' }} />
                                     Theravada
