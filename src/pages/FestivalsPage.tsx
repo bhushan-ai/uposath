@@ -84,14 +84,14 @@ const FestivalsPage: React.FC = () => {
                                             <h2 className="festival-name" style={{ color: colors.primary }}>
                                                 {match.festival.name}
                                             </h2>
-                                            <span className="tradition-badge" style={{ background: colors.primary, color: '#fff' }}>
+                                            <span className="tradition-badge" style={{ background: colors.primary, color: colors.background }}>
                                                 {match.festival.tradition}
                                             </span>
                                         </div>
 
-                                        <div className="festival-date" style={{ color: colors.secondary }}>
-                                            <IonIcon icon={calendarOutline} />
-                                            {match.date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                        <div className="festival-date">
+                                            <IonIcon icon={calendarOutline} style={{ color: colors.primary }} />
+                                            <span style={{ color: colors.text }}>{match.date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                                         </div>
 
                                         <p className="festival-description" style={{ color: colors.text }}>
