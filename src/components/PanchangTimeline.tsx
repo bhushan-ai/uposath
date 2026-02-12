@@ -1,18 +1,20 @@
 
 import React, { useMemo } from 'react';
 import type { TimelineData, TimelineRow } from '../services/panchangTimeline';
+import { formatTime } from '../services/timeUtils';
 import './PanchangTimeline.css';
 
 interface PanchangTimelineProps {
     data: TimelineData;
     currentTime?: Date;
+    timezone?: string;
 }
 
 const PanchangTimeline: React.FC<PanchangTimelineProps> = ({
     data,
-    currentTime = new Date()
+    currentTime = new Date(),
+    timezone
 }) => {
-
     // We visualize from Sunrise to next Sunrise (24 hour window)
     // Actually, usually it's easier to visualize from Sunrise to Sunrise+24h.
     // The library's `data` usually covers the current solar day (sunrise to next sunrise).
@@ -42,11 +44,8 @@ const PanchangTimeline: React.FC<PanchangTimelineProps> = ({
         return (diff / durationMs) * 100;
     };
 
-    // Helper: Format HH:mm
-    const formatTime = (date?: Date | null) => {
-        if (!date) return '';
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-    };
+    // Helper: Local wrapper for uniform formatting
+    const localFormatTime = (date?: Date | null) => formatTime(date, timezone);
 
     const currentTimePercent = getPercent(currentTime);
     const sunsetPercent = data.sunset ? getPercent(data.sunset) : null;
@@ -122,7 +121,7 @@ const PanchangTimeline: React.FC<PanchangTimelineProps> = ({
                                 <div className="sun-icon-wrapper sunrise-icon">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path><circle cx="12" cy="12" r="4"></circle><path d="M12 16v4"></path><path d="M8 20h8"></path></svg>
                                 </div>
-                                <span className="sun-time">{formatTime(dayStart)}</span>
+                                <span className="sun-time">{localFormatTime(dayStart)}</span>
                             </div>
 
                             {/* Hour Markers */}
@@ -139,7 +138,7 @@ const PanchangTimeline: React.FC<PanchangTimelineProps> = ({
                                     <div className="sun-icon-wrapper sunset-icon">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path><circle cx="12" cy="12" r="4"></circle><path d="M12 16v4"></path><path d="M8 20h8"></path></svg>
                                     </div>
-                                    <span className="sun-time">{formatTime(data.sunset)}</span>
+                                    <span className="sun-time">{localFormatTime(data.sunset)}</span>
                                 </div>
                             )}
 
@@ -182,7 +181,7 @@ const PanchangTimeline: React.FC<PanchangTimelineProps> = ({
                                                 {/* Transition Time Marker (if not end of day) */}
                                                 {(endPct < 99) && (
                                                     <div className="transition-marker">
-                                                        <span className="transition-time">{formatTime(seg.endTime)}</span>
+                                                        <span className="transition-time">{localFormatTime(seg.endTime)}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -195,7 +194,7 @@ const PanchangTimeline: React.FC<PanchangTimelineProps> = ({
                         {/* Current Time Indicator */}
                         {currentTimePercent >= 0 && currentTimePercent <= 100 && (
                             <div className="current-time-indicator" style={{ left: `${currentTimePercent}%` }}>
-                                <div className="current-time-label">{formatTime(currentTime)}</div>
+                                <div className="current-time-label">{localFormatTime(currentTime)}</div>
                                 <div className="current-time-dot"></div>
                                 <div className="current-time-line"></div>
                             </div>

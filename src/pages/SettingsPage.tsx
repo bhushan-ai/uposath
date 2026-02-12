@@ -17,14 +17,17 @@ import {
     IonItemDivider
 } from '@ionic/react';
 import { Preferences } from '@capacitor/preferences';
-import { getSavedLocation, saveLocation, getCurrentGPS } from '../services/locationManager';
+import { getSavedLocation, saveLocation, getCurrentGPS, type SavedLocation } from '../services/locationManager';
 import { scheduleUposathaNotifications, scheduleFestivalNotifications, cancelAllNotifications } from '../services/notificationScheduler';
 import { Observer } from '@ishubhamx/panchangam-js';
+import { getTimezones } from '../services/timeUtils';
+import { IonSelect, IonSelectOption } from '@ionic/react';
 
 const SettingsPage: React.FC = () => {
-    const [location, setLocation] = useState<any>(null);
+    const [location, setLocation] = useState<SavedLocation | null>(null);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [festivalsEnabled, setFestivalsEnabled] = useState(false);
+    const [timezones] = useState(getTimezones());
 
     useIonViewWillEnter(() => {
         loadSettings();
@@ -39,6 +42,17 @@ const SettingsPage: React.FC = () => {
 
         const { value: fest } = await Preferences.get({ key: 'notifications_festivals' });
         setFestivalsEnabled(fest === 'true');
+    };
+
+    const handleTimezoneChange = async (tz: string) => {
+        if (!location) return;
+        const updated = { ...location, timezone: tz };
+        setLocation(updated);
+        await saveLocation(updated);
+        // Reschedule if notifications are on
+        if (notificationsEnabled || festivalsEnabled) {
+            await reschedule(updated);
+        }
     };
 
     const handleGPS = async () => {
@@ -111,7 +125,19 @@ const SettingsPage: React.FC = () => {
                             <p>{location ? location.name : 'Not set'}</p>
                             {location && <p className="text-xs">{location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}</p>}
                         </IonLabel>
-                        <IonButton slot="end" size="small" onClick={handleGPS}>Use GPS</IonButton>
+                        <IonButton slot="end" size="small" fill="outline" onClick={handleGPS}>Use GPS</IonButton>
+                    </IonItem>
+                    <IonItem>
+                        <IonLabel>Timezone</IonLabel>
+                        <IonSelect
+                            slot="end"
+                            value={location?.timezone}
+                            onIonChange={e => handleTimezoneChange(e.detail.value)}
+                        >
+                            {timezones.map(tz => (
+                                <IonSelectOption key={tz} value={tz}>{tz}</IonSelectOption>
+                            ))}
+                        </IonSelect>
                     </IonItem>
                 </IonList>
 

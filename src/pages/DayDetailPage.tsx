@@ -22,6 +22,8 @@ import { buildTimelineData } from '../services/panchangTimeline';
 import { computeHoras } from '../services/horaCalculator';
 import { getGrahaCards } from '../services/grahaPositionService';
 import { getSavedLocation } from '../services/locationManager';
+import type { HoraSegment } from '../services/horaCalculator'; // Added this import
+import { formatTime } from '../services/timeUtils'; // Added this import
 
 // Components
 import PanchangTimeline from '../components/PanchangTimeline';
@@ -32,7 +34,7 @@ import GrahaGrid from '../components/GrahaGrid';
 const DayDetailPage: React.FC = () => {
     const { dateStr } = useParams<{ dateStr: string }>();
     const [activeTab, setActiveTab] = useState('timeline');
-    const [locationName, setLocationName] = useState('Loading...');
+    const [location, setLocation] = useState<any>(null);
     const [observer, setObserver] = useState(new Observer(24.7914, 85.0002, 111)); // Default: Gaya
 
     useIonViewWillEnter(() => {
@@ -43,7 +45,7 @@ const DayDetailPage: React.FC = () => {
         const loc = await getSavedLocation();
         if (loc) {
             setObserver(new Observer(loc.latitude, loc.longitude, loc.altitude));
-            setLocationName(loc.name);
+            setLocation(loc);
         }
     };
 
@@ -140,13 +142,14 @@ const DayDetailPage: React.FC = () => {
                             sunset={data.status.sunset}
                             moonrise={data.status.panchangam.moonrise}
                             moonset={data.status.panchangam.moonset}
+                            location={location}
                         />
-                        <PanchangTimeline data={data.timeline} />
+                        <PanchangTimeline data={data.timeline} timezone={location?.timezone} />
                     </>
                 )}
 
                 {activeTab === 'hora' && (
-                    <HoraTable horas={data.horas} />
+                    <HoraTable horas={data.horas} timezone={location?.timezone} />
                 )}
 
                 {activeTab === 'graha' && (

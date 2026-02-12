@@ -1,5 +1,6 @@
-
 import React, { useMemo } from 'react';
+import type { SavedLocation } from '../services/locationManager';
+import { formatTime } from '../services/timeUtils';
 import './SunMoonVisualization.css';
 
 interface SunMoonVisualizationProps {
@@ -8,6 +9,7 @@ interface SunMoonVisualizationProps {
     moonrise: Date | null;
     moonset: Date | null;
     currentTime?: Date;
+    location?: SavedLocation;
 }
 
 const SunMoonVisualization: React.FC<SunMoonVisualizationProps> = ({
@@ -15,7 +17,8 @@ const SunMoonVisualization: React.FC<SunMoonVisualizationProps> = ({
     sunset,
     moonrise,
     moonset,
-    currentTime = new Date()
+    currentTime = new Date(),
+    location
 }) => {
     // Canvas dimensions
     const width = 800;
@@ -135,6 +138,10 @@ const SunMoonVisualization: React.FC<SunMoonVisualizationProps> = ({
     // Grid lines labels
     const gridTimes = [0, 3, 6, 9, 12, 15, 18, 21]; // hours
 
+    // Simplified time formatting
+    const localFormatTime = (date?: Date | null) => formatTime(date, location?.timezone);
+    const dayDisplayTime = localFormatTime(currentTime);
+
     return (
         <div className="sunrise-timeline-container">
             <div className="timeline-header">
@@ -144,7 +151,7 @@ const SunMoonVisualization: React.FC<SunMoonVisualizationProps> = ({
                 </div>
                 <div className="header-right">
                     <span className="current-time-badge">
-                        🕐 {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        🕐 {dayDisplayTime}
                     </span>
                 </div>
             </div>
@@ -236,7 +243,7 @@ const SunMoonVisualization: React.FC<SunMoonVisualizationProps> = ({
                         <g className="event-marker sunrise-marker" transform={`translate(${timeToX(sunrise)}, 0)`}>
                             <line x1="0" y1={horizonY - 10} x2="0" y2={horizonY + 45} stroke="#FF9933" strokeWidth="2" strokeDasharray="4 2" />
                             <circle cx="0" cy={horizonY} r="6" fill="#FF9933" />
-                            <text x="0" y={horizonY + 60} textAnchor="middle" className="event-label">🌅 {sunrise.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</text>
+                            <text x="0" y={horizonY + 60} textAnchor="middle" className="event-label">🌅 {localFormatTime(sunrise)}</text>
                         </g>
                     )}
 
@@ -245,7 +252,7 @@ const SunMoonVisualization: React.FC<SunMoonVisualizationProps> = ({
                         <g className="event-marker sunset-marker" transform={`translate(${timeToX(sunset)}, 0)`}>
                             <line x1="0" y1={horizonY - 10} x2="0" y2={horizonY + 45} stroke="#E65C00" strokeWidth="2" strokeDasharray="4 2" />
                             <circle cx="0" cy={horizonY} r="6" fill="#E65C00" />
-                            <text x="0" y={horizonY + 60} textAnchor="middle" className="event-label">🌇 {sunset.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</text>
+                            <text x="0" y={horizonY + 60} textAnchor="middle" className="event-label">🌇 {localFormatTime(sunset)}</text>
                         </g>
                     )}
 
@@ -254,13 +261,13 @@ const SunMoonVisualization: React.FC<SunMoonVisualizationProps> = ({
                         <g className="event-marker moonrise-marker" transform={`translate(${timeToX(moonrise)}, 0)`}>
                             {/* Short line just to mark axis if needed, or just dot */}
                             <circle cx="0" cy={horizonY} r="5" fill="#9090FF" />
-                            <text x="0" y={horizonY + 75} textAnchor="middle" className="event-label moon-label">🌙↑ {moonrise.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</text>
+                            <text x="0" y={horizonY + 75} textAnchor="middle" className="event-label moon-label">🌙↑ {localFormatTime(moonrise)}</text>
                         </g>
                     )}
                     {moonset && (
                         <g className="event-marker moonset-marker" transform={`translate(${timeToX(moonset)}, 0)`}>
                             <circle cx="0" cy={horizonY} r="5" fill="#7070CC" />
-                            <text x="0" y={horizonY + 75} textAnchor="middle" className="event-label moon-label">🌙↓ {moonset.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</text>
+                            <text x="0" y={horizonY + 75} textAnchor="middle" className="event-label moon-label">🌙↓ {localFormatTime(moonset)}</text>
                         </g>
                     )}
 

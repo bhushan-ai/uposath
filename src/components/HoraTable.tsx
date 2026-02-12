@@ -1,12 +1,12 @@
-
-import React from 'react';
 import type { HoraSegment } from '../services/horaCalculator';
+import { formatTime } from '../services/timeUtils';
 
 interface HoraTableProps {
     horas: HoraSegment[];
+    timezone?: string;
 }
 
-const HoraTable: React.FC<HoraTableProps> = ({ horas }) => {
+const HoraTable: React.FC<HoraTableProps> = ({ horas, timezone }) => {
     return (
         <div className="card-glass" style={{ padding: '0', margin: '16px 0' }}>
             <div style={{ padding: '12px', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
@@ -30,7 +30,7 @@ const HoraTable: React.FC<HoraTableProps> = ({ horas }) => {
                             <span>{hora.planet}</span>
                         </div>
                         <div style={{ textAlign: 'right', fontSize: '0.9rem', color: '#666' }}>
-                            {hora.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – {hora.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatTime(hora.startTime, timezone)} – {formatTime(hora.endTime, timezone)}
                         </div>
                     </div>
                 ))}

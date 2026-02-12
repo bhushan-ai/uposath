@@ -9,6 +9,7 @@
 import { Preferences } from '@capacitor/preferences';
 import { Geolocation } from '@capacitor/geolocation';
 import { Observer } from 'astronomy-engine';
+import { guessTimezone } from './timeUtils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -17,6 +18,7 @@ export interface SavedLocation {
     latitude: number;
     longitude: number;
     altitude: number; // in meters
+    timezone?: string;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -28,6 +30,7 @@ const DEFAULT_LOCATION: SavedLocation = {
     latitude: 24.7914,
     longitude: 85.0002,
     altitude: 111,
+    timezone: 'Asia/Kolkata',
 };
 
 // ─── Core Function ───────────────────────────────────────────────────────────
@@ -69,6 +72,7 @@ export async function getCurrentGPS(): Promise<SavedLocation | null> {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             altitude: position.coords.altitude || 0,
+            timezone: guessTimezone(),
         };
     } catch (e) {
         console.error('Error getting GPS location', e);
