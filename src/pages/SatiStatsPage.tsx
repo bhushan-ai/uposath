@@ -22,11 +22,11 @@ import {
 } from '@ionic/react';
 import { trashOutline, createOutline } from 'ionicons/icons';
 import { MalaService } from '../services/MalaService';
-import { AnapanasatiService } from '../services/AnapanasatiService';
+import { AnapanasatiService, AnapanasatiStats } from '../services/AnapanasatiService';
 import { MantraService } from '../services/MantraService';
 import { EmptinessService } from '../services/EmptinessService';
 import { SatiStatsService } from '../services/SatiStatsService';
-import { MalaEntry, MalaStats, GlobalStats, UnifiedSession, PracticeCategory } from '../types/SatiTypes';
+import { MalaEntry, MalaStats, GlobalStats, UnifiedSession, PracticeCategory, EmptinessStats } from '../types/SatiTypes';
 
 
 const SatiStatsPage: React.FC = () => {
@@ -35,9 +35,9 @@ const SatiStatsPage: React.FC = () => {
 
     // Detailed Stats for Category Cards
     const [malaStats, setMalaStats] = useState<MalaStats | null>(null);
-    const [anapanasatiStats, setAnapanasatiStats] = useState<any>(null);
+    const [anapanasatiStats, setAnapanasatiStats] = useState<AnapanasatiStats | null>(null);
     const [mantraStats, setMantraStats] = useState<any>(null); // Aggregated
-    const [emptinessStats, setEmptinessStats] = useState<any>(null);
+    const [emptinessStats, setEmptinessStats] = useState<EmptinessStats | null>(null);
 
     // Mantra Specifics
     const [mantras, setMantras] = useState<any[]>([]);
@@ -46,6 +46,8 @@ const SatiStatsPage: React.FC = () => {
     const [entryToDelete, setEntryToDelete] = useState<{ id: string, category: PracticeCategory } | null>(null);
     const [showTriratnaDetails, setShowTriratnaDetails] = useState(false);
     const [showMantraDetails, setShowMantraDetails] = useState(false);
+    const [showAnapanasatiDetails, setShowAnapanasatiDetails] = useState(false);
+    const [showEmptinessDetails, setShowEmptinessDetails] = useState(false);
 
     // Editing State
     const [editingSession, setEditingSession] = useState<{ id: string, category: PracticeCategory, count: number, timestamp: string } | null>(null);
@@ -267,7 +269,11 @@ const SatiStatsPage: React.FC = () => {
 
                     {/* Anapanasati Card */}
                     {anapanasatiStats && (
-                        <div className="stat-card" style={{ background: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '16px', padding: '16px' }}>
+                        <div
+                            className="stat-card"
+                            style={{ background: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
+                            onClick={() => setShowAnapanasatiDetails(true)}
+                        >
                             <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🌬️</div>
                             <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#065F46', textTransform: 'uppercase', marginBottom: '12px' }}>Anapanasati</div>
 
@@ -284,7 +290,11 @@ const SatiStatsPage: React.FC = () => {
 
                     {/* Emptiness Card */}
                     {emptinessStats && (
-                        <div className="stat-card" style={{ background: '#EFF6FF', border: '1px solid #93C5FD', borderRadius: '16px', padding: '16px' }}>
+                        <div
+                            className="stat-card"
+                            style={{ background: '#EFF6FF', border: '1px solid #93C5FD', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
+                            onClick={() => setShowEmptinessDetails(true)}
+                        >
                             <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🧘</div>
                             <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1E40AF', textTransform: 'uppercase', marginBottom: '12px' }}>Emptiness</div>
 
@@ -609,6 +619,240 @@ const SatiStatsPage: React.FC = () => {
                             );
                         })}
                     </div>
+                </IonContent>
+            </IonModal>
+
+            {/* Anapanasati Detail Modal */}
+            <IonModal
+                isOpen={showAnapanasatiDetails}
+                onDidDismiss={() => setShowAnapanasatiDetails(false)}
+                initialBreakpoint={0.8}
+                breakpoints={[0, 0.8, 1]}
+                handle={true}
+                backdropBreakpoint={0.5}
+            >
+                <IonHeader>
+                    <IonToolbar>
+                        <IonTitle>Anapanasati Breakdown</IonTitle>
+                        <IonButtons slot="end">
+                            <IonButton onClick={() => setShowAnapanasatiDetails(false)}>Close</IonButton>
+                        </IonButtons>
+                    </IonToolbar>
+                </IonHeader>
+                <IonContent className="ion-padding" fullscreen={true}>
+                    {anapanasatiStats && (
+                        <div style={{ display: 'grid', gap: '16px', paddingTop: '16px' }}>
+                            <div style={{
+                                backgroundColor: '#ECFDF5',
+                                border: '1px solid #6EE7B7',
+                                borderRadius: '16px',
+                                padding: '20px'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                                    <div style={{ fontSize: '1.5rem' }}>🌬️</div>
+                                    <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#065F46', fontWeight: 'bold' }}>
+                                        Breath Awareness
+                                    </h3>
+                                </div>
+
+                                {/* Overall Summary Card */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Total Time</div>
+                                        <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{anapanasatiStats.totalMinutes} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>mins</span></div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Current Streak</div>
+                                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1F2937' }}>
+                                            {anapanasatiStats.currentStreak} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>days</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Sessions</div>
+                                        <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{anapanasatiStats.totalSessions}</div>
+                                    </div>
+                                </div>
+
+                                <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#666', marginBottom: '12px', paddingLeft: '4px' }}>FOCUS AREAS</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                                    {[
+                                        { id: 'all_16', name: 'Full 16 Steps', icon: '🌬️', color: '#10B981' }, // Emerald-500
+                                        { id: 'body', name: 'Contemplation of Body', icon: '💪', color: '#F97316' }, // Orange-500
+                                        { id: 'feelings', name: 'Contemplation of Feelings', icon: '❤️', color: '#EF4444' }, // Red-500
+                                        { id: 'mind', name: 'Contemplation of Mind', icon: '🧠', color: '#3B82F6' }, // Blue-500
+                                        { id: 'dhammas', name: 'Contemplation of Dhammas', icon: '☸️', color: '#8B5CF6' } // Violet-500
+                                    ].map(focus => (
+                                        <div key={focus.id} style={{
+                                            background: '#fff',
+                                            borderRadius: '12px',
+                                            padding: '12px',
+                                            border: `1px solid ${focus.color}30`,
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                                                <div style={{ fontSize: '1.2rem' }}>{focus.icon}</div>
+                                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', color: focus.color, textTransform: 'uppercase', lineHeight: '1.2' }}>
+                                                    {focus.name}
+                                                </div>
+                                            </div>
+                                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1F2937' }}>
+                                                {anapanasatiStats.byFocus?.[focus.id]?.totalMinutes || 0} <span style={{ fontSize: '0.7rem', fontWeight: 'normal', color: '#6B7280' }}>mins</span>
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                                                {anapanasatiStats.byFocus?.[focus.id]?.sessions || 0} sessions
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Mini Log List for Anapanasati */}
+                                {(() => {
+                                    const anaHistory = history.filter(h => h.category === 'anapanasati');
+                                    if (anaHistory.length === 0) return null;
+
+                                    return (
+                                        <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '8px' }}>
+                                            <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', paddingLeft: '8px' }}>RECENT LOGS</div>
+                                            {anaHistory.slice(0, 10).map(log => (
+                                                <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                                                    <div>
+                                                        <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#333' }}>{log.detail}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#888' }}>
+                                                            {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ display: 'flex' }}>
+                                                        <IonButton fill="clear" size="small" color="medium" onClick={() => handleEditClick(log)}>
+                                                            <IonIcon icon={createOutline} />
+                                                        </IonButton>
+                                                        <IonButton fill="clear" size="small" color="medium" onClick={() => setEntryToDelete({ id: log.id, category: 'anapanasati' })}>
+                                                            <IonIcon icon={trashOutline} />
+                                                        </IonButton>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    )}
+                </IonContent>
+            </IonModal>
+
+            {/* Emptiness Detail Modal */}
+            <IonModal
+                isOpen={showEmptinessDetails}
+                onDidDismiss={() => setShowEmptinessDetails(false)}
+                initialBreakpoint={0.8}
+                breakpoints={[0, 0.8, 1]}
+                handle={true}
+                backdropBreakpoint={0.5}
+            >
+                <IonHeader>
+                    <IonToolbar>
+                        <IonTitle>Emptiness Breakdown</IonTitle>
+                        <IonButtons slot="end">
+                            <IonButton onClick={() => setShowEmptinessDetails(false)}>Close</IonButton>
+                        </IonButtons>
+                    </IonToolbar>
+                </IonHeader>
+                <IonContent className="ion-padding" fullscreen={true}>
+                    {emptinessStats && (
+                        <div style={{ display: 'grid', gap: '16px', paddingTop: '16px' }}>
+                            <div style={{
+                                backgroundColor: '#EFF6FF',
+                                border: '1px solid #93C5FD',
+                                borderRadius: '16px',
+                                padding: '20px'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                                    <div style={{ fontSize: '1.5rem' }}>🧘</div>
+                                    <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1E40AF', fontWeight: 'bold' }}>
+                                        Wisdom & Insight
+                                    </h3>
+                                </div>
+
+                                {/* Overall Summary Card */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Total Time</div>
+                                        <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{emptinessStats.totalMinutes} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>mins</span></div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Current Streak</div>
+                                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1F2937' }}>
+                                            {emptinessStats.currentStreak} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>days</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Sessions</div>
+                                        <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{emptinessStats.totalSessions}</div>
+                                    </div>
+                                </div>
+
+                                <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#666', marginBottom: '12px', paddingLeft: '4px' }}>TECHNIQUES</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                                    {[
+                                        { id: 'anatta', name: 'Emptiness of Self', icon: '∅', color: '#6B7280' },
+                                        { id: 'progressive', name: 'Progressive Dwelling', icon: '🏔️', color: '#60A5FA' },
+                                        { id: 'heart_sutra', name: 'Heart Sutra', icon: '❤️', color: '#EC4899' }
+                                    ].map(tech => ( // We could map directly from EmptinessService.getContent().sections, but hardcoding for simpler icon/color control if they match
+                                        <div key={tech.id} style={{
+                                            background: '#fff',
+                                            borderRadius: '12px',
+                                            padding: '12px',
+                                            border: `1px solid ${tech.color}30`,
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                                                <div style={{ fontSize: '1.2rem' }}>{tech.icon}</div>
+                                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', color: tech.color, textTransform: 'uppercase', lineHeight: '1.2' }}>
+                                                    {tech.name}
+                                                </div>
+                                            </div>
+                                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1F2937' }}>
+                                                {emptinessStats.byTechnique?.[tech.id]?.totalMinutes || 0} <span style={{ fontSize: '0.7rem', fontWeight: 'normal', color: '#6B7280' }}>mins</span>
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                                                {emptinessStats.byTechnique?.[tech.id]?.sessions || 0} sessions
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Mini Log List for Emptiness */}
+                                {(() => {
+                                    const empHistory = history.filter(h => h.category === 'emptiness');
+                                    if (empHistory.length === 0) return null;
+
+                                    return (
+                                        <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '8px' }}>
+                                            <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', paddingLeft: '8px' }}>RECENT LOGS</div>
+                                            {empHistory.slice(0, 10).map(log => (
+                                                <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                                                    <div>
+                                                        <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#333' }}>{log.detail}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#888' }}>
+                                                            {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ display: 'flex' }}>
+                                                        <IonButton fill="clear" size="small" color="medium" onClick={() => handleEditClick(log)}>
+                                                            <IonIcon icon={createOutline} />
+                                                        </IonButton>
+                                                        <IonButton fill="clear" size="small" color="medium" onClick={() => setEntryToDelete({ id: log.id, category: 'emptiness' })}>
+                                                            <IonIcon icon={trashOutline} />
+                                                        </IonButton>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    )}
                 </IonContent>
             </IonModal>
 

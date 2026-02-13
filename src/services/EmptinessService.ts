@@ -72,12 +72,30 @@ export const EmptinessService = {
             mahayana: completedSessions.filter(s => s.tradition === 'mahayana').length
         };
 
+        // Breakdown by Technique
+        const byTechnique: { [key: string]: { sessions: number, totalMinutes: number } } = {};
+
+        // Initialize from content to ensure all techniques are present
+        content.sections.forEach(section => {
+            byTechnique[section.id] = { sessions: 0, totalMinutes: 0 };
+        });
+
+        completedSessions.forEach(s => {
+            const technique = s.focus; // 'focus' matches section.id
+            if (!byTechnique[technique]) {
+                byTechnique[technique] = { sessions: 0, totalMinutes: 0 };
+            }
+            byTechnique[technique].sessions++;
+            byTechnique[technique].totalMinutes += s.durationMinutes;
+        });
+
         return {
             totalSessions,
             totalMinutes,
             currentStreak,
             lastPracticeDate: uniqueDates.length > 0 ? uniqueDates[0] : null,
-            byTradition
+            byTradition,
+            byTechnique
         };
     },
 

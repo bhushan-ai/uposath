@@ -117,6 +117,12 @@ export interface EmptinessStats {
         theravada: number; // count
         mahayana: number; // count
     };
+    byTechnique: {
+        [key: string]: {
+            sessions: number;
+            totalMinutes: number;
+        }
+    };
 }
 
 export const DEFAULT_PREFERENCES: SatiPreferences = {

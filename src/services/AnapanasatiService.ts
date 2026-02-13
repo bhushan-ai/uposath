@@ -28,6 +28,12 @@ export interface AnapanasatiStats {
             totalMinutes: number;
         }
     };
+    byFocus: {
+        [key: string]: {
+            sessions: number;
+            totalMinutes: number;
+        }
+    };
 }
 
 export interface AnapanasatiSettings {
@@ -124,15 +130,34 @@ export const AnapanasatiService = {
         // (Just returning current for longest if it's the max for simplicity, could implement full scan later)
         longestStreak = Math.max(currentStreak, longestStreak);
 
+        // Breakdown by Focus
+        const byFocus: { [key: string]: { sessions: number, totalMinutes: number } } = {
+            'all_16': { sessions: 0, totalMinutes: 0 },
+            'body': { sessions: 0, totalMinutes: 0 },
+            'feelings': { sessions: 0, totalMinutes: 0 },
+            'mind': { sessions: 0, totalMinutes: 0 },
+            'dhammas': { sessions: 0, totalMinutes: 0 }
+        };
+
+        completedSessions.forEach(s => {
+            const focus = s.focus || 'all_16';
+            if (byFocus[focus]) {
+                byFocus[focus].sessions++;
+                byFocus[focus].totalMinutes += s.durationMinutes;
+            }
+        });
+
         return {
             totalSessions,
             totalMinutes,
             currentStreak,
             longestStreak,
             practiceDays: uniqueDates.length,
-            lastPracticeDate
+            lastPracticeDate,
+            byFocus
         };
     },
+
 
     getTodaySummary: async () => {
         const sessions = await AnapanasatiService.getSessions();
