@@ -28,9 +28,10 @@ import {
 import { Observer } from '@ishubhamx/panchangam-js';
 import { getTimezones } from '../services/timeUtils';
 import { MAJOR_CITIES } from '../services/locationData';
-import { IonSelect, IonSelectOption, IonIcon } from '@ionic/react';
+import { IonSelect, IonSelectOption, IonIcon, useIonAlert } from '@ionic/react';
 import { locationOutline, timeOutline, globeOutline, caretUpCircleOutline } from 'ionicons/icons';
 import { MalaService } from '../services/MalaService';
+import { UposathaObservanceService } from '../services/UposathaObservanceService';
 
 const SettingsPage: React.FC = () => {
     const [location, setLocation] = useState<SavedLocation | null>(null);
@@ -42,6 +43,8 @@ const SettingsPage: React.FC = () => {
     const [showDailyVerseCard, setShowDailyVerseCard] = useState(true);
     const [timezones] = useState(getTimezones());
     const [paliScript, setPaliScript] = useState('roman');
+    const [trackingEnabled, setTrackingEnabled] = useState(true);
+    const [presentAlert] = useIonAlert();
 
     useIonViewWillEnter(() => {
         loadSettings();
@@ -78,8 +81,34 @@ const SettingsPage: React.FC = () => {
         const { value: showVerse } = await Preferences.get({ key: 'settings_show_daily_verse' });
         setShowDailyVerseCard(showVerse === null || showVerse === '' || showVerse === 'true');
 
+        const { value: trackEnabled } = await Preferences.get({ key: 'uposatha_tracking_enabled' });
+        setTrackingEnabled(trackEnabled === null || trackEnabled === '' || trackEnabled === 'true');
+
         const prefs = await MalaService.getPreferences();
         setPaliScript(prefs.paliScript);
+    };
+
+    const toggleTracking = async (enabled: boolean) => {
+        setTrackingEnabled(enabled);
+        await Preferences.set({ key: 'uposatha_tracking_enabled', value: String(enabled) });
+    };
+
+    const handleClearObservanceHistory = async () => {
+        presentAlert({
+            header: 'Clear All Data?',
+            message: 'This will permanently delete all your Uposatha observance records. This cannot be undone.',
+            buttons: [
+                'Cancel',
+                {
+                    text: 'Clear All',
+                    role: 'destructive',
+                    handler: async () => {
+                        await UposathaObservanceService.clearHistory();
+                        alert('Observance history cleared.');
+                    }
+                }
+            ]
+        });
     };
 
     const handleTimezoneChange = async (tz: string) => {
@@ -366,6 +395,26 @@ const SettingsPage: React.FC = () => {
                             <IonSelectOption value="thai">Thai (ไทย)</IonSelectOption>
                             <IonSelectOption value="burmese">Burmese (မြန်မာ)</IonSelectOption>
                         </IonSelect>
+                    </IonItem>
+                </IonList>
+
+                <IonList inset>
+                    <IonItemDivider>
+                        <IonLabel>Uposatha Tracking</IonLabel>
+                    </IonItemDivider>
+                    <IonItem>
+                        <IonLabel className="ion-text-wrap">
+                            <h2>Enable Observance Tracking</h2>
+                            <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>Log and track your Uposatha observances and precepts.</p>
+                        </IonLabel>
+                        <IonToggle
+                            slot="end"
+                            checked={trackingEnabled}
+                            onIonChange={e => toggleTracking(e.detail.checked)}
+                        />
+                    </IonItem>
+                    <IonItem button onClick={handleClearObservanceHistory} detail={false}>
+                        <IonLabel color="danger">Clear Observance History</IonLabel>
                     </IonItem>
                 </IonList>
 

@@ -16,7 +16,10 @@ import {
     chevronBack,
     chevronForward,
     locationOutline,
-    todayOutline
+    todayOutline,
+    peopleOutline,
+    checkmarkCircle,
+    closeCircle
 } from 'ionicons/icons';
 import { useHistory } from 'react-router';
 import { Preferences } from '@capacitor/preferences';
@@ -27,6 +30,8 @@ import YearView from '../components/YearView';
 import { getSavedLocation } from '../services/locationManager';
 import DhammapadaVerseCard from '../components/DhammapadaVerseCard';
 import { DhammapadaVerse, getVerseForDate, getRandomVerse } from '../services/dhammapadaService';
+import { UposathaObservance } from '../types/ObservanceTypes';
+import { UposathaObservanceService } from '../services/UposathaObservanceService';
 import PracticeCalendarCard from '../components/sati/PracticeCalendarCard';
 import './CalendarPage.css';
 
@@ -35,6 +40,7 @@ const CalendarPage: React.FC = () => {
     const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [daysInMonth, setDaysInMonth] = useState<{ date: Date; uposatha: UposathaStatus; festival: BuddhistFestival | null }[]>([]);
+    const [observanceHistory, setObservanceHistory] = useState<UposathaObservance[]>([]);
     const [locationName, setLocationName] = useState('Loading...');
     const [observer, setObserver] = useState(new Observer(24.7914, 85.0002, 111));
     const [showVerseCard, setShowVerseCard] = useState(true);
@@ -44,7 +50,13 @@ const CalendarPage: React.FC = () => {
     useIonViewWillEnter(() => {
         loadLocation();
         loadVerseSettingsAndVerse();
+        loadObservanceHistory();
     });
+
+    const loadObservanceHistory = async () => {
+        const history = await UposathaObservanceService.getHistory();
+        setObservanceHistory(history);
+    };
 
     const loadLocation = async () => {
         const loc = await getSavedLocation();
@@ -150,9 +162,20 @@ const CalendarPage: React.FC = () => {
                 {daysInMonth.map((day, i) => {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    const isToday = day.date.toDateString() === today.toDateString();
-                    const isFutureOrToday = day.date >= today;
-                    const isUpcomingUposatha = day.uposatha.isUposatha && isFutureOrToday;
+                    const dayDate = new Date(day.date);
+                    dayDate.setHours(0, 0, 0, 0);
+
+                    const isToday = dayDate.toDateString() === today.toDateString();
+                    const isFutureOrToday = dayDate >= today;
+
+                    // Check Observance History
+                    const observance = observanceHistory.find(o => {
+                        const obsDate = new Date(o.date);
+                        obsDate.setHours(0, 0, 0, 0);
+                        return obsDate.getTime() === dayDate.getTime();
+                    });
+
+                    const isUpcomingUposatha = day.uposatha.isUposatha && !observance && isFutureOrToday;
 
                     const moon = getMoonIcon(day.uposatha);
                     const festivalColors = day.festival ? getTraditionColors(day.festival.tradition) : null;
@@ -170,6 +193,14 @@ const CalendarPage: React.FC = () => {
                                     className="festival-indicator"
                                     style={{ background: festivalColors?.primary }}
                                 />
+                            )}
+                            {observance && (
+                                <div style={{ position: 'absolute', bottom: '2px', right: '2px', fontSize: '1rem', zIndex: 2 }}>
+                                    <IonIcon
+                                        icon={observance.status === 'observed' ? checkmarkCircle : closeCircle}
+                                        color={observance.status === 'observed' ? 'success' : 'danger'}
+                                    />
+                                </div>
                             )}
                         </div>
                     );

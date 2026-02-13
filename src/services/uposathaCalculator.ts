@@ -230,3 +230,24 @@ export function getYearUposathaDays(
     }
     return results;
 }
+
+/**
+ * Find the next upcoming Uposatha day (including today if applies).
+ * Search limit: 30 days to prevent infinite loops.
+ */
+export function getNextUposatha(
+    startDate: Date,
+    observer: Observer
+): UposathaDay | null {
+    const date = new Date(startDate);
+    date.setHours(6, 0, 0, 0); // Normalize check time
+
+    for (let i = 0; i < 30; i++) {
+        const status = getUposathaStatus(date, observer);
+        if (status.isUposatha || status.isOptional) {
+            return { date: new Date(date), status: status };
+        }
+        date.setDate(date.getDate() + 1);
+    }
+    return null;
+}

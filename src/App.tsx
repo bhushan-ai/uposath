@@ -11,7 +11,7 @@ import {
   setupIonicReact
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { calendar, rose, settings, today, leaf } from 'ionicons/icons';
+import { calendar, rose, settings, today, leaf, home } from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
 /* Core CSS */
@@ -38,6 +38,7 @@ import './theme/variables.css';
 import './theme/global.css';
 
 /* Pages */
+import Home from './pages/Home';
 import CalendarPage from './pages/CalendarPage';
 import TodayPage from './pages/TodayPage';
 import FestivalsPage from './pages/FestivalsPage';
@@ -90,8 +91,8 @@ const App: React.FC = () => (
           <Route exact path="/calendar">
             <CalendarPage />
           </Route>
-          <Route exact path="/today">
-            <TodayPage />
+          <Route exact path="/home">
+            <Home />
           </Route>
           <Route exact path="/sati">
             <SatiPage />
@@ -121,26 +122,21 @@ const App: React.FC = () => (
           </Route>
           <Route exact path="/settings" component={SettingsPage} />
           <Route exact path="/">
-            <Redirect to="/calendar" />
+            <Redirect to="/home" />
           </Route>
         </IonRouterOutlet>
 
         <IonTabBar slot="bottom">
+          <IonTabButton tab="home" href="/home">
+            <IonIcon aria-hidden="true" icon={home} />
+            <IonLabel>Home</IonLabel>
+          </IonTabButton>
           <IonTabButton tab="calendar" href="/calendar">
             <IonIcon aria-hidden="true" icon={calendar} />
             <IonLabel>Calendar</IonLabel>
           </IonTabButton>
-          <IonTabButton tab="today" href="/today">
-            <IonIcon aria-hidden="true" icon={today} />
-            <IonLabel>Today</IonLabel>
-          </IonTabButton>
           <IonTabButton tab="sati" href="/sati">
-            <IonIcon aria-hidden="true" icon={rose} /> {/* Using rose temporarily if 'flower' or 'leaf' is better? Blueprint says prayer hands 🙏 (txt) or similar ? Icon: 🙏 (prayer hands emoji) - Ionic doesn't have emoji icon, I should use a suitable icon. 'flower' or 'leaf' or 'heart'. The blueprint says "Icon: 🙏 (prayer hands emoji)". Ionicons has 'hand-left' or 'body', maybe 'flower-outline'. Let's use 'flower' (lotus-like) or 'leaf' for now, or text. Wait, I can use an SVG or just an icon that looks spiritual. 'happy' or 'heart'? 'flower-outline' is usually good for lotus. Let's stick to 'rose' as it was used for Festivals? wait, Festivals used 'rose'. I see Festivals uses 'rose' in existing code.
-            Let's use 'leaf' for Sati (mindfulness) or maybe 'body' (mindfulness of body).
-            Actually, the blueprint says: "Icon: 🙏 (prayer hands emoji)". If I can't find a perfect IonIcon, I will use 'flower-outline' (lotus). Let's use 'leaf' for now as it's distinct.
-            Wait, I'll check imports. 'rose' is imported. I need to import another icon.
-            I'll use 'leaf' for now and add it to imports.
-            */}
+            <IonIcon aria-hidden="true" icon={leaf} />
             <IonLabel>Sati</IonLabel>
           </IonTabButton>
           <IonTabButton tab="festivals" href="/festivals">

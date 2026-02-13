@@ -26,6 +26,7 @@ import PanchangTimeline from '../components/PanchangTimeline';
 import SunMoonVisualization from '../components/SunMoonVisualization';
 import HoraTable from '../components/HoraTable';
 import GrahaGrid from '../components/GrahaGrid';
+import ObservanceActionCard from '../components/uposatha/ObservanceActionCard';
 
 const DayDetailPage: React.FC = () => {
     const { dateStr } = useParams<{ dateStr: string }>();
@@ -99,6 +100,8 @@ const DayDetailPage: React.FC = () => {
 
             <IonContent fullscreen className="ion-padding">
 
+
+
                 {/* Header Info */}
                 <div className="text-center" style={{ marginBottom: '16px' }}>
                     <h2 className="text-xl font-bold" style={{ color: 'var(--ion-color-primary)' }}>
@@ -155,6 +158,14 @@ const DayDetailPage: React.FC = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Observance Action Card */}
+                {(data.status.isUposatha || data.status.isOptional) && (
+                    <ObservanceActionCard
+                        date={date}
+                        moonPhase={data.status.isFullMoon ? 'full' : data.status.isNewMoon ? 'new' : 'quarter'}
+                    />
+                )}
 
                 {/* Tab Content */}
                 {activeTab === 'timeline' && (

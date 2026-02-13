@@ -18,7 +18,9 @@ import {
     IonModal,
     IonInput,
     useIonViewWillEnter,
-    IonDatetime
+    IonDatetime,
+    IonSegment,
+    IonSegmentButton
 } from '@ionic/react';
 import { trashOutline, createOutline } from 'ionicons/icons';
 import { MalaService } from '../services/MalaService';
@@ -27,6 +29,7 @@ import { MantraService } from '../services/MantraService';
 import { EmptinessService } from '../services/EmptinessService';
 import { SatiStatsService } from '../services/SatiStatsService';
 import { MalaEntry, MalaStats, GlobalStats, UnifiedSession, PracticeCategory, EmptinessStats } from '../types/SatiTypes';
+import UposathaStatsView from '../components/uposatha/UposathaStatsView';
 
 
 const SatiStatsPage: React.FC = () => {
@@ -49,7 +52,9 @@ const SatiStatsPage: React.FC = () => {
     const [showAnapanasatiDetails, setShowAnapanasatiDetails] = useState(false);
     const [showEmptinessDetails, setShowEmptinessDetails] = useState(false);
 
-    // Editing State
+
+    // ... (inside component)
+    const [statsView, setStatsView] = useState<'practice' | 'observance'>('practice');
     const [editingSession, setEditingSession] = useState<{ id: string, category: PracticeCategory, count: number, timestamp: string } | null>(null);
 
     const loadData = async () => {
@@ -186,194 +191,208 @@ const SatiStatsPage: React.FC = () => {
                     </IonButtons>
                     <IonTitle>Practice Statistics</IonTitle>
                 </IonToolbar>
+                <IonToolbar>
+                    <IonSegment value={statsView} onIonChange={e => setStatsView(e.detail.value as any)}>
+                        <IonSegmentButton value="practice">
+                            <IonLabel>Practice</IonLabel>
+                        </IonSegmentButton>
+                        <IonSegmentButton value="observance">
+                            <IonLabel>Observance</IonLabel>
+                        </IonSegmentButton>
+                    </IonSegment>
+                </IonToolbar>
             </IonHeader>
 
             <IonContent fullscreen className="ion-padding">
-
-                {/* Global Summary */}
-                {globalStats && (
-                    <div style={{
-                        background: 'linear-gradient(135deg, #1F2937 0%, #111827 100%)',
-                        color: 'white',
-                        borderRadius: '24px',
-                        padding: '24px',
-                        marginBottom: '24px',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
-                    }}>
-                        <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.1rem', fontWeight: '600', opacity: 0.9, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                            Journey Overview
-                        </h3>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                            <div>
-                                <div style={{ fontSize: '3.5rem', fontWeight: '800', lineHeight: 1 }}>
-                                    {globalStats.totalSessions}
-                                </div>
-                                <div style={{ fontSize: '0.95rem', opacity: 0.7, marginTop: '4px' }}>Total Sessions</div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#FCD34D' }}>
-                                    {globalStats.currentStreak} <span style={{ fontSize: '1rem' }}>days</span>
-                                </div>
-                                <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>Current Streak 🔥</div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Category Cards Grid */}
-                <h3 style={{ paddingLeft: '8px', fontSize: '1.2rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>Practice Breakdown</h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
-
-                    {/* Mala Card */}
-                    {malaStats && (
-                        <div
-                            className="stat-card"
-                            style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
-                            onClick={() => setShowTriratnaDetails(true)}
-                        >
-                            <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>📿</div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#92400E', textTransform: 'uppercase', marginBottom: '12px' }}>Tiratana Anussati</div>
-
-                            <div style={{ marginBottom: '8px' }}>
-                                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1F2937' }}>{(malaStats.overall.totalBeads / 108).toFixed(1)}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Malas</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1F2937' }}>{malaStats.overall.totalBeads.toLocaleString()}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Beads</div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Mantra Card */}
-                    {mantraStats && (
-                        <div
-                            className="stat-card"
-                            style={{ background: '#F5F3FF', border: '1px solid #C4B5FD', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
-                            onClick={() => setShowMantraDetails(true)}
-                        >
-                            <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🕉️</div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#5B21B6', textTransform: 'uppercase', marginBottom: '12px' }}>Mantra</div>
-
-                            <div style={{ marginBottom: '8px' }}>
-                                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1F2937' }}>{mantraStats.totalMalas}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Malas</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1F2937' }}>{mantraStats.totalBeads.toLocaleString()}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Beads</div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Anapanasati Card */}
-                    {anapanasatiStats && (
-                        <div
-                            className="stat-card"
-                            style={{ background: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
-                            onClick={() => setShowAnapanasatiDetails(true)}
-                        >
-                            <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🌬️</div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#065F46', textTransform: 'uppercase', marginBottom: '12px' }}>Anapanasati</div>
-
-                            <div style={{ marginBottom: '8px' }}>
-                                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1F2937' }}>{anapanasatiStats.totalMinutes}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Minutes</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1F2937' }}>{anapanasatiStats.totalSessions}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Sessions</div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Emptiness Card */}
-                    {emptinessStats && (
-                        <div
-                            className="stat-card"
-                            style={{ background: '#EFF6FF', border: '1px solid #93C5FD', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
-                            onClick={() => setShowEmptinessDetails(true)}
-                        >
-                            <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🧘</div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1E40AF', textTransform: 'uppercase', marginBottom: '12px' }}>Emptiness</div>
-
-                            <div style={{ marginBottom: '8px' }}>
-                                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1F2937' }}>{emptinessStats.totalMinutes}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Minutes</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1F2937' }}>{emptinessStats.totalSessions}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Sessions</div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Unified History List */}
-                <h3 style={{ paddingLeft: '8px', fontSize: '1.2rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>History Log</h3>
-                <IonList inset={true} style={{ margin: '0', borderRadius: '16px', background: 'var(--color-bg-card)' }}>
-                    {history.slice(0, 50).map(item => (
-                        <IonItem key={item.id} lines="full" detail={false}>
-                            <div slot="start" style={{
-                                fontSize: '1.5rem',
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: `${getCategoryColor(item.category)}20`,
-                                borderRadius: '50%'
+                {statsView === 'practice' && (
+                    <>
+                        {/* Global Summary */}
+                        {globalStats && (
+                            <div style={{
+                                background: 'linear-gradient(135deg, #1F2937 0%, #111827 100%)',
+                                color: 'white',
+                                borderRadius: '24px',
+                                padding: '24px',
+                                marginBottom: '24px',
+                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
                             }}>
-                                {getCategoryIcon(item.category)}
-                            </div>
-                            <IonLabel className="ion-text-wrap">
-                                <h2 style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '1rem' }}>
-                                    {item.title}
-                                </h2>
-                                <p style={{ color: 'var(--color-text-tertiary)', fontSize: '0.85rem' }}>
-                                    <span style={{
-                                        color: getCategoryColor(item.category),
-                                        fontWeight: '600',
-                                        marginRight: '6px',
-                                        textTransform: 'capitalize'
-                                    }}>
-                                        {item.category}
-                                    </span>
-                                    • {new Date(item.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                            </IonLabel>
-                            <div slot="end" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                                <span style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>{item.detail}</span>
-                                <div style={{ display: 'flex' }}>
-                                    <IonButton
-                                        fill="clear"
-                                        size="small"
-                                        color="medium"
-                                        style={{ margin: 0, height: '24px' }}
-                                        onClick={() => handleEditClick(item)}
-                                    >
-                                        <IonIcon icon={createOutline} style={{ fontSize: '1rem' }} />
-                                    </IonButton>
-                                    <IonButton
-                                        fill="clear"
-                                        size="small"
-                                        color="medium"
-                                        style={{ margin: 0, height: '24px' }}
-                                        onClick={() => setEntryToDelete({ id: item.id, category: item.category })}
-                                    >
-                                        <IonIcon icon={trashOutline} style={{ fontSize: '1rem' }} />
-                                    </IonButton>
+                                <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.1rem', fontWeight: '600', opacity: 0.9, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                    Journey Overview
+                                </h3>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                    <div>
+                                        <div style={{ fontSize: '3.5rem', fontWeight: '800', lineHeight: 1 }}>
+                                            {globalStats.totalSessions}
+                                        </div>
+                                        <div style={{ fontSize: '0.95rem', opacity: 0.7, marginTop: '4px' }}>Total Sessions</div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: '2rem', fontWeight: '700', color: '#FCD34D' }}>
+                                            {globalStats.currentStreak} <span style={{ fontSize: '1rem' }}>days</span>
+                                        </div>
+                                        <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>Current Streak 🔥</div>
+                                    </div>
                                 </div>
                             </div>
-                        </IonItem>
-                    ))}
-                    {history.length === 0 && (
-                        <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
-                            No practice sessions recorded yet.
+                        )}
+
+                        {/* Category Cards Grid */}
+                        <h3 style={{ paddingLeft: '8px', fontSize: '1.2rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>Practice Breakdown</h3>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
+
+                            {/* Mala Card */}
+                            {malaStats && (
+                                <div
+                                    className="stat-card"
+                                    style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
+                                    onClick={() => setShowTriratnaDetails(true)}
+                                >
+                                    <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>📿</div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#92400E', textTransform: 'uppercase', marginBottom: '12px' }}>Tiratana Anussati</div>
+
+                                    <div style={{ marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1F2937' }}>{(malaStats.overall.totalBeads / 108).toFixed(1)}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Malas</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1F2937' }}>{malaStats.overall.totalBeads.toLocaleString()}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Beads</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Mantra Card */}
+                            {mantraStats && (
+                                <div
+                                    className="stat-card"
+                                    style={{ background: '#F5F3FF', border: '1px solid #C4B5FD', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
+                                    onClick={() => setShowMantraDetails(true)}
+                                >
+                                    <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🕉️</div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#5B21B6', textTransform: 'uppercase', marginBottom: '12px' }}>Mantra</div>
+
+                                    <div style={{ marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1F2937' }}>{mantraStats.totalMalas}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Malas</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1F2937' }}>{mantraStats.totalBeads.toLocaleString()}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Beads</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Anapanasati Card */}
+                            {anapanasatiStats && (
+                                <div
+                                    className="stat-card"
+                                    style={{ background: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
+                                    onClick={() => setShowAnapanasatiDetails(true)}
+                                >
+                                    <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🌬️</div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#065F46', textTransform: 'uppercase', marginBottom: '12px' }}>Anapanasati</div>
+
+                                    <div style={{ marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1F2937' }}>{anapanasatiStats.totalMinutes}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Minutes</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1F2937' }}>{anapanasatiStats.totalSessions}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Sessions</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Emptiness Card */}
+                            {emptinessStats && (
+                                <div
+                                    className="stat-card"
+                                    style={{ background: '#EFF6FF', border: '1px solid #93C5FD', borderRadius: '16px', padding: '16px', cursor: 'pointer' }}
+                                    onClick={() => setShowEmptinessDetails(true)}
+                                >
+                                    <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🧘</div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1E40AF', textTransform: 'uppercase', marginBottom: '12px' }}>Emptiness</div>
+
+                                    <div style={{ marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1F2937' }}>{emptinessStats.totalMinutes}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Minutes</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1F2937' }}>{emptinessStats.totalSessions}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>Sessions</div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </IonList>
+
+                        {/* Unified History List */}
+                        <h3 style={{ paddingLeft: '8px', fontSize: '1.2rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>History Log</h3>
+                        <IonList inset={true} style={{ margin: '0', borderRadius: '16px', background: 'var(--color-bg-card)' }}>
+                            {history.slice(0, 50).map(item => (
+                                <IonItem key={item.id} lines="full" detail={false}>
+                                    <div slot="start" style={{
+                                        fontSize: '1.5rem',
+                                        width: '40px',
+                                        height: '40px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: `${getCategoryColor(item.category)}20`,
+                                        borderRadius: '50%'
+                                    }}>
+                                        {getCategoryIcon(item.category)}
+                                    </div>
+                                    <IonLabel className="ion-text-wrap">
+                                        <h2 style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '1rem' }}>
+                                            {item.title}
+                                        </h2>
+                                        <p style={{ color: 'var(--color-text-tertiary)', fontSize: '0.85rem' }}>
+                                            <span style={{
+                                                color: getCategoryColor(item.category),
+                                                fontWeight: '600',
+                                                marginRight: '6px',
+                                                textTransform: 'capitalize'
+                                            }}>
+                                                {item.category}
+                                            </span>
+                                            • {new Date(item.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                    </IonLabel>
+                                    <div slot="end" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                        <span style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>{item.detail}</span>
+                                        <div style={{ display: 'flex' }}>
+                                            <IonButton
+                                                fill="clear"
+                                                size="small"
+                                                color="medium"
+                                                style={{ margin: 0, height: '24px' }}
+                                                onClick={() => handleEditClick(item)}
+                                            >
+                                                <IonIcon icon={createOutline} style={{ fontSize: '1rem' }} />
+                                            </IonButton>
+                                            <IonButton
+                                                fill="clear"
+                                                size="small"
+                                                color="medium"
+                                                style={{ margin: 0, height: '24px' }}
+                                                onClick={() => setEntryToDelete({ id: item.id, category: item.category })}
+                                            >
+                                                <IonIcon icon={trashOutline} style={{ fontSize: '1rem' }} />
+                                            </IonButton>
+                                        </div>
+                                    </div>
+                                </IonItem>
+                            ))}
+                            {history.length === 0 && (
+                                <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
+                                    No practice sessions recorded yet.
+                                </div>
+                            )}
+                        </IonList>
+                    </>
+                )}
+                {statsView === 'observance' && <UposathaStatsView />}
             </IonContent>
 
             <IonAlert
