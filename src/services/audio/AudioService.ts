@@ -1,6 +1,10 @@
 import { AudioTrack, AudioChannel } from '../../types/audio/AudioTypes';
 
-const API_BASE_URL = 'http://localhost:3001/api/audio';
+// Base URL for the local audio proxy API.
+// Uses Vite env when available so the app can talk to a local backend
+// on any device (desktop, emulator, or phone).
+const API_BASE_URL =
+    import.meta.env.VITE_AUDIO_API_URL || 'http://localhost:3001/api/audio';
 
 export const AudioService = {
     async search(query: string, limit: number = 20): Promise<AudioTrack[]> {
@@ -27,7 +31,7 @@ export const AudioService = {
         return response.json();
     },
 
-    getStreamUrl(videoId: string): string {
-        return `${API_BASE_URL}/stream/${videoId}`;
+    getStreamUrl(videoId: string, startTime: number = 0): string {
+        return `${API_BASE_URL}/stream/${videoId}?t=${Math.floor(startTime)}`;
     }
 };

@@ -10,7 +10,7 @@ import {
     IonItem
 } from '@ionic/react';
 import { play, pause as pauseIcon, playSkipForward, playSkipBack, closeCircleOutline } from 'ionicons/icons';
-import { useAudio } from '../../context/AudioContext';
+import { useAudio } from '../../context/useAudio';
 
 import { useHistory } from 'react-router-dom';
 
@@ -47,7 +47,13 @@ const MiniPlayer: React.FC = () => {
             <IonProgressBar value={progress} color="primary" style={{ height: '2px' }} />
             <IonItem lines="none" className="ion-no-padding" style={{ '--background': 'transparent' }}>
                 <IonThumbnail slot="start" style={{ width: '40px', height: '40px', margin: '8px' }}>
-                    <img alt={currentTrack.title} src={currentTrack.thumbnail} style={{ borderRadius: '4px' }} />
+                    {currentTrack.thumbnail ? (
+                        <img alt={currentTrack.title} src={currentTrack.thumbnail} style={{ borderRadius: '4px' }} />
+                    ) : (
+                        <div style={{ width: '100%', height: '100%', background: 'var(--ion-color-step-200)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <IonIcon icon={play} color="medium" />
+                        </div>
+                    )}
                 </IonThumbnail>
                 <IonLabel className="ion-text-wrap" style={{ margin: '0' }}>
                     <h2 style={{ fontSize: '0.9rem', fontWeight: '500', margin: '0 0 2px 0' }}>{currentTrack.title}</h2>

@@ -55,6 +55,19 @@ import MantraListPage from './pages/MantraListPage';
 import MantraEditPage from './pages/MantraEditPage';
 import MantraPracticePage from './pages/MantraPracticePage';
 
+const FocusManager: React.FC = () => {
+  const history = useHistory();
+  useEffect(() => {
+    return history.listen(() => {
+      // Blur active element on route change to prevent aria-hidden focus errors in Ionic
+      if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
+        document.activeElement.blur();
+      }
+    });
+  }, [history]);
+  return null;
+};
+
 const NotificationRouterBridge: React.FC = () => {
   const history = useHistory();
 
@@ -92,6 +105,7 @@ const App: React.FC = () => (
     <IonApp>
       <IonReactRouter>
         <NotificationRouterBridge />
+        <FocusManager />
         <IonTabs>
           <IonRouterOutlet>
             <Route exact path="/calendar">

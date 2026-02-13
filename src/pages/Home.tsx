@@ -38,7 +38,7 @@ const Home: React.FC = () => {
     <IonPage>
       <IonHeader className="ion-no-border">
         <IonToolbar>
-          <IonTitle style={{ fontWeight: '800', letterSpacing: '0.05em' }}>DHAMMA PATH</IonTitle>
+          <IonTitle>DHAMMA PATH</IonTitle>
           <IonButtons slot="end">
             <IonButton routerLink="/settings">
               <IonIcon icon={settingsOutline} />
@@ -46,83 +46,76 @@ const Home: React.FC = () => {
           </IonButtons>
         </IonToolbar>
       </IonHeader>
-      <IonContent fullscreen className="ion-padding">
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: '800', margin: '0 0 8px 0', color: 'var(--ion-color-dark)' }}>
-            Namo Buddhaya
-          </h1>
-          <p style={{ margin: 0, opacity: 0.7, fontSize: '1rem' }}>
-            Your daily path to mindfulness
-          </p>
-        </div>
 
-        <div style={{ marginTop: '24px' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <IonIcon icon={statsChartOutline} color="primary" />
-            Practice Summary
-          </h3>
+      <IonContent fullscreen>
+        <div className="ion-padding home-container">
 
-          <IonGrid className="ion-no-padding">
-            <IonRow>
-              <IonCol size="6">
-                <div style={{
-                  background: 'var(--ion-color-primary-light, #e0f2f1)',
-                  padding: '20px',
-                  borderRadius: '20px',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center'
-                }}>
-                  <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--ion-color-primary)' }}>
-                    {globalStats?.totalSessions || 0}
-                  </div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: '600', opacity: 0.8, textTransform: 'uppercase' }}>
-                    Total Sessions
-                  </div>
-                </div>
-              </IonCol>
-              <IonCol size="6">
-                <div style={{
-                  background: 'var(--ion-color-secondary-light, #fff3e0)',
-                  padding: '20px',
-                  borderRadius: '20px',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center'
-                }}>
-                  <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--ion-color-secondary)' }}>
-                    {globalStats?.currentStreak || 0}
-                  </div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: '600', opacity: 0.8, textTransform: 'uppercase' }}>
-                    Day Streak
-                  </div>
-                </div>
-              </IonCol>
-            </IonRow>
-          </IonGrid>
-        </div>
-
-        <DhammaAudioWidget />
-
-        <div style={{ marginTop: '32px' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '16px' }}>Upcoming Observance</h3>
-          <NextUposathaWidget />
-        </div>
-
-        <div style={{ marginTop: '32px' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '16px' }}>Quick Actions</h3>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <IonButton routerLink="/sati" mode="ios" style={{ height: '50px', flex: 1 }}>
-              <IonIcon slot="start" icon={leafOutline} />
-              Practice
-            </IonButton>
-            <IonButton routerLink="/calendar" color="secondary" mode="ios" style={{ height: '50px', flex: 1 }}>
-              <IonIcon slot="start" icon={calendarOutline} />
-              Calendar
-            </IonButton>
+          {/* Hero Section */}
+          <div className="home-hero">
+            <h1 className="home-hero__title">Namo Buddhaya</h1>
+            <p className="home-hero__subtitle">Your daily path to mindfulness.</p>
           </div>
+
+          {/* Primary Feature: Upcoming Uposatha */}
+          <section>
+            <div className="home-section-header">
+              <IonIcon icon={leafOutline} color="secondary" />
+              <h3 className="home-section-title">Current Observance</h3>
+            </div>
+            <NextUposathaWidget />
+          </section>
+
+          {/* Stats Section */}
+          <section>
+            <div className="home-section-header">
+              <IonIcon icon={statsChartOutline} color="primary" />
+              <h3 className="home-section-title">Practice Summary</h3>
+            </div>
+
+            <div className="stats-grid">
+              <div className="glass-card stat-card">
+                <div className="stat-value">{globalStats?.totalSessions || 0}</div>
+                <div className="stat-label">Total Sessions</div>
+              </div>
+              <div className="glass-card stat-card">
+                <div className="stat-value">{globalStats?.currentStreak || 0}</div>
+                <div className="stat-label">Day Streak</div>
+              </div>
+            </div>
+          </section>
+
+          {/* Audio Section */}
+          <section>
+            <div className="home-section-header">
+              <h3 className="home-section-title">Daily Inspiration</h3>
+            </div>
+            <DhammaAudioWidget />
+          </section>
+
+          {/* Quick Actions */}
+          <section>
+            <div className="home-section-header">
+              <h3 className="home-section-title">Quick Actions</h3>
+            </div>
+            <div className="action-grid">
+              <div className="glass-card action-card-button" onClick={() => document.querySelector('ion-router-outlet')?.componentOnReady().then((el: any) => el.push('/sati'))}>
+                <div className="action-icon-wrapper" style={{ background: 'rgba(var(--ion-color-primary-rgb), 0.1)', borderColor: 'rgba(var(--ion-color-primary-rgb), 0.3)' }}>
+                  <IonIcon icon={leafOutline} color="primary" />
+                </div>
+                <div className="action-label">Practice</div>
+                <div className="action-sublabel">Start Session</div>
+              </div>
+
+              <div className="glass-card action-card-button" onClick={() => document.querySelector('ion-router-outlet')?.componentOnReady().then((el: any) => el.push('/calendar'))}>
+                <div className="action-icon-wrapper" style={{ background: 'rgba(var(--ion-color-secondary-rgb), 0.1)', borderColor: 'rgba(var(--ion-color-secondary-rgb), 0.3)' }}>
+                  <IonIcon icon={calendarOutline} color="secondary" />
+                </div>
+                <div className="action-label">Calendar</div>
+                <div className="action-sublabel">View Dates</div>
+              </div>
+            </div>
+          </section>
+
         </div>
       </IonContent>
     </IonPage>

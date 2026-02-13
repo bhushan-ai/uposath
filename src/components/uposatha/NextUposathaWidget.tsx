@@ -8,6 +8,7 @@ import { getSavedLocation } from '../../services/locationManager';
 import { Observer } from '@ishubhamx/panchangam-js';
 import { UposathaObservanceService } from '../../services/UposathaObservanceService';
 import { UposathaStats } from '../../types/ObservanceTypes';
+import './NextUposathaWidget.css';
 
 const NextUposathaWidget: React.FC = () => {
     const history = useHistory();
@@ -82,42 +83,28 @@ const NextUposathaWidget: React.FC = () => {
         <IonCard
             button
             onClick={handleCardClick}
-            style={{
-                margin: '16px',
-                borderRadius: '16px',
-                background: 'linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%)',
-                border: '1px solid #FFE082'
-            }}
+            className="next-uposatha-card"
         >
-            <IonCardContent style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <IonCardContent className="next-uposatha-content">
                 <div>
-                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#F57F17', fontWeight: 'bold', marginBottom: '4px' }}>
+                    <div className="next-uposatha-eyebrow">
                         Upcoming Uposatha
                     </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#3E2723', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="next-uposatha-title">
                         <span>{getPhaseIcon()}</span>
                         <span>{getPhaseLabel()}</span>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#5D4037', marginTop: '4px' }}>
+                    <div className="next-uposatha-date">
                         {nextUposatha.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
                     </div>
                 </div>
 
-                <div style={{ textAlign: 'right' }}>
-                    <div style={{
-                        background: 'rgba(255, 255, 255, 0.6)',
-                        padding: '6px 12px',
-                        borderRadius: '12px',
-                        fontSize: '0.9rem',
-                        fontWeight: 'bold',
-                        color: '#BF360C',
-                        marginBottom: '8px',
-                        whiteSpace: 'nowrap'
-                    }}>
+                <div>
+                    <div className="next-uposatha-badge">
                         {daysUntil === 0 ? 'Today' : `In ${daysUntil} Days`}
                     </div>
                     {stats && stats.rate > 0 && (
-                        <div style={{ fontSize: '0.75rem', color: '#5D4037', opacity: 0.8 }}>
+                        <div className="next-uposatha-rate">
                             Rate: {stats.rate.toFixed(0)}%
                         </div>
                     )}

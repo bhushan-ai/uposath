@@ -35,8 +35,9 @@ import {
     speedometerOutline,
     musicalNote
 } from 'ionicons/icons';
-import { useAudio } from '../context/AudioContext';
+import { useAudio } from '../context/useAudio';
 import { LocalAudioDataService } from '../services/audio/LocalAudioDataService';
+import './AudioPlayerPage.css';
 
 const AudioPlayerPage: React.FC = () => {
     const {
@@ -131,87 +132,75 @@ const AudioPlayerPage: React.FC = () => {
                     </IonSegment>
 
                     {activeTab === 'player' && (
-                        <div className="player-view ion-text-center">
-                            <div className="artwork-container" style={{
-                                width: '100%',
-                                aspectRatio: '1',
-                                borderRadius: '24px',
-                                overflow: 'hidden',
-                                marginBottom: '32px',
-                                boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
-                            }}>
-                                <img src={currentTrack.thumbnail} alt={currentTrack.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div className="player-view">
+                            <div className="artwork-container">
+                                <img src={currentTrack.thumbnail} alt={currentTrack.title} />
                             </div>
 
-                            <div className="track-info" style={{ marginBottom: '32px' }}>
-                                <h1 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '0 0 8px 0', lineHeight: '1.3' }}>{currentTrack.title}</h1>
-                                <p style={{ fontSize: '1.1rem', opacity: 0.6, margin: '0' }}>{currentTrack.channelTitle}</p>
+                            <div className="track-info">
+                                <h1 className="track-title">{currentTrack.title}</h1>
+                                <p className="track-artist">{currentTrack.channelTitle}</p>
                             </div>
 
-                            <div className="scrubber" style={{ marginBottom: '16px' }}>
+                            <div className="scrubber">
                                 <IonRange
                                     min={0}
-                                    max={duration}
+                                    max={isNaN(duration) || !isFinite(duration) ? 100 : duration}
                                     value={currentTime}
-                                    onIonChange={e => seek(e.detail.value as number)}
+                                    onIonChange={e => {
+                                        // Only seek if we have a valid duration
+                                        if (isFinite(duration)) seek(e.detail.value as number);
+                                    }}
                                     color="primary"
+                                    disabled={!isFinite(duration) || duration === 0}
                                 />
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.5 }}>
+                                <div className="time-display">
                                     <span>{formatTime(currentTime)}</span>
-                                    <span>{formatTime(duration)}</span>
+                                    <span>{(isNaN(duration) || !isFinite(duration)) ? '--:--' : formatTime(duration)}</span>
                                 </div>
                             </div>
 
-                            <div className="controls" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: '40px' }}>
+                            <div className="controls">
                                 <IonButton fill="clear" onClick={() => previous()}>
-                                    <IonIcon icon={playSkipBack} style={{ fontSize: '1.8rem' }} />
+                                    <IonIcon icon={playSkipBack} size="large" />
                                 </IonButton>
-                                <IonButton fill="clear" size="large" onClick={togglePlay} style={{ '--padding-start': '20px', '--padding-end': '20px' }}>
-                                    <div style={{
-                                        background: 'var(--ion-color-primary)',
-                                        width: '72px',
-                                        height: '72px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        boxShadow: '0 4px 15px rgba(var(--ion-color-primary-rgb), 0.4)'
-                                    }}>
-                                        <IonIcon icon={isPlaying ? pause : play} style={{ color: 'white', fontSize: '2.4rem' }} />
-                                    </div>
-                                </IonButton>
+                                <div className="play-button-container" onClick={togglePlay}>
+                                    <IonIcon icon={isPlaying ? pause : play} style={{ color: 'white', fontSize: '2.4rem' }} />
+                                </div>
                                 <IonButton fill="clear" onClick={() => next()}>
-                                    <IonIcon icon={playSkipForward} style={{ fontSize: '1.8rem' }} />
+                                    <IonIcon icon={playSkipForward} size="large" />
                                 </IonButton>
                             </div>
 
-                            <div className="extra-controls" style={{ display: 'flex', justifyContent: 'center', gap: '24px' }}>
+                            <div className="extra-controls">
                                 <IonButton
                                     fill="clear"
                                     color="medium"
                                     onClick={(e) => setShowSpeedPopover({ show: true, event: e.nativeEvent })}
-                                    style={{ display: 'flex', flexDirection: 'column', height: 'auto' }}
                                 >
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <div className="extra-btn-content">
                                         <IonIcon icon={speedometerOutline} style={{ fontSize: '1.4rem' }} />
-                                        <span style={{ fontSize: '0.6rem', marginTop: '4px' }}>{playbackRate}x</span>
+                                        <span className="extra-label">{playbackRate}x</span>
                                     </div>
                                 </IonButton>
                                 <IonButton
                                     fill="clear"
                                     color={sleepTimer ? "primary" : "medium"}
                                     onClick={(e) => setShowTimerPopover({ show: true, event: e.nativeEvent })}
-                                    style={{ display: 'flex', flexDirection: 'column', height: 'auto' }}
                                 >
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <div className="extra-btn-content">
                                         <IonIcon icon={timeOutline} style={{ fontSize: '1.4rem' }} />
-                                        <span style={{ fontSize: '0.6rem', marginTop: '4px' }}>{sleepTimer ? `${sleepTimer}m` : 'Timer'}</span>
+                                        <span className="extra-label">{sleepTimer ? `${sleepTimer}m` : 'Timer'}</span>
                                     </div>
                                 </IonButton>
-                                <IonButton fill="clear" color={isFav ? "primary" : "medium"} onClick={handleToggleFavorite} style={{ display: 'flex', flexDirection: 'column', height: 'auto' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <IonButton
+                                    fill="clear"
+                                    color={isFav ? "primary" : "medium"}
+                                    onClick={handleToggleFavorite}
+                                >
+                                    <div className="extra-btn-content">
                                         <IonIcon icon={isFav ? star : starOutline} style={{ fontSize: '1.4rem' }} />
-                                        <span style={{ fontSize: '0.6rem', marginTop: '4px' }}>{isFav ? 'Saved' : 'Save'}</span>
+                                        <span className="extra-label">{isFav ? 'Saved' : 'Save'}</span>
                                     </div>
                                 </IonButton>
                             </div>
@@ -222,7 +211,7 @@ const AudioPlayerPage: React.FC = () => {
                         <div className="queue-view">
                             <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '16px' }}>Up Next</h3>
                             <IonList lines="none">
-                                {queue.map((track, index) => (
+                                {queue.map((track: any, index: number) => (
                                     <IonItem key={`${track.id}-${index}`} button style={{ '--padding-start': '0', marginBottom: '8px' }}>
                                         <IonThumbnail slot="start" style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden' }}>
                                             <img src={track.thumbnail} alt={track.title} style={{ objectFit: 'cover' }} />
@@ -248,6 +237,14 @@ const AudioPlayerPage: React.FC = () => {
                                     {currentTrack.description || 'No description available for this recording.'}
                                 </p>
                             </IonText>
+
+                            <div style={{ marginTop: '20px', padding: '10px', background: '#f0f0f0', borderRadius: '8px', fontSize: '0.7rem', color: '#333' }}>
+                                <strong>Debug Info:</strong>
+                                <div>State Duration: {duration}</div>
+                                <div>Current Time: {currentTime}</div>
+                                <div>Track Duration: {currentTrack.duration}</div>
+                                <div>Is Finite: {isFinite(duration).toString()}</div>
+                            </div>
                         </div>
                     )}
                 </div>

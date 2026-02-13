@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useState, useEffect, useRef } from 'react';
 import { AudioTrack, AudioPlaybackState } from '../types/audio/AudioTypes';
 import { AudioService } from '../services/audio/AudioService';
 import { LocalAudioDataService } from '../services/audio/LocalAudioDataService';
 
-interface AudioContextType extends AudioPlaybackState {
+export interface AudioContextType extends AudioPlaybackState {
     playTrack: (track: AudioTrack, queue?: AudioTrack[]) => void;
     pause: () => void;
     resume: () => void;
@@ -20,7 +20,7 @@ interface AudioContextType extends AudioPlaybackState {
     setSleepTimer: (minutes: number | null) => void;
 }
 
-const AudioContext = createContext<AudioContextType | undefined>(undefined);
+export const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [state, setState] = useState<AudioPlaybackState>({
@@ -39,27 +39,50 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    const seekOffsetRef = useRef<number>(0);
+
     useEffect(() => {
         audioRef.current = new Audio();
-
         const audio = audioRef.current;
 
         const updateProgress = () => {
-            setState(s => ({ ...s, currentTime: audio.currentTime, duration: audio.duration || 0 }));
+            const d = audio.duration;
+            const validDuration = (isFinite(d) && d > 0) ? d : (state.currentTrack?.duration || 0);
+
+            // Force total duration from track info if available
+            // This prevents scrubber from confusing partial stream length with total song length
+            const displayDuration = state.currentTrack?.duration || validDuration;
+
+            // Current Time = HTML Audio Time + Seek Offset
+            // If we sought to 60s, and played 5s, HTML audio is 5s, but real time is 65s.
+            const realTime = audio.currentTime + seekOffsetRef.current;
+
+            setState(s => ({ ...s, currentTime: realTime, duration: displayDuration }));
         };
 
         const handleEnded = () => {
             next();
         };
 
+        const handleError = () => {
+            console.error('Audio element error:', audio.error);
+            setState(s => ({
+                ...s,
+                isPlaying: false,
+                currentTrack: null
+            }));
+        };
+
         audio.addEventListener('timeupdate', updateProgress);
         audio.addEventListener('ended', handleEnded);
         audio.addEventListener('play', () => setState(s => ({ ...s, isPlaying: true })));
         audio.addEventListener('pause', () => setState(s => ({ ...s, isPlaying: false })));
+        audio.addEventListener('error', handleError);
 
         return () => {
             audio.removeEventListener('timeupdate', updateProgress);
             audio.removeEventListener('ended', handleEnded);
+            audio.removeEventListener('error', handleError);
             audio.pause();
         };
     }, []);
@@ -77,32 +100,87 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const playTrack = async (track: AudioTrack, queue: AudioTrack[] = []) => {
         if (!audioRef.current) return;
         try {
+            // Check if track has duration; if not, fetch it
+            let trackToPlay = track;
+            if (!trackToPlay.duration || trackToPlay.duration === 0) {
+                console.log('[AudioContext] Fetching missing duration for:', track.id);
+                try {
+                    const info = await AudioService.getVideoInfo(track.id);
+                    if (info && info.duration) {
+                        trackToPlay = { ...track, duration: info.duration };
+                        console.log('[AudioContext] Updated duration:', trackToPlay.duration);
+                    }
+                } catch (e) {
+                    console.error('[AudioContext] Failed to fetch duration:', e);
+                }
+            }
+
             // Save to history
-            LocalAudioDataService.addToHistory(track);
+            LocalAudioDataService.addToHistory(trackToPlay);
 
             // Get resume position
-            const progress = await LocalAudioDataService.getProgress(track.id);
+            const progress = await LocalAudioDataService.getProgress(trackToPlay.id);
 
-            const streamUrl = await AudioService.getStreamUrl(track.id);
+            const streamUrl = AudioService.getStreamUrl(trackToPlay.id);
             if (!streamUrl) throw new Error('Failed to get stream URL');
+
+            // Lightweight check that the stream endpoint is reachable and returns audio
+            let headResponse: Response;
+            try {
+                headResponse = await fetch(streamUrl, { method: 'HEAD' });
+            } catch (networkError) {
+                throw new Error(
+                    `Stream endpoint unreachable: ${networkError instanceof Error ? networkError.message : String(networkError)
+                    }`
+                );
+            }
+
+            if (!headResponse.ok) {
+                throw new Error(`Stream unavailable (status ${headResponse.status})`);
+            }
+
+            const contentType = headResponse.headers.get('Content-Type') || '';
+            if (!contentType.startsWith('audio/')) {
+                throw new Error(`Stream is not audio (Content-Type: ${contentType})`);
+            }
+
+            // Reset seek offset for new track
+            seekOffsetRef.current = 0;
 
             audioRef.current.src = streamUrl;
             audioRef.current.playbackRate = state.playbackRate;
             audioRef.current.currentTime = progress || 0;
+            // If resuming, we might want to use seeking logic too?
+            // For now, let's assume standard play works for start, or if progress > 0 we might need to use seek logic?
+            // Actually, if progress > 0, we should probably treat it as a seek to `progress`.
+
+            if (progress > 0) {
+                const seekUrl = AudioService.getStreamUrl(trackToPlay.id, progress);
+                audioRef.current.src = seekUrl;
+                seekOffsetRef.current = progress;
+                audioRef.current.currentTime = 0;
+            }
+
             audioRef.current.play();
 
-            const newQueue = queue.length > 0 ? queue : [track];
-            const newIndex = newQueue.findIndex(t => t.id === track.id);
+            const newQueue = queue.length > 0 ? queue : [trackToPlay];
+            const newIndex = newQueue.findIndex(t => t.id === trackToPlay.id);
 
             setState(s => ({
                 ...s,
-                currentTrack: track,
+                currentTrack: trackToPlay,
                 isPlaying: true,
                 queue: newQueue,
-                currentIndex: newIndex !== -1 ? newIndex : 0
+                currentIndex: newIndex !== -1 ? newIndex : 0,
+                duration: trackToPlay.duration // Set initial duration
             }));
         } catch (error) {
             console.error('Playback error:', error);
+            setState(s => ({
+                ...s,
+                isPlaying: false,
+                currentTrack: null
+            }));
         }
     };
 
@@ -143,9 +221,21 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     const seek = (time: number) => {
-        if (audioRef.current) {
-            audioRef.current.currentTime = time;
+        if (audioRef.current && state.currentTrack) {
+            // Optimistic update
             setState(s => ({ ...s, currentTime: time }));
+
+            // Reload audio source from new start time
+            // Round to integer for cleaner ffmpeg seeking
+            const seekTime = Math.floor(time);
+            const streamUrl = AudioService.getStreamUrl(state.currentTrack.id, seekTime);
+
+            // Re-assign src and play
+            audioRef.current.src = streamUrl;
+            audioRef.current.currentTime = 0;
+            seekOffsetRef.current = seekTime;
+
+            audioRef.current.play();
         }
     };
 
@@ -216,10 +306,4 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             {children}
         </AudioContext.Provider>
     );
-};
-
-export const useAudio = () => {
-    const context = useContext(AudioContext);
-    if (!context) throw new Error('useAudio must be used within an AudioProvider');
-    return context;
 };

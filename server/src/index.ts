@@ -60,22 +60,37 @@ app.get('/api/audio/video/:id', async (req, res) => {
  */
 app.get('/api/audio/stream/:id', async (req, res) => {
     const { id } = req.params;
+    const startTime = parseInt(req.query.t as string) || 0;
     try {
-        const stream = await YouTubeService.getStreamUrl(id);
-        if (!stream) return res.status(404).json({ error: 'Stream not found' });
+        const streamInfo = await YouTubeService.getStreamUrl(id, startTime);
+        if (!streamInfo) return res.status(404).json({ error: 'Stream not found' });
 
-        // Set headers for audio streaming
-        res.setHeader('Content-Type', 'audio/mpeg'); // or whatever play-dl provides
-        // res.setHeader('Transfer-Encoding', 'chunked');
+        res.setHeader('Content-Type', streamInfo.mimeType || 'audio/webm');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
 
-        stream.stream.pipe(res);
-    } catch (error) {
-        console.error('Streaming error:', error);
-        res.status(500).json({ error: 'Failed to stream audio' });
+        console.log(`[Proxy] Streaming ${id} | MIME: ${streamInfo.mimeType}`);
+
+        streamInfo.stream.pipe(res);
+
+        streamInfo.stream.on('error', (err: any) => {
+            console.error(`[Proxy] Stream error for ${id}:`, err);
+            if (!res.headersSent) res.status(500).end();
+            else res.end();
+        });
+
+        res.on('close', () => {
+            if (streamInfo.stream.destroy) streamInfo.stream.destroy();
+        });
+
+    } catch (error: any) {
+        console.error(`[Proxy] Fatal error for ${id}:`, error.message);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to stream audio', details: error.message });
+        }
     }
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`Dhamma Audio Proxy running on port ${PORT}`);
+app.listen(PORT as number, '0.0.0.0', () => {
+    console.log(`Dhamma Audio Proxy running on port ${PORT} (v3 - yt-dlp + ytpl)`);
 });

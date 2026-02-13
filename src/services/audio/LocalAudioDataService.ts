@@ -97,7 +97,7 @@ export const LocalAudioDataService = {
     async getSubscribedChannels(): Promise<string[]> {
         const { value } = await Preferences.get({ key: STORE_KEYS.CHANNELS });
         // Default to Pancasikha channel
-        return value ? JSON.parse(value) : ['@Pancasikha-358'];
+        return value ? JSON.parse(value) : ['UC0ypu1lL-Srd4O7XHjtIQrg'];
     },
 
     async toggleChannelSubscription(channelId: string): Promise<void> {

@@ -13,7 +13,7 @@ import {
     IonSkeletonText
 } from '@ionic/react';
 import { play, pause, musicalNotesOutline, chevronForwardOutline } from 'ionicons/icons';
-import { useAudio } from '../../context/AudioContext';
+import { useAudio } from '../../context/useAudio';
 import { LocalAudioDataService } from '../../services/audio/LocalAudioDataService';
 import { AudioTrack } from '../../types/audio/AudioTypes';
 
@@ -63,7 +63,13 @@ const DhammaAudioWidget: React.FC = () => {
                 ) : activeTrack ? (
                     <IonItem lines="none" style={{ '--background': 'transparent', padding: '8px 0' }}>
                         <IonThumbnail slot="start" style={{ width: '60px', height: '60px', marginLeft: '16px' }}>
-                            <img alt={activeTrack.title} src={activeTrack.thumbnail} style={{ borderRadius: '8px', objectFit: 'cover' }} />
+                            {activeTrack.thumbnail ? (
+                                <img alt={activeTrack.title} src={activeTrack.thumbnail} style={{ borderRadius: '8px', objectFit: 'cover' }} />
+                            ) : (
+                                <div style={{ width: '100%', height: '100%', background: 'var(--ion-color-step-200)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <IonIcon icon={musicalNotesOutline} color="medium" />
+                                </div>
+                            )}
                         </IonThumbnail>
                         <IonLabel className="ion-text-wrap" style={{ margin: '0 8px' }}>
                             <h2 style={{ fontSize: '0.95rem', fontWeight: '500', marginBottom: '4px' }}>{activeTrack.title}</h2>
