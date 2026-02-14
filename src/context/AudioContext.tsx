@@ -38,31 +38,35 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const seekOffsetRef = useRef<number>(0);
+    const stateRef = useRef(state);
+    const retryRef = useRef<Record<string, number>>({});
+
+    // Keep stateRef in sync
+    useEffect(() => {
+        stateRef.current = state;
+    }, [state]);
 
     useEffect(() => {
-        audioRef.current = new Audio();
+        if (!audioRef.current) {
+            audioRef.current = new Audio();
+        }
         const audio = audioRef.current;
 
         const updateProgress = () => {
-            const d = audio.duration;
+            if (!audio) return;
 
-            // Priority 1: Track metadata duration
-            // Priority 2: Audio element duration (if finite)
-            // Priority 3: Fallback (600s) if we have a track but no length info
-            const metadataDuration = state.currentTrack?.duration || 0;
+            const currentState = stateRef.current;
+            const d = audio.duration;
+            const metadataDuration = currentState.currentTrack?.duration || 0;
             const validAudioDuration = (isFinite(d) && d > 0) ? d : 0;
 
-            // Total track duration logic
             let totalDuration = metadataDuration > 0 ? metadataDuration : validAudioDuration;
 
-            // If still 0 but we are playing, use a fallback so scrubber isn't disabled/stuck
-            if (totalDuration === 0 && state.currentTrack) {
-                totalDuration = 600; // 10 minutes fallback
+            if (totalDuration === 0 && currentState.currentTrack) {
+                totalDuration = 600;
             }
 
-            // Current Time = HTML Audio Time + Seek Offset
-            const realTime = audio.currentTime + seekOffsetRef.current;
+            const realTime = audio.currentTime;
 
             setState(s => ({
                 ...s,
@@ -76,33 +80,55 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
 
         const handleError = () => {
-            console.error('Audio element error:', audio.error);
-            setState(s => ({
-                ...s,
-                isPlaying: false,
-                currentTrack: null
-            }));
+            const error = audio.error;
+            console.warn('[AudioContext] Audio element error event:', error?.code, error?.message);
+
+            const currentState = stateRef.current;
+            const currentTrackId = currentState.currentTrack?.id;
+
+            if (currentTrackId && error?.code === 4) {
+                const retries = retryRef.current[currentTrackId] || 0;
+
+                if (retries < 1) {
+                    console.log(`[AudioContext] Source error for ${currentTrackId}. Attempting refresh (Attempt ${retries + 1}).`);
+                    retryRef.current[currentTrackId] = retries + 1;
+
+                    setTimeout(() => {
+                        if (stateRef.current.currentTrack?.id === currentTrackId) {
+                            playTrack(stateRef.current.currentTrack!);
+                        }
+                    }, 1000);
+                } else {
+                    console.error(`[AudioContext] Multiple failures for ${currentTrackId}. Giving up.`);
+                }
+
+                setState(s => ({ ...s, isPlaying: false }));
+            }
         };
+
+        const onPlay = () => setState(s => ({ ...s, isPlaying: true }));
+        const onPause = () => setState(s => ({ ...s, isPlaying: false }));
 
         audio.addEventListener('timeupdate', updateProgress);
         audio.addEventListener('ended', handleEnded);
-        audio.addEventListener('play', () => setState(s => ({ ...s, isPlaying: true })));
-        audio.addEventListener('pause', () => setState(s => ({ ...s, isPlaying: false })));
+        audio.addEventListener('play', onPlay);
+        audio.addEventListener('pause', onPause);
         audio.addEventListener('error', handleError);
 
         return () => {
             audio.removeEventListener('timeupdate', updateProgress);
             audio.removeEventListener('ended', handleEnded);
+            audio.removeEventListener('play', onPlay);
+            audio.removeEventListener('pause', onPause);
             audio.removeEventListener('error', handleError);
-            audio.pause();
         };
-    }, [state.currentTrack]);
+    }, []); // Only run once
 
     // Periodically save progress
     useEffect(() => {
         if (state.currentTrack && state.isPlaying && audioRef.current) {
             const interval = setInterval(() => {
-                LocalAudioDataService.saveProgress(state.currentTrack!.id, audioRef.current!.currentTime + seekOffsetRef.current);
+                LocalAudioDataService.saveProgress(state.currentTrack!.id, audioRef.current!.currentTime);
             }, 5000);
             return () => clearInterval(interval);
         }
@@ -110,64 +136,73 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const playTrack = async (track: AudioTrack, queue: AudioTrack[] = []) => {
         if (!audioRef.current) return;
+
+        // 1. Optimistically set state to show loading/playing UI immediately
+        const newQueue = queue.length > 0 ? queue : [track];
+        const newIndex = newQueue.findIndex(t => t.id === track.id);
+
+        setState(s => ({
+            ...s,
+            currentTrack: track,
+            isPlaying: true,
+            queue: newQueue,
+            currentIndex: newIndex !== -1 ? newIndex : 0,
+            duration: track.duration || 0,
+            currentTime: 0
+        }));
+
         try {
-            // Check for missing duration
-            let trackToPlay = track;
-            if (!trackToPlay.duration || trackToPlay.duration === 0) {
-                console.log('[AudioContext] Duration missing, attempting fetch...');
-                try {
-                    const info = await AudioService.getVideoInfo(track.id);
-                    if (info && info.duration) {
-                        trackToPlay = { ...track, duration: info.duration };
-                    }
-                } catch (e) {
-                    console.warn('[AudioContext] Failed to fetch missing duration metadata');
-                }
-            }
-
-            // Save to history
-            LocalAudioDataService.addToHistory(trackToPlay);
-
-            // Get resume position
-            const progress = await LocalAudioDataService.getProgress(trackToPlay.id);
-
-            const streamUrl = AudioService.getStreamUrl(trackToPlay.id);
+            // 2. Prepare audio source
+            const streamUrl = await AudioService.fetchStreamUrl(track.id);
             if (!streamUrl) throw new Error('Failed to get stream URL');
 
-            // Reset seek offset for new track unless resuming
-            seekOffsetRef.current = 0;
-
-            if (progress > 0) {
-                const seekUrl = AudioService.getStreamUrl(trackToPlay.id, progress);
-                audioRef.current.src = seekUrl;
-                seekOffsetRef.current = progress;
-                audioRef.current.currentTime = 0;
-            } else {
+            // 3. Immediate playback start to preserve user gesture
+            if (audioRef.current.src !== streamUrl) {
                 audioRef.current.src = streamUrl;
-                audioRef.current.currentTime = 0;
+            }
+            audioRef.current.playbackRate = stateRef.current.playbackRate;
+
+            const playPromise = audioRef.current.play();
+
+            // 4. Background tasks (Async)
+            // These don't block the initial play() call
+            LocalAudioDataService.addToHistory(track);
+
+            if (!track.duration || track.duration === 0) {
+                AudioService.getVideoInfo(track.id).then(info => {
+                    if (info && info.duration) {
+                        setState(s => s.currentTrack?.id === track.id ? { ...s, duration: info.duration } : s);
+                    }
+                }).catch(e => console.warn('[AudioContext] Background duration fetch failed', e));
             }
 
-            audioRef.current.playbackRate = state.playbackRate;
-            audioRef.current.play();
+            // 5. Handle seek/resume after play started
+            LocalAudioDataService.getProgress(track.id).then(progress => {
+                if (progress > 0 && audioRef.current) {
+                    // Only seek if we're near the start (don't overwrite manual seeking)
+                    if (audioRef.current.currentTime < 2) {
+                        console.log(`[AudioContext] Resuming at ${progress}s`);
+                        audioRef.current.currentTime = progress;
+                    }
+                }
+            }).catch(e => console.warn('[AudioContext] Failed to get progress', e));
 
-            const newQueue = queue.length > 0 ? queue : [trackToPlay];
-            const newIndex = newQueue.findIndex(t => t.id === trackToPlay.id);
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    if (error.name === 'AbortError') {
+                        console.log("[AudioContext] Playback interrupted (AbortError), ignoring.");
+                        return;
+                    }
+                    console.error("[AudioContext] Playback failed/blocked:", error);
+                    setState(s => ({ ...s, isPlaying: false }));
+                });
+            }
 
-            setState(s => ({
-                ...s,
-                currentTrack: trackToPlay,
-                isPlaying: true,
-                queue: newQueue,
-                currentIndex: newIndex !== -1 ? newIndex : 0,
-                duration: trackToPlay.duration || 0
-            }));
         } catch (error) {
             console.error('Playback error:', error);
-            setState(s => ({
-                ...s,
-                isPlaying: false,
-                currentTrack: null
-            }));
+            // NOTE: We DON'T clear currentTrack here anymore. 
+            // We want the UI to stay on the track so the user can see what failed or try again.
+            setState(s => ({ ...s, isPlaying: false }));
         }
     };
 
@@ -175,51 +210,65 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (audioRef.current) {
             audioRef.current.pause();
             if (state.currentTrack) {
-                LocalAudioDataService.saveProgress(state.currentTrack.id, audioRef.current.currentTime + seekOffsetRef.current);
+                LocalAudioDataService.saveProgress(state.currentTrack.id, audioRef.current.currentTime);
             }
         }
     };
 
-    const resume = () => audioRef.current?.play();
+    const resume = () => {
+        const playPromise = audioRef.current?.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                if (error.name === 'NotSupportedError') {
+                    console.log('[AudioContext] resume failed with NotSupportedError, attempting refresh.');
+                    const current = stateRef.current.currentTrack;
+                    if (current) playTrack(current);
+                } else {
+                    console.warn('[AudioContext] resume failed:', error.message);
+                }
+            });
+        }
+    };
 
     const togglePlay = () => {
-        if (state.isPlaying) pause();
+        const { isPlaying } = stateRef.current;
+        if (isPlaying) pause();
         else resume();
     };
 
     const next = () => {
-        if (state.queue.length === 0) return;
-        let nextIndex = state.currentIndex + 1;
-        if (nextIndex >= state.queue.length) {
-            if (state.repeatMode === 'all') nextIndex = 0;
+        const { queue, currentIndex, repeatMode } = stateRef.current;
+        if (queue.length === 0) return;
+        let nextIndex = currentIndex + 1;
+        if (nextIndex >= queue.length) {
+            if (repeatMode === 'all') nextIndex = 0;
             else return;
         }
-        playTrack(state.queue[nextIndex]);
+        playTrack(queue[nextIndex]);
     };
 
     const previous = () => {
-        if (state.queue.length === 0) return;
-        let prevIndex = state.currentIndex - 1;
+        const { queue, currentIndex, repeatMode } = stateRef.current;
+        if (queue.length === 0) return;
+        let prevIndex = currentIndex - 1;
         if (prevIndex < 0) {
-            if (state.repeatMode === 'all') prevIndex = state.queue.length - 1;
+            if (repeatMode === 'all') prevIndex = queue.length - 1;
             else return;
         }
-        playTrack(state.queue[prevIndex]);
+        playTrack(queue[prevIndex]);
     };
 
     const seek = (time: number) => {
-        if (audioRef.current && state.currentTrack) {
+        const { currentTrack } = stateRef.current;
+        if (audioRef.current && currentTrack) {
             const seekTime = Math.floor(time);
-            const streamUrl = AudioService.getStreamUrl(state.currentTrack.id, seekTime);
 
-            audioRef.current.src = streamUrl;
-            audioRef.current.currentTime = 0;
-            seekOffsetRef.current = seekTime;
+            // Native seeking - just set currentTime
+            // The browser will automatically send a Range request
+            audioRef.current.currentTime = seekTime;
 
             // Optimistic update
             setState(s => ({ ...s, currentTime: seekTime }));
-
-            audioRef.current.play();
         }
     };
 

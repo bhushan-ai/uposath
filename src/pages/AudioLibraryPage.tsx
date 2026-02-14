@@ -1,27 +1,6 @@
-import { useState, useEffect } from 'react';
-import {
-    IonContent,
-    IonHeader,
-    IonPage,
-    IonTitle,
-    IonToolbar,
-    IonSearchbar,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonThumbnail,
-    IonButton,
-    IonIcon,
-    IonSpinner,
-    IonText,
-    IonBadge,
-    IonSkeletonText,
-    IonGrid,
-    IonRow,
-    IonCol,
-    IonCard,
-    IonCardContent
-} from '@ionic/react';
+import React, { useState, useEffect } from 'react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonSearchbar, IonList, IonItem, IonLabel, IonThumbnail, IonButton, IonIcon, IonSpinner, IonText, IonBadge, IonSkeletonText, IonGrid, IonRow, IonCol, IonCard, IonCardContent } from '@ionic/react';
+import { useHistory } from 'react-router-dom';
 import {
     searchOutline,
     musicalNotesOutline,
@@ -37,6 +16,7 @@ import { AudioTrack, AudioChannel } from '../types/audio/AudioTypes';
 import { useAudio } from '../context/useAudio';
 
 const AudioLibraryPage: React.FC = () => {
+    const history = useHistory();
     const { playTrack } = useAudio();
     const [channels, setChannels] = useState<AudioChannel[]>([]);
     const [featuredTracks, setFeaturedTracks] = useState<AudioTrack[]>([]);
@@ -108,6 +88,11 @@ const AudioLibraryPage: React.FC = () => {
         }
     };
 
+    const handlePlayTrack = (track: AudioTrack, queue: AudioTrack[]) => {
+        playTrack(track, queue);
+        history.push('/player');
+    };
+
     return (
         <IonPage>
             <IonHeader className="ion-no-border">
@@ -136,7 +121,7 @@ const AudioLibraryPage: React.FC = () => {
                                 <IonItem
                                     key={track.id}
                                     button
-                                    onClick={() => playTrack(track, searchResults)}
+                                    onClick={() => handlePlayTrack(track, searchResults)}
                                     style={{ '--padding-start': '0', marginBottom: '8px' }}
                                 >
                                     <IonThumbnail slot="start" style={{ width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden' }}>
@@ -166,7 +151,7 @@ const AudioLibraryPage: React.FC = () => {
                                 )) : featuredTracks.map(track => (
                                     <div
                                         key={track.id}
-                                        onClick={() => playTrack(track, featuredTracks)}
+                                        onClick={() => handlePlayTrack(track, featuredTracks)}
                                         style={{ minWidth: '220px', cursor: 'pointer' }}
                                     >
                                         <div style={{
@@ -240,7 +225,7 @@ const AudioLibraryPage: React.FC = () => {
                                     <IonItem
                                         key={track.id}
                                         button
-                                        onClick={() => playTrack(track, recentTracks)}
+                                        onClick={() => handlePlayTrack(track, recentTracks)}
                                         style={{ '--padding-start': '0', marginBottom: '8px' }}
                                     >
                                         <IonThumbnail slot="start" style={{ width: '56px', height: '56px', borderRadius: '8px', overflow: 'hidden' }}>

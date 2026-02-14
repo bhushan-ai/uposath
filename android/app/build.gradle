@@ -29,7 +29,6 @@ repositories {
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
-
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
@@ -40,6 +39,12 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+
+    // NewPipeExtractor
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.24.6'
+    implementation 'com.github.TeamNewPipe:nanojson:1.7-np'
+    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 }
 
 apply from: 'capacitor.build.gradle'

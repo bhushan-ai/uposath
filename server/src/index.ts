@@ -70,18 +70,16 @@ app.get('/api/audio/stream/:id', async (req, res) => {
         const streamInfo = await YouTubeService.getStreamUrlDirect(id);
 
         if (!streamInfo) {
-            console.log(`[Proxy] Direct URL failed for ${id}, falling back to transcoded stream.`);
-            // Fallback to legacy transcoded stream if direct fails
-            const legacyStream = await YouTubeService.getStreamUrl(id);
-            if (!legacyStream) return res.status(404).json({ error: 'Stream not found' });
-
-            res.setHeader('Content-Type', 'audio/mpeg');
-            legacyStream.stream.pipe(res);
-            return;
+            console.log(`[Proxy] Stream extraction failed for ${id}`);
+            return res.status(404).json({ error: 'Stream not found' });
         }
 
         // Step 2: Proxy the direct URL with Range support
-        const headers: Record<string, string> = {};
+        const headers: Record<string, string> = {
+            'User-Agent': req.headers['user-agent'] || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': 'https://www.youtube.com/'
+        };
+
         if (range) {
             headers['Range'] = range;
         }
@@ -89,7 +87,25 @@ app.get('/api/audio/stream/:id', async (req, res) => {
         const fetchFn = (globalThis as any).fetch;
         if (!fetchFn) throw new Error('Native fetch not available');
 
-        const response = await fetchFn(streamInfo.url, { headers });
+        let response = await fetchFn(streamInfo.url, { headers });
+
+        console.log(`[Proxy] ${id} status: ${response.status} | range: ${range || 'no'}`);
+
+        // Handle 403 (Expired/Blocked)
+        if (response.status === 403) {
+            console.log(`[Proxy] 403 Forbidden for ${id}. Clearing cache and retrying fresh URL.`);
+            YouTubeService.clearCache(id);
+            const freshInfo = await YouTubeService.getStreamUrlDirect(id);
+            if (freshInfo) {
+                response = await fetchFn(freshInfo.url, { headers });
+                console.log(`[Proxy] Retry status: ${response.status}`);
+            }
+        }
+
+        if (!response.ok && response.status !== 206) {
+            console.error(`[Proxy] YouTube failure: ${response.status} ${response.statusText}`);
+            return res.status(response.status).json({ error: 'Upstream failure' });
+        }
 
         // Step 3: Forward appropriate headers back to client
         res.status(response.status);
@@ -98,16 +114,33 @@ app.get('/api/audio/stream/:id', async (req, res) => {
         const headersToForward = ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control'];
         headersToForward.forEach(h => {
             const val = response.headers.get(h);
-            if (val) res.setHeader(h, val);
+            if (val) {
+                // If it's content-type, let's clean it up for the browser
+                if (h === 'content-type') {
+                    let cleaned = val.replace('video/mp4', 'audio/mp4')
+                        .replace('video/webm', 'audio/webm');
+                    // Sometimes complex codec strings break certain browsers
+                    // Only keep the primary type if the browser is struggling
+                    res.setHeader(h, cleaned);
+                } else {
+                    res.setHeader(h, val);
+                }
+            }
         });
 
-        // Ensure we have a mime type if YouTube didn't provide one or we guessed
+        // Browsers need this to enable seeking
+        if (!res.getHeader('accept-ranges')) {
+            res.setHeader('Accept-Ranges', 'bytes');
+        }
+
+        // Final fallback for mime type
         if (!res.getHeader('content-type')) {
             res.setHeader('Content-Type', streamInfo.mimeType);
         }
 
         if (!response.body) {
-            throw new Error('Response body is empty');
+            console.error(`[Proxy] Empty body from YouTube for ${id}`);
+            return res.status(500).end();
         }
 
         // Step 4: Pipe the web stream to Node response
@@ -119,6 +152,12 @@ app.get('/api/audio/stream/:id', async (req, res) => {
             console.error(`[Proxy] Pipe error for ${id}:`, err);
             if (!res.headersSent) res.status(500).end();
             else res.end();
+        });
+
+        res.on('close', () => {
+            try {
+                nodeStream.destroy();
+            } catch (e) { }
         });
 
     } catch (error: any) {
@@ -141,5 +180,5 @@ app.get('/api/audio/lyrics/:id', async (req, res) => {
 
 // Start server
 app.listen(PORT as number, '0.0.0.0', () => {
-    console.log(`Dhamma Audio Proxy running on port ${PORT} (v3 - yt-dlp + ytpl)`);
+    console.log(`Dhamma Audio Proxy running on port ${PORT} (NewPipe Bridge v1)`);
 });
