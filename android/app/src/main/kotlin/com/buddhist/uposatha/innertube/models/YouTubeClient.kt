@@ -95,6 +95,7 @@ data class YouTubeClient(
             clientId = "5",
             userAgent = "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
             osVersion = "18.3.2.22D82",
+            useWebPoTokens = false
         )
 
         val ANDROID = YouTubeClient(
@@ -103,7 +104,8 @@ data class YouTubeClient(
             clientId = "3",
             userAgent = "com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip",
             loginSupported = true,
-            useSignatureTimestamp = true
+            useSignatureTimestamp = true,
+            useWebPoTokens = false
         )
 
         val ANDROID_VR_NO_AUTH = YouTubeClient(
@@ -112,7 +114,18 @@ data class YouTubeClient(
             clientId = "28",
             userAgent = "com.google.android.apps.youtube.vr.oculus/1.61.48 (Linux; U; Android 12; en_US; Oculus Quest 3; Build/SQ3A.220605.009.A1; Cronet/132.0.6808.3)",
             loginSupported = false,
-            useSignatureTimestamp = false
+            useSignatureTimestamp = false,
+            useWebPoTokens = false
+        )
+
+        val ANDROID_TESTSUITE = YouTubeClient(
+            clientName = "ANDROID_TESTSUITE",
+            clientVersion = "1.9.0",
+            clientId = "30",
+            userAgent = "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip",
+            loginSupported = false,
+            useSignatureTimestamp = false,
+            useWebPoTokens = false
         )
     }
 }

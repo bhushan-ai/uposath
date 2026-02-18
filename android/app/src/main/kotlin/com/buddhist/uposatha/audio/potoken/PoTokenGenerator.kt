@@ -26,7 +26,7 @@ class PoTokenGenerator {
         }
 
         return try {
-            runBlocking { getWebClientPoToken(videoId, sessionId, forceRecreate = false) }
+            runBlocking(Dispatchers.IO) { getWebClientPoToken(videoId, sessionId, forceRecreate = false) }
         } catch (e: Exception) {
             when (e) {
                 is BadWebViewException -> {
