@@ -13,7 +13,7 @@
 
 ## 🌟 Overview
 
-**Uposath** is a minimalist, premium mobile application designed to help practitioners track Buddhist observance days (*Uposatha*), engage with Dhamma teachings, and maintain a consistent meditation practice. Built with a "Premium Brutalist" aesthetic, it combines ancient wisdom with modern mobile technology.
+**Uposath** is a minimalist, premium mobile application designed to help practitioners track Buddhist observance days (*Uposatha*), engage with Dhamma teachings, and maintain a consistent meditation practice. It combines ancient wisdom with modern mobile technology.
 
 ## 🌙 Key Features
 
