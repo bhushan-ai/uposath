@@ -68,6 +68,14 @@ android/app/src/main/assets/capacitor.config.json
 **/local.properties
 **/build/
 **/.gradle/
+.gradle/
+build/
+bin/
+gen/
+.gradletasknamecache
+gradle-app.setting
+**/build/
+**/.gradle/
 **/.navigation/
 **/captures/
 **/.cxx/
