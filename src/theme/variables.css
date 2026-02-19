@@ -125,20 +125,20 @@
   --color-theravada-primary: #FF9933;
   --color-theravada-secondary: #A0522D;
   --color-theravada-accent: #DAA520;
-  --color-theravada-bg: #FFFEF0;
-  --color-theravada-text: #5D4037;
+  --color-theravada-bg: rgba(255, 153, 51, 0.06);
+  --color-theravada-text: #f8f0e0;
 
   --color-mahayana-primary: #E34234;
   --color-mahayana-secondary: #FFD700;
   --color-mahayana-accent: #00A86B;
-  --color-mahayana-bg: #F5F5DC;
-  --color-mahayana-text: #1C1C1C;
+  --color-mahayana-bg: rgba(227, 66, 52, 0.06);
+  --color-mahayana-text: #f8e8e6;
 
-  --color-vajrayana-primary: #1E3A5F;
+  --color-vajrayana-primary: #6B8FBF;
   --color-vajrayana-secondary: #C44D34;
   --color-vajrayana-accent: #C9B037;
-  --color-vajrayana-bg: #FDF5E6;
-  --color-vajrayana-text: #4A0404;
+  --color-vajrayana-bg: rgba(107, 143, 191, 0.06);
+  --color-vajrayana-text: #e0e8f0;
 
   --uposatha-full-moon: var(--color-accent-primary);
   --uposatha-new-moon: var(--color-text-muted);

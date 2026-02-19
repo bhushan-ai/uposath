@@ -6,31 +6,109 @@
     --background: var(--color-bg-primary);
 }
 
+/* ─── Filter Section ─── */
+
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.tradition-segment {
+    flex: 1;
+    min-width: 280px;
+    --background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+}
+
+.tradition-segment ion-segment-button {
+    --color: var(--color-text-secondary);
+    --color-checked: var(--color-accent-primary);
+    --indicator-color: transparent;
+    --border-radius: var(--radius-lg);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    min-height: 32px;
+}
+
+.tradition-segment ion-segment-button::part(indicator-background) {
+    background: rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.15);
+    border-radius: var(--radius-lg);
+}
+
+.hindi-toggle {
+    background: rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.1);
+    border: 1px solid rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.3);
+    color: var(--color-text-secondary);
+    padding: 6px 14px;
+    border-radius: var(--radius-lg);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+}
+
+.hindi-toggle.active {
+    background: var(--color-accent-primary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-accent-primary);
+}
+
+/* ─── Festival Cards — Dark Glass Aesthetic ─── */
+
 .festival-card {
     margin-bottom: var(--space-md);
     border-radius: var(--radius-xl);
     overflow: hidden;
     position: relative;
-    border: 1px solid var(--glass-border);
+    background: var(--color-bg-card);
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
     transition: all var(--transition-base);
-    animation: slideInUp var(--transition-slow) ease-out;
+    animation: slideInUp var(--transition-slow) ease-out both;
     display: block;
-    background: var(--background, var(--color-bg-card));
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+        inset 0 0 30px rgba(255, 255, 255, 0.01);
 }
 
 .festival-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 0 30px rgba(255, 255, 255, 0.02);
+    transform: translateY(-2px);
+}
+
+.festival-card.expanded {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5),
+        inset 0 0 30px rgba(255, 255, 255, 0.02);
+}
+
+/* Tradition-tinted top glow overlay */
+.festival-card::before {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: -30%;
+    width: 160%;
+    height: 160%;
+    background: radial-gradient(ellipse at top center,
+            var(--tradition-glow, rgba(255, 198, 112, 0.08)) 0%,
+            transparent 65%);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .festival-card-content {
     display: flex;
     flex-direction: column;
     padding: var(--space-lg);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    padding-left: calc(var(--space-lg) + 10px);
     position: relative;
     z-index: 1;
 }
@@ -40,6 +118,7 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: var(--space-sm);
+    gap: var(--space-md);
 }
 
 .festival-name {
@@ -48,28 +127,39 @@
     font-weight: var(--font-weight-bold);
     margin: 0;
     line-height: var(--line-height-tight);
+    /* Color set via inline style from tradition */
+}
+
+.festival-aka {
+    font-size: 0.72rem;
+    color: var(--color-text-tertiary);
+    font-style: italic;
+    margin-top: 3px;
+    opacity: 0.85;
 }
 
 .tradition-badge {
-    padding: 6px 12px;
-    border-radius: var(--radius-lg);
-    font-size: 0.7rem;
+    padding: 5px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.6rem;
     font-weight: var(--font-weight-bold);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .festival-date {
     font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    margin: var(--space-xs) 0;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    margin: var(--space-sm) 0;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 10px;
-    background: rgba(0, 0, 0, 0.05);
+    padding: 5px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
     border-radius: var(--radius-md);
     width: fit-content;
 }
@@ -78,7 +168,9 @@
     font-size: var(--font-size-sm);
     line-height: var(--line-height-normal);
     margin-top: var(--space-md);
+    color: var(--color-text-secondary);
     font-style: italic;
+    opacity: 0.9;
 }
 
 .festival-footer {
@@ -87,7 +179,13 @@
     align-items: center;
     margin-top: var(--space-lg);
     padding-top: var(--space-md);
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.festival-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
 }
 
 .days-count {
@@ -101,7 +199,29 @@
 .days-label {
     font-size: 0.7rem;
     text-transform: uppercase;
-    opacity: 0.6;
+    letter-spacing: 0.05em;
+    opacity: 0.5;
+}
+
+.expand-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 5px 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all var(--transition-base);
+    color: var(--color-text-secondary);
+}
+
+.expand-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--color-text-primary);
 }
 
 .view-details {
@@ -111,38 +231,259 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    opacity: 0.8;
 }
+
+.view-details:hover {
+    opacity: 1;
+}
+
+/* ─── Expandable Events Panel ─── */
+
+.events-panel {
+    padding: var(--space-lg);
+    padding-left: calc(var(--space-lg) + 10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.2);
+    animation: expandIn 0.3s ease-out;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes expandIn {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    to {
+        opacity: 1;
+        max-height: 5000px;
+    }
+}
+
+.events-panel-title {
+    font-family: var(--font-family-display);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 var(--space-lg) 0;
+    color: var(--color-text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.events-panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent);
+}
+
+.event-item {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.event-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.event-bullet {
+    font-size: 0.4rem;
+    margin-top: 8px;
+    flex-shrink: 0;
+    opacity: 0.7;
+    /* Color set via tradition accent */
+}
+
+.event-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.event-text-en {
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+    font-weight: 400;
+    opacity: 0.92;
+}
+
+.event-text-hindi {
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: var(--color-text-secondary);
+    margin: var(--space-xs) 0 var(--space-sm) 0;
+    font-style: italic;
+    padding: var(--space-xs) var(--space-sm);
+    padding-left: var(--space-md);
+    border-left: 2px solid rgba(255, 198, 112, 0.3);
+    background: rgba(255, 255, 255, 0.015);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    opacity: 0.8;
+}
+
+.event-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-md);
+    border-left: 2px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.78rem;
+    color: var(--color-text-tertiary);
+    font-style: italic;
+    line-height: 1.55;
+}
+
+.event-note ion-icon {
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    margin-top: 2px;
+    color: var(--color-text-muted);
+}
+
+/* ─── Pali & Relic Badges — Dark Theme ─── */
+
+.pali-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(255, 198, 112, 0.08);
+    border: 1px solid rgba(255, 198, 112, 0.15);
+    border-radius: var(--radius-sm);
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--color-accent-primary);
+    margin-top: var(--space-xs);
+    margin-right: var(--space-xs);
+    opacity: 0.85;
+}
+
+.pali-badge ion-icon {
+    font-size: 0.7rem;
+}
+
+.sutta-badge {
+    background: rgba(255, 170, 64, 0.08);
+    border-color: rgba(255, 170, 64, 0.15);
+    color: var(--color-accent-secondary);
+}
+
+.relic-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(130, 100, 255, 0.08);
+    border: 1px solid rgba(130, 100, 255, 0.15);
+    border-radius: var(--radius-sm);
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #a78bfa;
+    margin-top: var(--space-xs);
+}
+
+.pali-references {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.72rem;
+    color: var(--color-text-tertiary);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.pali-references strong {
+    color: var(--color-text-secondary);
+}
+
+.pali-ref-tag {
+    background: rgba(255, 198, 112, 0.06);
+    border: 1px solid rgba(255, 198, 112, 0.1);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.68rem;
+    color: var(--color-accent-primary);
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+/* ─── Left Accent Strip (tradition color) ─── */
+.festival-accent-strip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    z-index: 2;
+    border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+    box-shadow: 0 0 12px var(--strip-color, rgba(255, 198, 112, 0.3));
+}
+
+/* ─── Animations ─── */
 
 @keyframes slideInUp {
     from {
-        transform: translateY(20px);
+        transform: translateY(16px);
+        opacity: 0;
     }
 
     to {
         transform: translateY(0);
+        opacity: 1;
     }
 }
 
-/* Stagger animation for cards */
 .festival-card:nth-child(1) {
-    animation-delay: 0.1s;
+    animation-delay: 0.03s;
 }
 
 .festival-card:nth-child(2) {
-    animation-delay: 0.2s;
+    animation-delay: 0.06s;
 }
 
 .festival-card:nth-child(3) {
-    animation-delay: 0.3s;
+    animation-delay: 0.09s;
 }
 
 .festival-card:nth-child(4) {
-    animation-delay: 0.4s;
+    animation-delay: 0.12s;
 }
 
 .festival-card:nth-child(5) {
-    animation-delay: 0.5s;
+    animation-delay: 0.15s;
 }
+
+.festival-card:nth-child(6) {
+    animation-delay: 0.18s;
+}
+
+.festival-card:nth-child(7) {
+    animation-delay: 0.21s;
+}
+
+.festival-card:nth-child(8) {
+    animation-delay: 0.24s;
+}
+
+/* ─── Empty State ─── */
 
 .empty-state {
     display: flex;

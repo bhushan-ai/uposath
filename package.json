@@ -29,6 +29,7 @@
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
     "astronomy-engine": "^2.1.19",
+    "chinese-lunar-calendar": "^1.0.1",
     "ionicons": "^7.4.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
