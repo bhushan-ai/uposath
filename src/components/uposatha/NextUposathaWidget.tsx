@@ -79,6 +79,51 @@ const NextUposathaWidget: React.FC = () => {
         return 'Uposatha Day';
     };
 
+    // ─── Live Countdown ───
+    const Countdown: React.FC<{ targetDate: Date }> = ({ targetDate }) => {
+        const [now, setNow] = useState(new Date());
+
+        useEffect(() => {
+            const interval = setInterval(() => setNow(new Date()), 1000);
+            return () => clearInterval(interval);
+        }, []);
+
+        const diff = Math.max(0, targetDate.getTime() - now.getTime());
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        const pad = (n: number) => n.toString().padStart(2, '0');
+
+        if (diff === 0) {
+            return <span className="countdown-today">🎉 Today!</span>;
+        }
+
+        return (
+            <span className="countdown-live">
+                <span className="countdown-segment">
+                    <span className="countdown-value">{days}</span>
+                    <span className="countdown-unit">d</span>
+                </span>
+                <span className="countdown-sep">:</span>
+                <span className="countdown-segment">
+                    <span className="countdown-value">{pad(hours)}</span>
+                    <span className="countdown-unit">h</span>
+                </span>
+                <span className="countdown-sep">:</span>
+                <span className="countdown-segment">
+                    <span className="countdown-value">{pad(minutes)}</span>
+                    <span className="countdown-unit">m</span>
+                </span>
+                <span className="countdown-sep">:</span>
+                <span className="countdown-segment">
+                    <span className="countdown-value">{pad(seconds)}</span>
+                    <span className="countdown-unit">s</span>
+                </span>
+            </span>
+        );
+    };
+
     return (
         <IonCard
             button
@@ -101,7 +146,7 @@ const NextUposathaWidget: React.FC = () => {
 
                 <div>
                     <div className="next-uposatha-badge">
-                        {daysUntil === 0 ? 'Today' : `In ${daysUntil} Days`}
+                        <Countdown targetDate={nextUposatha.date} />
                     </div>
                     {stats && stats.rate > 0 && (
                         <div className="next-uposatha-rate">

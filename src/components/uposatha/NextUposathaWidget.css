@@ -1,13 +1,31 @@
+/* ─── Next Uposatha Card — Dark Glass ─── */
+
 .next-uposatha-card {
     border-radius: var(--radius-xl);
-    background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 236, 179, 0.95) 100%);
-    border: 1px solid rgba(255, 224, 130, 0.5);
-    box-shadow: 0 8px 24px rgba(255, 193, 7, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    background: var(--color-bg-card);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid rgba(255, 198, 112, 0.12);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3),
+        inset 0 0 40px rgba(255, 198, 112, 0.02);
     margin: 0;
-    /* Align with layout */
     overflow: hidden;
     position: relative;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.2s ease;
+}
+
+.next-uposatha-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(ellipse at top left,
+            rgba(255, 198, 112, 0.08) 0%,
+            transparent 60%);
+    pointer-events: none;
 }
 
 .next-uposatha-card:active {
@@ -18,25 +36,26 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--space-md) var(--space-lg);
+    padding: var(--space-lg) var(--space-lg);
+    position: relative;
+    z-index: 1;
 }
 
 .next-uposatha-eyebrow {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #e65100;
-    /* Dark Orange */
-    font-weight: 800;
-    margin-bottom: 4px;
+    letter-spacing: 0.12em;
+    color: var(--color-accent-primary);
+    font-weight: 700;
+    margin-bottom: 6px;
     font-family: var(--font-family-display);
+    opacity: 0.85;
 }
 
 .next-uposatha-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 800;
-    color: #3e2723;
-    /* Dark Brown */
+    color: var(--color-text-primary);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -44,59 +63,55 @@
 }
 
 .next-uposatha-date {
-    font-size: 0.95rem;
-    color: #5d4037;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
     margin-top: 4px;
     font-weight: 500;
 }
 
+/* ─── Countdown Badge ─── */
+
 .next-uposatha-badge {
-    background: rgba(255, 255, 255, 0.6);
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: #bf360c;
+    background: rgba(255, 198, 112, 0.08);
+    border: 1px solid rgba(255, 198, 112, 0.15);
+    padding: 8px 14px;
+    border-radius: var(--radius-lg);
     margin-bottom: 4px;
     white-space: nowrap;
     text-align: center;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+}
+
+.next-uposatha-badge .countdown-live {
+    gap: 2px;
+}
+
+.next-uposatha-badge .countdown-value {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-accent-primary);
+}
+
+.next-uposatha-badge .countdown-unit {
+    font-size: 0.55rem;
+    color: var(--color-accent-secondary);
+    opacity: 0.6;
+}
+
+.next-uposatha-badge .countdown-sep {
+    color: var(--color-accent-primary);
+    opacity: 0.2;
+}
+
+.next-uposatha-badge .countdown-today {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--color-accent-primary);
 }
 
 .next-uposatha-rate {
-    font-size: 0.75rem;
-    color: #5d4037;
-    opacity: 0.8;
+    font-size: 0.7rem;
+    color: var(--color-text-tertiary);
     text-align: right;
     font-weight: 600;
-}
-
-/* Dark mode overrides if needed, but keeping warm colors for Uposatha is distinct */
-@media (prefers-color-scheme: dark) {
-    .next-uposatha-card {
-        background: linear-gradient(135deg, #2e2417 0%, #3e2723 100%);
-        border: 1px solid rgba(255, 193, 7, 0.2);
-    }
-
-    .next-uposatha-eyebrow {
-        color: #ffca28;
-    }
-
-    .next-uposatha-title {
-        color: #fff8e1;
-    }
-
-    .next-uposatha-date {
-        color: #ffe0b2;
-    }
-
-    .next-uposatha-badge {
-        background: rgba(255, 160, 0, 0.2);
-        color: #ffca28;
-    }
-
-    .next-uposatha-rate {
-        color: #ffe0b2;
-    }
+    margin-top: 4px;
 }

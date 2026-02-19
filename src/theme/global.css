@@ -215,6 +215,92 @@ ion-toolbar {
     --padding-bottom: 4px;
 }
 
+/* --- Premium Tab Bar --- */
+
+ion-tab-bar {
+    --background: rgba(6, 6, 10, 0.92);
+    --border: none;
+    border-top: 1px solid rgba(255, 198, 112, 0.08);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    padding-top: 4px;
+    padding-bottom: env(safe-area-inset-bottom, 4px);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4),
+        0 -1px 0 rgba(255, 198, 112, 0.04);
+}
+
+ion-tab-button {
+    --color: var(--color-text-muted);
+    --color-selected: var(--color-accent-primary);
+    --background: transparent;
+    --background-focused: transparent;
+    --ripple-color: rgba(255, 198, 112, 0.08);
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    padding-top: 6px;
+    padding-bottom: 2px;
+}
+
+/* Active tab styling */
+ion-tab-button.tab-selected {
+    --color: var(--color-accent-primary);
+}
+
+/* Active indicator dot */
+ion-tab-button.tab-selected::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background: var(--color-accent-primary);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 8px rgba(255, 198, 112, 0.4),
+        0 0 16px rgba(255, 198, 112, 0.15);
+    animation: tabIndicatorIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tabIndicatorIn {
+    from {
+        width: 4px;
+        opacity: 0;
+    }
+
+    to {
+        width: 20px;
+        opacity: 1;
+    }
+}
+
+/* Icon styling */
+ion-tab-button ion-icon {
+    font-size: 1.25rem;
+    transition: all 0.25s ease;
+}
+
+ion-tab-button.tab-selected ion-icon {
+    filter: drop-shadow(0 0 6px rgba(255, 198, 112, 0.35));
+    transform: translateY(-1px);
+}
+
+/* Label styling */
+ion-tab-button ion-label {
+    font-family: var(--font-family-display);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: none;
+    margin-top: 2px;
+    transition: all 0.25s ease;
+}
+
+ion-tab-button.tab-selected ion-label {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
 /* --- Global Premium Button System --- */
 /* Standarized effect from Calendar Header (Month, Year, Today) */
 

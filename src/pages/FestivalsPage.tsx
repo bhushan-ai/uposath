@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     IonContent,
     IonHeader,
@@ -74,6 +74,52 @@ const FestivalsPage: React.FC = () => {
         } else {
             setFilteredFestivals(festivals.filter(m => m.festival.tradition === value));
         }
+    };
+
+    // ─── Live Countdown Component ───
+    const Countdown: React.FC<{ targetDate: Date }> = ({ targetDate }) => {
+        const [now, setNow] = useState(new Date());
+
+        useEffect(() => {
+            const interval = setInterval(() => setNow(new Date()), 1000);
+            return () => clearInterval(interval);
+        }, []);
+
+        const diff = Math.max(0, targetDate.getTime() - now.getTime());
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const pad = (n: number) => n.toString().padStart(2, '0');
+
+        if (diff === 0) {
+            return <span className="countdown-live">🎉 Today!</span>;
+        }
+
+        return (
+            <span className="countdown-live">
+                <span className="countdown-segment">
+                    <span className="countdown-value">{days}</span>
+                    <span className="countdown-unit">d</span>
+                </span>
+                <span className="countdown-sep">:</span>
+                <span className="countdown-segment">
+                    <span className="countdown-value">{pad(hours)}</span>
+                    <span className="countdown-unit">h</span>
+                </span>
+                <span className="countdown-sep">:</span>
+                <span className="countdown-segment">
+                    <span className="countdown-value">{pad(minutes)}</span>
+                    <span className="countdown-unit">m</span>
+                </span>
+                <span className="countdown-sep">:</span>
+                <span className="countdown-segment">
+                    <span className="countdown-value">{pad(seconds)}</span>
+                    <span className="countdown-unit">s</span>
+                </span>
+            </span>
+        );
     };
 
     const toggleExpand = (key: string) => {
@@ -252,7 +298,7 @@ const FestivalsPage: React.FC = () => {
                                         <div className="festival-footer">
                                             <div className="days-count" style={{ color: colors.primary }}>
                                                 <IonIcon icon={timeOutline} />
-                                                <span>{match.daysRemaining} <span className="days-label">days left</span></span>
+                                                <Countdown targetDate={match.date} />
                                             </div>
 
                                             <div className="festival-footer-actions">
