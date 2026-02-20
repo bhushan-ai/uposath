@@ -45,6 +45,7 @@ android/build_log*.txt
 .eslintcache
 
 # Local debug / diagnosis artifacts
+build_output.txt
 debug_output.txt
 debug_*.txt
 diagnosis_*.txt
