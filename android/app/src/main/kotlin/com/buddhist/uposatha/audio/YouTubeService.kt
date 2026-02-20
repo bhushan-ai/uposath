@@ -183,15 +183,8 @@ class YouTubeService {
                         val response = client.newCall(request).execute()
                         val body = response.body?.string() ?: return@withContext null
                         
-                        // Check canonical URL to prevent grabbing duplicate 'videos' page on redirect
-                        val canonical = Regex("""<link\s+rel="canonical"\s+href="([^"]+)"""").find(body)?.groupValues?.get(1)
-                        Log.d("YouTubeService", "Tab $tab canonical: $canonical")
-                        
-                        // If we requested a specific tab and got redirected to the home page (which doesn't end in that tab), it means that tab is empty/missing
-                        if (tab != "featured" && tab != "videos" && tab != "" && canonical != null && !canonical.endsWith("/$tab")) {
-                            Log.d("YouTubeService", "Tab $tab redirected to $canonical, skipping")
-                            return@withContext null 
-                        }
+                        // YouTube's canonical URLs no longer reliably append /streams or /playlists,
+                        // so we simply parse whatever DOM we get. If it's empty, the regex will safely return 0 items.
                         Pair(tab, body)
                     } catch (e: Exception) { 
                         Log.e("YouTubeService", "Failed to fetch tab $tab", e)
@@ -201,13 +194,11 @@ class YouTubeService {
 
                 // Fire async requests
                 val results = kotlinx.coroutines.coroutineScope {
-                    val featuredDef = async<Pair<String, String>?> { fetchTab("featured") ?: fetchTab("") }
                     val videosDef = async<Pair<String, String>?> { fetchTab("videos") }
-                    val shortsDef = async<Pair<String, String>?> { fetchTab("shorts") }
                     val streamsDef = async<Pair<String, String>?> { fetchTab("streams") }
                     val playlistsDef = async<Pair<String, String>?> { fetchTab("playlists") }
                     
-                    listOfNotNull(featuredDef.await(), videosDef.await(), shortsDef.await(), streamsDef.await(), playlistsDef.await())
+                    listOfNotNull(videosDef.await(), streamsDef.await(), playlistsDef.await())
                 }
                 
                 if (results.isEmpty()) {
@@ -276,20 +267,31 @@ class YouTubeService {
                     val contentString = tabJsonRaw ?: body
                     
                     val videos = mutableListOf<VideoInfo>()
-                    val rendererRegex = Regex(""""videoRenderer"\s*:\s*\{|"(gridVideo|reelItem|gridPlaylist|playlist)Renderer"\s*:\s*\{|"(shortsLockupViewModel)"\s*:\s*\{""")
+                    val rendererRegex = Regex(""""videoRenderer"\s*:\s*\{|"(gridVideo|reelItem|gridPlaylist|playlist)Renderer"\s*:\s*\{|"(shortsLockupViewModel|lockupViewModel)"\s*:\s*\{""")
                     val rendererStarts = rendererRegex.findAll(contentString).map { it.range.first }.toList()
                     
                     for (start in rendererStarts.take(30)) {
                         try {
-                            val subBody = contentString.substring(start, minOf(start + 4000, contentString.length))
-                            val vid = Regex(""""videoId"\s*:\s*"([a-zA-Z0-9_-]{11,12})"""").find(subBody)?.groupValues?.get(1)
+                            val subBody = contentString.substring(start, minOf(start + 10000, contentString.length))
+                            
+                            val isPlaylistTab = tab == "playlists"
+                            val regexPlaylistId = Regex(""""playlistId"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
+                                ?: Regex(""""contentId"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
+                                
+                            val regexVideoId = Regex(""""videoId"\s*:\s*"([a-zA-Z0-9_-]{11,12})"""").find(subBody)?.groupValues?.get(1)
                                 ?: Regex(""""url"\s*:\s*"/shorts/([a-zA-Z0-9_-]{11,12})"""").find(subBody)?.groupValues?.get(1)
-                                ?: Regex(""""playlistId"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
-                                ?: continue
+
+                            val vid = if (isPlaylistTab) {
+                                regexPlaylistId ?: regexVideoId // Fallback to videoId just in case
+                            } else {
+                                regexVideoId ?: regexPlaylistId // Fallback to playlistId if it's a playlist returned in a mixed tab
+                            } ?: continue
                                 
                             val title = Regex(""""headline"\s*:\s*\{\s*"simpleText"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
                                 ?: Regex(""""title"\s*:\s*\{\s*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
                                 ?: Regex(""""title"\s*:\s*\{\s*"simpleText"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
+                                ?: Regex(""""lockupMetadataViewModel"\s*:\s*\{[^}]*"title"\s*:\s*\{\s*"content"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
+                                ?: Regex(""""title"\s*:\s*\{\s*"content"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
                                 ?: Regex(""""accessibilityText"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)?.substringBefore(", ")
                                 ?: continue
                                 
@@ -307,6 +309,13 @@ class YouTubeService {
                             val pubIdx = subBody.indexOf("\"publishedTimeText\"")
                             val publishedTimeText = if (pubIdx != -1) Regex(""""simpleText"\s*:\s*"([^"]+)"""").find(subBody, pubIdx)?.groupValues?.get(1) else null
 
+                            // Special extraction for playlists to get the videoCount format
+                            val videoCountIdx = subBody.indexOf("\"videoCountText\"")
+                            val playlistVideoCountText = if (videoCountIdx != -1) Regex(""""(?:simpleText|text)"\s*:\s*"?([\d,]+\s*(?:videos|video))"?""").find(subBody, videoCountIdx)?.groupValues?.get(1) 
+                                ?: Regex(""""accessibilityText"\s*:\s*"([\d,]+\s*(?:videos|video))"?""").find(subBody, videoCountIdx)?.groupValues?.get(1) else null
+                            
+                            val displayViewCount = if (vid.startsWith("PL") && playlistVideoCountText != null) playlistVideoCountText else viewCountText
+
                             videos.add(VideoInfo(
                                 videoId = vid,
                                 title = title,
@@ -315,43 +324,44 @@ class YouTubeService {
                                 duration = durationSec.toString(),
                                 thumbnailUrl = thumbnail,
                                 uploadDate = publishedTimeText,
-                                viewCountText = viewCountText
+                                viewCountText = displayViewCount
                             ))
                         } catch (e: Exception) {}
                     }
 
-                    if (videos.isNotEmpty()) {
-                        val sectionTitle = when(tab) {
-                            "videos" -> "Videos"
-                            "featured", "" -> "Home"
-                            "shorts" -> "Shorts"
-                            "streams" -> "Live"
-                            "playlists" -> "Playlists"
-                            else -> tab.replaceFirstChar { it.uppercase() }
-                        }
-                        
-                        // Removed strict deduplication that dropped entire tabs like 'Videos'
-                        // just because the first video matched 'Home'. We want all tabs to show.
-                        if (!seenTitles.contains(sectionTitle)) {
-                            sections.add(ChannelSection(sectionTitle, videos, null))
-                            seenTitles.add(sectionTitle)
-                        }
+                    val sectionTitle = when(tab) {
+                        "videos" -> "Videos"
+                        "streams" -> "Live"
+                        "playlists" -> "Playlists"
+                        else -> tab.replaceFirstChar { it.uppercase() }
+                    }
+                    
+                    if (!seenTitles.contains(sectionTitle)) {
+                        sections.add(ChannelSection(sectionTitle, videos, null))
+                        seenTitles.add(sectionTitle)
                     }
                 }
                 
-                // Final sort to put Videos/Home first
+                // Ensure the 3 required tabs are *always* present, even if empty (so UI shows "No content available")
+                val requiredTabs = listOf("Videos", "Live", "Playlists")
+                requiredTabs.forEach { reqTab ->
+                    if (!seenTitles.contains(reqTab)) {
+                         sections.add(ChannelSection(reqTab, emptyList(), null))
+                         seenTitles.add(reqTab)
+                    }
+                }
+                
+                // Final sort to put Videos first, Live second, Playlists third
                 sections.sortBy { 
                     when(it.title) {
-                        "Home" -> 0
-                        "Videos" -> 1
-                        "Shorts" -> 2
-                        "Live" -> 3
-                        "Playlists" -> 4
-                        else -> 5
+                        "Videos" -> 0
+                        "Live" -> 1
+                        "Playlists" -> 2
+                        else -> 3
                     }
                 }
 
-                Log.d("YouTubeService", "Scraped ${sections.size} tabs from regular YouTube")
+                Log.d("YouTubeService", "Processed ${sections.size} core tabs")
                 
                 if (sections.isNotEmpty()) {
                     return@runCatching ChannelPageResult(

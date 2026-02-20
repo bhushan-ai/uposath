@@ -186,9 +186,13 @@ const AudioLibraryPage: React.FC = () => {
         setChannels(updated);
     };
 
-    const playVideo = (video: VideoInfo) => {
-        DhammaAudio.playVideo({ video });
-        history.push('/player');
+    const playOrOpenVideo = (video: VideoInfo) => {
+        if (currentSection?.title === 'Playlists') {
+            history.push(`/playlist/${video.id}`);
+        } else {
+            DhammaAudio.playVideo({ video });
+            history.push('/player');
+        }
     };
 
     const handleLongPressStart = (channel: SavedChannel) => {
@@ -296,7 +300,7 @@ const AudioLibraryPage: React.FC = () => {
                                         <div
                                             key={video.id}
                                             className={`library-card ${isPlaying ? 'library-card--playing' : ''}`}
-                                            onClick={() => playVideo(video)}
+                                            onClick={() => playOrOpenVideo(video)}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', padding: '10px 0' }}>
                                                 {isPlaying && <div className="library-now-playing-dot" />}
@@ -308,7 +312,7 @@ const AudioLibraryPage: React.FC = () => {
                                                             <IonIcon icon={musicalNotes} />
                                                         </div>
                                                     )}
-                                                    {video.duration > 0 && (
+                                                    {currentSection.title !== 'Playlists' && video.duration > 0 && (
                                                         <span className="library-duration-badge">
                                                             {formatDuration(video.duration)}
                                                         </span>
@@ -318,9 +322,15 @@ const AudioLibraryPage: React.FC = () => {
                                                     <h3 className="library-card-title">{decodeTitle(video.title)}</h3>
                                                     <p className="library-card-meta">
                                                         {video.channelName}
-                                                        {video.viewCountText ? ` · ${video.viewCountText}` : (video.viewCount ? ` · ${video.viewCount} views` : '')}
-                                                        {video.uploadDate ? (typeof video.uploadDate === 'string' ? ` · ${video.uploadDate}` : ` · ${new Date(video.uploadDate).toLocaleDateString()}`) : ''}
-                                                        {video.duration > 0 && ` · ${Math.floor(video.duration / 60)} min`}
+                                                        {currentSection.title === 'Playlists' ? (
+                                                            video.viewCountText ? ` · ${video.viewCountText}` : ''
+                                                        ) : (
+                                                            <>
+                                                                {video.viewCountText ? ` · ${video.viewCountText}` : (video.viewCount ? ` · ${video.viewCount} views` : '')}
+                                                                {video.uploadDate ? (typeof video.uploadDate === 'string' ? ` · ${video.uploadDate}` : ` · ${new Date(video.uploadDate).toLocaleDateString()}`) : ''}
+                                                                {video.duration > 0 && ` · ${Math.floor(video.duration / 60)} min`}
+                                                            </>
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
@@ -331,13 +341,13 @@ const AudioLibraryPage: React.FC = () => {
                         ) : activeChannel ? (
                             <div className="library-empty-state" style={{ marginTop: '40px' }}>
                                 <IonIcon icon={musicalNotes} className="library-empty-icon" style={{ opacity: 0.3 }} />
-                                <h3>No content found</h3>
-                                <p>This channel might not have any public videos or is currently unreachable.</p>
+                                <h3>No content available</h3>
+                                <p>This tab does not contain any active content for this channel.</p>
                             </div>
                         ) : (
                             <div className="library-empty">
                                 <IonIcon icon={musicalNotes} className="library-empty-icon" />
-                                <span className="library-empty-text">No content found</span>
+                                <span className="library-empty-text">No content available</span>
                             </div>
                         )}
                     </>

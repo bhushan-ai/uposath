@@ -54,6 +54,7 @@ import MantraPracticePage from './pages/MantraPracticePage';
 import AudioLibraryPage from './pages/AudioLibraryPage';
 import AudioPlayerPage from './pages/AudioPlayerPage';
 import SatiStatsPage from './pages/SatiStatsPage';
+import PlaylistDetailPage from './pages/PlaylistDetailPage';
 
 const FocusManager: React.FC = () => {
   const history = useHistory();
@@ -116,6 +117,7 @@ const App: React.FC = () => {
             <Route exact path="/sati/mantras/practice/:id" component={MantraPracticePage} />
             <Route exact path="/sati/stats" component={SatiStatsPage} />
             <Route exact path="/library/:channelId?" component={AudioLibraryPage} />
+            <Route exact path="/playlist/:id" component={PlaylistDetailPage} />
             <Route exact path="/player" component={AudioPlayerPage} />
             <Route exact path="/festivals" component={FestivalsPage} />
             <Route path="/day/:dateStr" component={DayDetailPage} />
