@@ -51,8 +51,10 @@ class DhammaAudioPlugin : Plugin() {
             .onEach { state ->
                 val ret = JSObject().apply {
                     put("state", state.state.name)
-                    put("position", state.position / 1000)
-                    put("duration", state.duration / 1000)
+                    put("isPlaying", state.state == PlayerState.PLAYING)
+                    put("isPaused", state.state == PlayerState.PAUSED)
+                    put("position", state.position)
+                    put("duration", state.duration)
                     state.currentVideo?.let { video ->
                         put("currentVideo", JSObject().apply {
                             put("id", video.videoId)

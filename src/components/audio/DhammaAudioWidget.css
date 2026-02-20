@@ -5,13 +5,14 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  min-height: 100px;
+  cursor: pointer;
+  transition: all 0.3s var(--transition-base);
   /* Inherits glass-card styles */
 }
 
-/* Playing or Featured state refinements */
-.audio-widget.playing,
-.audio-widget.has-featured {
-  min-height: 120px;
+.audio-widget:active {
+  transform: scale(0.98);
 }
 
 .audio-widget__artwork {
@@ -22,15 +23,15 @@
   bottom: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(15px) saturate(1.4) brightness(0.4);
-  opacity: 0.35;
-  transition: opacity 0.5s ease, transform 0.5s var(--transition-base);
+  filter: blur(12px) saturate(1.2) brightness(0.4);
+  opacity: 0.3;
+  transition: all 0.5s var(--transition-base);
   z-index: 0;
 }
 
 .audio-widget:hover .audio-widget__artwork {
-  transform: scale(1.08);
-  opacity: 0.45;
+  transform: scale(1.1);
+  opacity: 0.4;
 }
 
 .audio-widget__overlay {
@@ -39,20 +40,20 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(var(--ion-background-color-rgb), 0.2) 0%, rgba(var(--ion-background-color-rgb), 0.85) 100%);
+  background: linear-gradient(135deg, rgba(var(--ion-background-color-rgb), 0.1) 0%, rgba(var(--ion-background-color-rgb), 0.8) 100%);
   z-index: 1;
 }
 
 .audio-widget ion-card-content {
-  padding: 20px;
+  padding: 18px 20px;
   position: relative;
   z-index: 2;
-  height: 100%;
 }
 
 .audio-widget__content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
 }
 
@@ -61,14 +62,14 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .audio-widget__title {
   display: block;
   font-weight: 700;
   font-family: var(--font-family-display);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -78,87 +79,38 @@
 
 .audio-widget__subtitle {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--color-accent-primary);
-  filter: brightness(0.9);
+  opacity: 0.9;
 }
 
-.audio-widget__controls {
+.audio-widget__action {
   display: flex;
   align-items: center;
-  flex-shrink: 0;
   justify-content: center;
-}
-
-/* 
-   PLAY BUTTON CUSTOM - NO ION-BUTTON ARTIFACTS
-*/
-.play-button-custom {
-  width: 56px;
-  height: 56px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  color: var(--color-accent-primary);
-  padding: 0;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.2s var(--transition-spring);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-}
-
-.play-button-custom:active {
-  transform: scale(0.92);
-}
-
-.play-button-custom.primary-button {
-  background: var(--color-accent-primary);
-  color: var(--color-bg-primary);
-  border: none;
-  box-shadow: var(--shadow-glow);
-}
-
-.play-button-custom ion-icon {
-  font-size: 2.2rem;
-  margin: 0;
-}
-
-.play-button-custom.is-loading {
-  cursor: default;
-}
-
-.audio-widget__footer {
-  margin-top: 16px;
-  position: relative;
-}
-
-.audio-widget__progress {
-  height: 4px;
-  border-radius: 4px;
-  --progress-background: var(--color-accent-primary);
-  --buffer-background: rgba(255, 255, 255, 0.05);
   background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.audio-widget:hover .audio-widget__action {
+  background: var(--color-accent-primary);
 }
 
 .audio-widget__arrow {
   font-size: 1.4rem;
-  color: var(--color-text-muted);
-  opacity: 0.6;
-  margin-left: 8px;
-  transition: transform 0.2s ease;
+  color: var(--color-text-tertiary);
+  transition: all 0.2s ease;
 }
 
 .audio-widget:hover .audio-widget__arrow {
-  transform: translateX(4px);
-  color: var(--color-text-secondary);
+  color: var(--color-bg-primary);
+  transform: translateX(2px);
 }
 
 .audio-widget-skeleton {
@@ -174,19 +126,7 @@
 }
 
 .spinner-small {
-  width: 32px;
-  height: 32px;
-  --color: currentColor;
-}
-
-/* Empty state info tweak */
-.audio-widget.empty:not(.has-featured) {
-  padding: 12px 0;
-}
-
-.audio-widget.empty:not(.has-featured) .audio-widget__content {
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-  text-align: center;
+  width: 28px;
+  height: 28px;
+  --color: var(--color-accent-primary);
 }

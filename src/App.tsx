@@ -115,7 +115,7 @@ const App: React.FC = () => {
             <Route exact path="/sati/mantras/edit/:id" component={MantraEditPage} />
             <Route exact path="/sati/mantras/practice/:id" component={MantraPracticePage} />
             <Route exact path="/sati/stats" component={SatiStatsPage} />
-            <Route exact path="/library" component={AudioLibraryPage} />
+            <Route exact path="/library/:channelId?" component={AudioLibraryPage} />
             <Route exact path="/player" component={AudioPlayerPage} />
             <Route exact path="/festivals" component={FestivalsPage} />
             <Route path="/day/:dateStr" component={DayDetailPage} />

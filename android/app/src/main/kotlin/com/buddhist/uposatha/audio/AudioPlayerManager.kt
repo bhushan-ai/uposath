@@ -79,18 +79,19 @@ class AudioPlayerManager(private val context: Context) {
     }
 
     private fun updateState() {
-        if (System.currentTimeMillis() - lastSeekTime < 2000) return // Skip updates shortly after seek
+        if (System.currentTimeMillis() - lastSeekTime < 1000) return // Skip updates shortly after seek
 
         val controller = mediaController ?: return
         val playbackState = controller.playbackState
-        val playWhenReady = controller.playWhenReady
         
         val state = if (controller.playerError != null) {
             PlayerState.ERROR
+        } else if (controller.isPlaying) {
+            PlayerState.PLAYING
         } else when (playbackState) {
             Player.STATE_IDLE -> PlayerState.IDLE
             Player.STATE_BUFFERING -> PlayerState.LOADING
-            Player.STATE_READY -> if (playWhenReady) PlayerState.PLAYING else PlayerState.PAUSED
+            Player.STATE_READY -> PlayerState.PAUSED
             Player.STATE_ENDED -> PlayerState.ENDED
             else -> PlayerState.IDLE
         }
@@ -156,6 +157,7 @@ class AudioPlayerManager(private val context: Context) {
                     }
                     controller.prepare()
                     controller.play()
+                    updateState()
                 }
             } catch (e: Exception) {
                 Log.e("AudioPlayerManager", "Error during play", e)
@@ -168,6 +170,7 @@ class AudioPlayerManager(private val context: Context) {
         scope.launch {
             withContext(Dispatchers.Main) {
                 mediaController?.pause()
+                updateState()
             }
         }
     }
@@ -180,6 +183,7 @@ class AudioPlayerManager(private val context: Context) {
                     controller.seekTo(0)
                 }
                 controller.play()
+                updateState()
             }
         }
     }

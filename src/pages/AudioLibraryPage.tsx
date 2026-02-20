@@ -72,8 +72,11 @@ const SkeletonLoader: React.FC = () => (
     </div>
 );
 
+import { useParams } from 'react-router-dom';
+
 const AudioLibraryPage: React.FC = () => {
     const history = useHistory();
+    const { channelId } = useParams<{ channelId?: string }>();
     const [channels, setChannels] = useState<SavedChannel[]>([]);
     const [activeChannel, setActiveChannel] = useState<SavedChannel | null>(null);
     const [sections, setSections] = useState<ChannelSectionResult[]>([]);
@@ -104,9 +107,14 @@ const AudioLibraryPage: React.FC = () => {
         setLoading(true);
         const ch = await ensureSeeded();
         setChannels(ch);
-        const def = ch.find(c => c.isDefault) || ch[0] || null;
-        if (def) {
-            await loadChannelContent(def);
+
+        // Prioritize channelId from URL if present
+        const targetChannel = channelId
+            ? ch.find(c => c.id === channelId)
+            : (ch.find(c => c.isDefault) || ch[0]);
+
+        if (targetChannel) {
+            await loadChannelContent(targetChannel);
         } else {
             setLoading(false);
         }

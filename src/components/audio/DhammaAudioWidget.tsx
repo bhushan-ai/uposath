@@ -4,18 +4,14 @@ import {
     IonCardContent,
     IonIcon,
     IonText,
-    IonButton,
-    IonProgressBar,
     IonSpinner
 } from '@ionic/react';
 import {
-    play,
-    pause,
     musicalNotes,
     chevronForward
 } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
-import { DhammaAudio, VideoInfo, PlaybackState } from '../../plugins/dhamma-audio';
+import { DhammaAudio, VideoInfo } from '../../plugins/dhamma-audio';
 import { getDefaultChannel } from '../../services/channelManager';
 import './DhammaAudioWidget.css';
 
@@ -40,150 +36,49 @@ const decodeTitle = (text: string): string => {
 
 const DhammaAudioWidget: React.FC = () => {
     const history = useHistory();
-    const [playbackState, setPlaybackState] = useState<PlaybackState | null>(null);
     const [featuredVideo, setFeaturedVideo] = useState<VideoInfo | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isToggling, setIsToggling] = useState(false);
 
     useEffect(() => {
-        loadState();
-
-        const stateListener = DhammaAudio.addListener('playbackStateChanged', (state) => {
-            setPlaybackState(prev => prev ? { ...prev, ...state } : state);
-            setIsToggling(false);
-        });
-
-        const progressListener = DhammaAudio.addListener('progressUpdate', (data) => {
-            // If we're getting progress updates, we're likely playing
-            setPlaybackState(prev => prev ? {
-                ...prev,
-                position: data.position,
-                duration: data.duration,
-                isPlaying: true // If progress is updating, it's virtually always playing
-            } : null);
-            setIsToggling(false);
-        });
-
-        return () => {
-            stateListener.then(l => l.remove());
-            progressListener.then(l => l.remove());
-        };
+        loadFeaturedContent();
     }, []);
 
-    const loadState = async () => {
+    const loadFeaturedContent = async () => {
         try {
-            const state = await DhammaAudio.getPlaybackState();
-            setPlaybackState(state);
-
-            // If nothing is playing, find a featured video from default channel
-            if (!state.currentVideo) {
-                const defChannel = await getDefaultChannel();
-                if (defChannel) {
-                    const result = await DhammaAudio.getChannelPage({ channelId: defChannel.id });
-                    const firstVideo = result.sections?.[0]?.videos?.[0];
-                    if (firstVideo) {
-                        setFeaturedVideo(firstVideo);
-                    }
+            const defChannel = await getDefaultChannel();
+            if (defChannel) {
+                const result = await DhammaAudio.getChannelPage({ channelId: defChannel.id });
+                const firstVideo = result.sections?.[0]?.videos?.[0];
+                if (firstVideo) {
+                    setFeaturedVideo(firstVideo);
                 }
             }
             setLoading(false);
         } catch (err) {
-            console.error('Failed to load playback state or featured content:', err);
+            console.error('Failed to load featured content:', err);
             setLoading(false);
         }
     };
 
-    const startFeaturedPlay = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (featuredVideo) {
-            setIsToggling(true);
-            try {
-                await DhammaAudio.playVideo({ video: featuredVideo });
-                history.push('/player');
-            } catch (err) {
-                console.error('Failed to start featured play:', err);
-                setIsToggling(false);
-            }
+    const handleNavigate = () => {
+        if (featuredVideo?.channelId) {
+            history.push(`/library/${featuredVideo.channelId}`);
+        } else {
+            history.push('/library');
         }
-    };
-
-    const togglePlay = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!playbackState || isToggling) return;
-
-        setIsToggling(true);
-        try {
-            if (playbackState.isPlaying) {
-                await DhammaAudio.pause();
-            } else {
-                await DhammaAudio.resume();
-            }
-        } catch (err) {
-            console.error('Toggle play failed:', err);
-            setIsToggling(false);
-        }
-
-        // Safety timeout to reset toggling if no events arrive
-        setTimeout(() => setIsToggling(false), 2000);
-    };
-
-    const openLibrary = () => {
-        history.push('/library');
-    };
-
-    const openPlayer = () => {
-        history.push('/player');
     };
 
     if (loading) {
         return (
             <div className="audio-widget-skeleton glass-card">
                 <IonSpinner name="crescent" color="primary" />
-                <IonText>Initializing Audio...</IonText>
+                <IonText>Loading latest Dhamma...</IonText>
             </div>
         );
     }
 
-    if (playbackState?.currentVideo) {
-        const { currentVideo, state, position, duration } = playbackState;
-        const isPlaying = state === 'PLAYING' || state === 'LOADING';
-        const isLoading = state === 'LOADING' || isToggling;
-        const progress = duration > 0 ? position / duration : 0;
-
-        return (
-            <IonCard className="audio-widget playing glass-card" onClick={openPlayer}>
-                <div className="audio-widget__artwork" style={{ backgroundImage: `url(${currentVideo.thumbnailUrl})` }}>
-                    <div className="audio-widget__overlay"></div>
-                </div>
-                <IonCardContent>
-                    <div className="audio-widget__content">
-                        <div className="audio-widget__info">
-                            <IonText className="audio-widget__title">{currentVideo.title}</IonText>
-                            <IonText color="medium" className="audio-widget__subtitle">{currentVideo.channelName}</IonText>
-                        </div>
-                        <div className="audio-widget__controls">
-                            <button
-                                onClick={togglePlay}
-                                className={`play-button-custom ${isLoading ? 'is-loading' : ''} ${isPlaying ? 'is-playing' : ''}`}
-                            >
-                                {isLoading ? (
-                                    <IonSpinner name="crescent" className="spinner-small" />
-                                ) : (
-                                    <IonIcon icon={isPlaying ? pause : play} />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                    <div className="audio-widget__footer">
-                        <IonProgressBar value={progress} color="primary" className="audio-widget__progress" />
-                    </div>
-                </IonCardContent>
-            </IonCard>
-        );
-    }
-
     return (
-        <IonCard className={`audio-widget empty glass-card ${featuredVideo ? 'has-featured' : ''}`} onClick={featuredVideo ? openPlayer : openLibrary}>
+        <IonCard className={`audio-widget glass-card ${featuredVideo ? 'has-featured' : 'empty'}`} onClick={handleNavigate}>
             {featuredVideo && (
                 <div className="audio-widget__artwork" style={{ backgroundImage: `url(${featuredVideo.thumbnailUrl})` }}>
                     <div className="audio-widget__overlay"></div>
@@ -191,37 +86,18 @@ const DhammaAudioWidget: React.FC = () => {
             )}
             <IonCardContent>
                 <div className="audio-widget__content">
-                    {featuredVideo && (
-                        <div className="audio-widget__controls">
-                            <button
-                                onClick={startFeaturedPlay}
-                                className={`play-button-custom primary-button ${isToggling ? 'is-loading' : ''}`}
-                            >
-                                {isToggling ? (
-                                    <IonSpinner name="crescent" className="spinner-small" />
-                                ) : (
-                                    <IonIcon icon={play} />
-                                )}
-                            </button>
-                        </div>
-                    )}
-
-                    {!featuredVideo && (
-                        <div className="icon-wrapper icon-wrapper--medium icon-wrapper--primary">
-                            <IonIcon icon={musicalNotes} color="primary" />
-                        </div>
-                    )}
-
                     <div className="audio-widget__info">
                         <IonText className="audio-widget__title">
                             {featuredVideo ? decodeTitle(featuredVideo.title) : 'DHAMMA AUDIO'}
                         </IonText>
                         <IonText color="medium" className="audio-widget__subtitle">
-                            {featuredVideo ? featuredVideo.channelName : 'Recent uploads from Pañcasikha'}
+                            {featuredVideo ? featuredVideo.channelName : 'Listen to Buddhist Chants'}
                         </IonText>
                     </div>
 
-                    <IonIcon icon={chevronForward} color="medium" className="audio-widget__arrow" />
+                    <div className="audio-widget__action">
+                        <IonIcon icon={chevronForward} className="audio-widget__arrow" />
+                    </div>
                 </div>
             </IonCardContent>
         </IonCard>
