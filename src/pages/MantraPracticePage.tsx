@@ -93,7 +93,7 @@ const MantraPracticePage: React.FC = () => {
 
         presentAlert({
             header: 'Session Logged',
-            message: `Logged ${manualCount} repetitions.`,
+            message: `Logged ${manualCount} beads.`,
             buttons: ['OK']
         });
 
@@ -122,7 +122,7 @@ const MantraPracticePage: React.FC = () => {
 
             presentAlert({
                 header: 'Session Complete',
-                subHeader: `${count} repetitions`,
+                subHeader: `${count} beads`,
                 message: `Duration: ${Math.floor(elapsedSeconds / 60)}m ${elapsedSeconds % 60}s`,
                 buttons: [
                     {
@@ -270,7 +270,7 @@ const MantraPracticePage: React.FC = () => {
                             <div className="manual-log-container" style={{ padding: '0 20px' }}>
                                 <div className="mala-counter-logging" style={{ padding: '20px', backgroundColor: 'var(--color-bg-card, #fff)', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
                                     <h4 style={{ margin: '0 0 16px', fontSize: '1rem', color: 'var(--color-text-primary)', fontWeight: 'bold', textAlign: 'center' }}>
-                                        Log Repetitions
+                                        Log Beads
                                     </h4>
 
                                     {/* Stats Display */}
@@ -326,7 +326,7 @@ const MantraPracticePage: React.FC = () => {
                                                             {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
                                                         <span style={{ fontWeight: '700', color: 'var(--color-text-primary)' }}>
-                                                            {session.reps} reps
+                                                            {session.reps} beads
                                                         </span>
                                                     </li>
                                                 ))}

@@ -190,7 +190,7 @@ const MantraEditPage: React.FC = () => {
                                 <IonLabel>Practice Defaults</IonLabel>
                             </IonListHeader>
                             <IonItem>
-                                <IonLabel position="stacked">Target Repetitions</IonLabel>
+                                <IonLabel position="stacked">Target Beads</IonLabel>
                                 <IonInput
                                     type="number"
                                     value={mantra.practice.defaultReps}

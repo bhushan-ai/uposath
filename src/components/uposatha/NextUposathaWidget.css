@@ -69,6 +69,13 @@
     font-weight: 500;
 }
 
+.paksa-tag {
+    opacity: 0.6;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
 /* ─── Countdown Badge ─── */
 
 .next-uposatha-badge {

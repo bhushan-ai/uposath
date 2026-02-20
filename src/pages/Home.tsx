@@ -72,14 +72,9 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
-      <IonHeader className="ion-no-border">
+      <IonHeader className="ion-no-border header-transparent">
         <IonToolbar>
-          <IonTitle>Abhaya</IonTitle>
-          <IonButtons slot="end">
-            <IonButton routerLink="/settings">
-              <IonIcon icon={settingsOutline} />
-            </IonButton>
-          </IonButtons>
+          <IonTitle className="app-brand">Sammāsati</IonTitle>
         </IonToolbar>
       </IonHeader>
 
@@ -90,6 +85,7 @@ const Home: React.FC = () => {
           <div className="home-hero">
             <h1 className="home-hero__title">Namo Buddhaya</h1>
             <p className="home-hero__subtitle">Your daily path to mindfulness.</p>
+            <div className="home-hero__accent"></div>
           </div>
 
           {/* Primary Feature: Upcoming Uposatha */}

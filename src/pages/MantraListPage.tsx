@@ -84,7 +84,7 @@ const MantraListPage: React.FC = () => {
                                 </div>
 
                                 <div className="card-stats">
-                                    <span>{mantra.stats.totalReps} reps</span>
+                                    <span>{mantra.stats.totalReps} beads</span>
                                     <span>•</span>
                                     <span>{mantra.stats.totalSessions} sessions</span>
                                 </div>

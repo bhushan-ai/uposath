@@ -141,6 +141,7 @@ const NextUposathaWidget: React.FC = () => {
                     </div>
                     <div className="next-uposatha-date">
                         {nextUposatha.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                        <div className="paksa-tag">Paksa: {nextUposatha.status.paksha}</div>
                     </div>
                 </div>
 
