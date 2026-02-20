@@ -139,6 +139,22 @@
     font-size: 1.2rem;
 }
 
+.player-control-btn.is-active {
+    --color: var(--color-accent-primary, #ffc670);
+    opacity: 1;
+}
+
+.repeat-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) translateY(2px);
+    font-size: 0.55rem;
+    font-weight: 800;
+    color: var(--color-accent-primary, #ffc670);
+    pointer-events: none;
+}
+
 .player-play-btn {
     --background: transparent;
     --background-hover: transparent;

@@ -69,8 +69,9 @@ const AudioPlayerPage: React.FC = () => {
     };
 
     const handleSeek = async (value: number) => {
-        setPlayerState(prev => prev ? { ...prev, position: value } : null);
-        await DhammaAudio.seekTo({ position: value });
+        const intValue = Math.floor(value);
+        setPlayerState(prev => prev ? { ...prev, position: intValue } : null);
+        await DhammaAudio.seekTo({ position: intValue });
         setTimeout(() => setIsDragging(false), 500);
     };
 
@@ -81,6 +82,16 @@ const AudioPlayerPage: React.FC = () => {
         } else {
             await DhammaAudio.resume();
         }
+    };
+
+    const toggleRepeat = async () => {
+        if (!playerState) return;
+        const modes: ('OFF' | 'ALL' | 'ONE')[] = ['OFF', 'ALL', 'ONE'];
+        const currentIdx = modes.indexOf(playerState.repeatMode || 'OFF');
+        const nextMode = modes[(currentIdx + 1) % modes.length];
+
+        await DhammaAudio.setRepeatMode({ mode: nextMode });
+        setPlayerState(prev => prev ? { ...prev, repeatMode: nextMode } : null);
     };
 
     const formatTime = (ms: number) => {
@@ -179,8 +190,13 @@ const AudioPlayerPage: React.FC = () => {
                         <IonButton fill="clear" className="player-control-btn">
                             <IonIcon icon={playSkipForward} />
                         </IonButton>
-                        <IonButton fill="clear" className="player-control-btn player-control-btn--secondary">
+                        <IonButton
+                            fill="clear"
+                            className={`player-control-btn player-control-btn--secondary ${playerState.repeatMode !== 'OFF' ? 'is-active' : ''}`}
+                            onClick={toggleRepeat}
+                        >
                             <IonIcon icon={repeat} />
+                            {playerState.repeatMode === 'ONE' && <span className="repeat-badge">1</span>}
                         </IonButton>
                     </div>
                 </div>

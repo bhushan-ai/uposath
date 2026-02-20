@@ -18,6 +18,7 @@ export interface DhammaAudioPlugin {
     skipToNext(): Promise<{ success: boolean }>;
     skipToPrevious(): Promise<{ success: boolean }>;
     setPlaybackSpeed(options: { speed: number }): Promise<{ success: boolean }>;
+    setRepeatMode(options: { mode: RepeatMode }): Promise<{ success: boolean }>;
 
     // Queue
     setQueue(options: { videoIds: string[] }): Promise<{ success: boolean }>;
@@ -92,9 +93,12 @@ export interface PlaybackState {
     currentVideo: VideoInfo | null;
     position: number; // milliseconds
     duration: number; // milliseconds
+    repeatMode: RepeatMode;
     queue: VideoInfo[];
     currentIndex: number;
 }
+
+export type RepeatMode = 'OFF' | 'ONE' | 'ALL';
 
 export interface QueueResult {
     queue: VideoInfo[];

@@ -123,7 +123,9 @@ class DhammaAudioPlugin : Plugin() {
             thumbnailUrl = thumbnailUrl
         )
 
-        val startPosition = call.getLong("startPosition") ?: 0L
+        val startPosDouble = call.getDouble("startPosition")
+        val startPosInt = call.getInt("startPosition")
+        val startPosition = startPosDouble?.toLong() ?: startPosInt?.toLong() ?: call.getLong("startPosition") ?: 0L
         
         playerManager.prepare(videoIn)
         playerManager.play(videoIn, startPosition, "urn:youtube:$videoId")
@@ -144,7 +146,9 @@ class DhammaAudioPlugin : Plugin() {
 
     @PluginMethod
     fun seekTo(call: PluginCall) {
-        val position = call.getLong("position") ?: return call.reject("Missing position")
+        val posDouble = call.getDouble("position")
+        val posInt = call.getInt("position")
+        val position = posDouble?.toLong() ?: posInt?.toLong() ?: call.getLong("position") ?: return call.reject("Missing position")
         playerManager.seekTo(position)
         call.resolve()
     }
@@ -157,6 +161,18 @@ class DhammaAudioPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun setRepeatMode(call: PluginCall) {
+        val modeStr = call.getString("mode") ?: return call.reject("Missing mode")
+        val mode = try {
+            RepeatMode.valueOf(modeStr)
+        } catch (e: Exception) {
+            return call.reject("Invalid mode: $modeStr")
+        }
+        playerManager.setRepeatMode(mode)
+        call.resolve()
+    }
+
+    @PluginMethod
     fun getPlaybackState(call: PluginCall) {
         val state = playerManager.getPlayerState()
         call.resolve(JSObject().apply {
@@ -164,6 +180,7 @@ class DhammaAudioPlugin : Plugin() {
             put("isPaused", state.state == PlayerState.PAUSED)
             put("position", state.position)
             put("duration", state.duration)
+            put("repeatMode", state.repeatMode.name)
             state.currentVideo?.let { video ->
                 put("currentVideo", JSObject().apply {
                     put("id", video.videoId)

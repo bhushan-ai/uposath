@@ -35,8 +35,13 @@ data class PlaybackState(
     val currentVideo: VideoInfo? = null,
     val position: Long = 0,
     val duration: Long = 0,
-    val speed: Float = 1.0f
+    val speed: Float = 1.0f,
+    val repeatMode: RepeatMode = RepeatMode.OFF
 )
+
+enum class RepeatMode {
+    OFF, ONE, ALL
+}
 
 enum class PlayerState {
     IDLE, LOADING, PLAYING, PAUSED, ENDED, ERROR

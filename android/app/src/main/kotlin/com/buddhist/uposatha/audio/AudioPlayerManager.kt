@@ -103,7 +103,12 @@ class AudioPlayerManager(private val context: Context) {
             state = state,
             position = controller.currentPosition,
             duration = duration,
-            speed = controller.playbackParameters.speed
+            speed = controller.playbackParameters.speed,
+            repeatMode = when (controller.repeatMode) {
+                Player.REPEAT_MODE_ONE -> RepeatMode.ONE
+                Player.REPEAT_MODE_ALL -> RepeatMode.ALL
+                else -> RepeatMode.OFF
+            }
         )
         
         // Reduced frequency logging
@@ -206,6 +211,20 @@ class AudioPlayerManager(private val context: Context) {
         scope.launch {
             withContext(Dispatchers.Main) {
                 mediaController?.setPlaybackSpeed(speed)
+            }
+        }
+    }
+
+    fun setRepeatMode(mode: RepeatMode) {
+        scope.launch {
+            withContext(Dispatchers.Main) {
+                val exoMode = when (mode) {
+                    RepeatMode.OFF -> Player.REPEAT_MODE_OFF
+                    RepeatMode.ONE -> Player.REPEAT_MODE_ONE
+                    RepeatMode.ALL -> Player.REPEAT_MODE_ALL
+                }
+                mediaController?.repeatMode = exoMode
+                updateState()
             }
         }
     }

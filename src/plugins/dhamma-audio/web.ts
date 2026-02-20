@@ -39,6 +39,7 @@ export class DhammaAudioWeb extends WebPlugin implements DhammaAudioPlugin {
     private isPlaying = false;
     private currentVideo: VideoInfo | null = null;
     private position = 0;
+    private repeatMode: 'OFF' | 'ONE' | 'ALL' = 'OFF';
     private playbackInterval: any = null;
 
     async getChannelInfo(options: { channelId: string }): Promise<ChannelInfo> {
@@ -89,6 +90,12 @@ export class DhammaAudioWeb extends WebPlugin implements DhammaAudioPlugin {
     }
 
     async setPlaybackSpeed(options: { speed: number }): Promise<{ success: boolean }> {
+        return { success: true };
+    }
+
+    async setRepeatMode(options: { mode: 'OFF' | 'ONE' | 'ALL' }): Promise<{ success: boolean }> {
+        this.repeatMode = options.mode;
+        this.notifyPlaybackState();
         return { success: true };
     }
 
@@ -165,6 +172,7 @@ export class DhammaAudioWeb extends WebPlugin implements DhammaAudioPlugin {
             currentVideo: this.currentVideo,
             position: this.position,
             duration: this.currentVideo?.duration ? (typeof this.currentVideo.duration === 'number' ? this.currentVideo.duration * 1000 : parseInt(this.currentVideo.duration) * 1000) : 0,
+            repeatMode: this.repeatMode,
             queue: this.mockVideos,
             currentIndex: 0
         };
