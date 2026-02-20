@@ -89,6 +89,16 @@ export async function removeChannel(id: string): Promise<SavedChannel[]> {
     return channels;
 }
 
+export async function updateChannel(id: string, updates: Partial<SavedChannel>): Promise<SavedChannel[]> {
+    const channels = await getChannels();
+    const i = channels.findIndex(c => c.id === id);
+    if (i !== -1) {
+        channels[i] = { ...channels[i], ...updates };
+        await saveChannels(channels);
+    }
+    return channels;
+}
+
 export async function setDefault(id: string): Promise<SavedChannel[]> {
     const channels = await getChannels();
     channels.forEach(c => { c.isDefault = c.id === id; });

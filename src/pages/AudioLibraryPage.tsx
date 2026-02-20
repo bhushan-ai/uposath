@@ -100,9 +100,15 @@ const AudioLibraryPage: React.FC = () => {
             const result = await DhammaAudio.getChannelPage({ channelId: channel.id });
             setSections(result.sections || []);
             // Update channel name/avatar if we got fresh data
-            if (result.channelName && result.channelName !== channel.name) {
+            const isInvalidName = result.channelName === 'Videos' || result.channelName === 'Home' || result.channelName === 'YouTube';
+            if (result.channelName && !isInvalidName && (result.channelName !== channel.name || result.channelAvatar)) {
                 channel.name = result.channelName;
-                channel.avatarUrl = result.channelAvatar || '';
+                channel.avatarUrl = result.channelAvatar || channel.avatarUrl;
+
+                // Save it back to cache so avatar persists
+                const { updateChannel } = await import('../services/channelManager');
+                const newChannels = await updateChannel(channel.id, { name: channel.name, avatarUrl: channel.avatarUrl });
+                setChannels(newChannels);
             }
         } catch (err) {
             console.error('Failed to load channel:', err);
