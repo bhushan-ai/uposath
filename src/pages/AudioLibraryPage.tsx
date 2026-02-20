@@ -37,6 +37,26 @@ const formatDuration = (seconds: number): string => {
     return `${m}:${s.toString().padStart(2, '0')}`;
 };
 
+const decodeTitle = (text: string): string => {
+    if (!text) return '';
+    try {
+        return text
+            .replace(/\\u0026/g, '&')
+            .replace(/\\u003c/g, '<')
+            .replace(/\\u003e/g, '>')
+            .replace(/\\u0022/g, '"')
+            .replace(/\\u0027/g, "'")
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+    } catch {
+        return text;
+    }
+};
+
+
 const SkeletonLoader: React.FC = () => (
     <div className="library-skeleton">
         {[...Array(6)].map((_, i) => (
@@ -287,9 +307,11 @@ const AudioLibraryPage: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div className="library-card-content">
-                                                    <h3 className="library-card-title">{video.title}</h3>
+                                                    <h3 className="library-card-title">{decodeTitle(video.title)}</h3>
                                                     <p className="library-card-meta">
                                                         {video.channelName}
+                                                        {video.viewCountText ? ` · ${video.viewCountText}` : (video.viewCount ? ` · ${video.viewCount} views` : '')}
+                                                        {video.uploadDate ? (typeof video.uploadDate === 'string' ? ` · ${video.uploadDate}` : ` · ${new Date(video.uploadDate).toLocaleDateString()}`) : ''}
                                                         {video.duration > 0 && ` · ${Math.floor(video.duration / 60)} min`}
                                                     </p>
                                                 </div>
@@ -297,6 +319,12 @@ const AudioLibraryPage: React.FC = () => {
                                         </div>
                                     );
                                 })}
+                            </div>
+                        ) : activeChannel ? (
+                            <div className="library-empty-state" style={{ marginTop: '40px' }}>
+                                <IonIcon icon={musicalNotes} className="library-empty-icon" style={{ opacity: 0.3 }} />
+                                <h3>No content found</h3>
+                                <p>This channel might not have any public videos or is currently unreachable.</p>
                             </div>
                         ) : (
                             <div className="library-empty">

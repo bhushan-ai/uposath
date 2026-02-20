@@ -11,6 +11,7 @@ data class VideoInfo(
     val duration: String,
     val thumbnailUrl: String,
     val uploadDate: String? = null,
+    val viewCountText: String? = null,
     val viewCount: Long? = null
 )
 

@@ -176,7 +176,8 @@ class YouTubeService {
 
                 suspend fun fetchTab(tab: String): Pair<String, String>? = withContext(Dispatchers.IO) {
                     try {
-                        val request = okhttp3.Request.Builder().url("$baseUrl/$tab")
+                        val url = "$baseUrl/$tab"
+                        val request = okhttp3.Request.Builder().url(url)
                             .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                             .header("Accept-Language", "en-US,en;q=0.9").build()
                         val response = client.newCall(request).execute()
@@ -184,52 +185,97 @@ class YouTubeService {
                         
                         // Check canonical URL to prevent grabbing duplicate 'videos' page on redirect
                         val canonical = Regex("""<link\s+rel="canonical"\s+href="([^"]+)"""").find(body)?.groupValues?.get(1)
-                        if (canonical != null && !canonical.endsWith("/$tab") && tab != "featured") {
+                        Log.d("YouTubeService", "Tab $tab canonical: $canonical")
+                        
+                        // If we requested a specific tab and got redirected to the home page (which doesn't end in that tab), it means that tab is empty/missing
+                        if (tab != "featured" && tab != "videos" && tab != "" && canonical != null && !canonical.endsWith("/$tab")) {
+                            Log.d("YouTubeService", "Tab $tab redirected to $canonical, skipping")
                             return@withContext null 
                         }
                         Pair(tab, body)
-                    } catch (e: Exception) { null }
+                    } catch (e: Exception) { 
+                        Log.e("YouTubeService", "Failed to fetch tab $tab", e)
+                        null 
+                    }
                 }
 
                 // Fire async requests
                 val results = kotlinx.coroutines.coroutineScope {
-                    val videosDef = async<Pair<String, String>?> { fetchTab("videos") ?: fetchTab("featured") }
+                    val featuredDef = async<Pair<String, String>?> { fetchTab("featured") ?: fetchTab("") }
+                    val videosDef = async<Pair<String, String>?> { fetchTab("videos") }
                     val shortsDef = async<Pair<String, String>?> { fetchTab("shorts") }
                     val streamsDef = async<Pair<String, String>?> { fetchTab("streams") }
                     val playlistsDef = async<Pair<String, String>?> { fetchTab("playlists") }
                     
-                    listOfNotNull(videosDef.await(), shortsDef.await(), streamsDef.await(), playlistsDef.await())
+                    listOfNotNull(featuredDef.await(), videosDef.await(), shortsDef.await(), streamsDef.await(), playlistsDef.await())
                 }
-                if (results.isEmpty()) throw Exception("Empty response for all tabs")
+                
+                if (results.isEmpty()) {
+                    Log.w("YouTubeService", "No tabs found for $channelId")
+                    throw Exception("Empty response for all tabs")
+                }
+
+                fun extractJson(html: String): String? {
+                    val pattern = "ytInitialData ="
+                    val startIdx = html.indexOf(pattern)
+                    if (startIdx == -1) return null
+                    
+                    val objStart = html.indexOf("{", startIdx)
+                    if (objStart == -1) return null
+                    
+                    var braceCount = 0
+                    var i = objStart
+                    while (i < html.length) {
+                        when (html[i]) {
+                            '{' -> braceCount++
+                            '}' -> {
+                                braceCount--
+                                if (braceCount == 0) return html.substring(objStart, i + 1)
+                            }
+                        }
+                        i++
+                    }
+                    return null
+                }
 
                 val firstBody = results.first().second
-                val ytDataRaw = Regex("""var ytInitialData = (\{.*?\});</script>""").find(firstBody)?.groupValues?.get(1)
+                val ytDataRaw = extractJson(firstBody)
                 
                 var channelName = channelId
                 var avatarUrl = ""
                 
-                try {
-                    val json = if (ytDataRaw != null) org.json.JSONObject(ytDataRaw) else null
-                    val microformat = json?.optJSONObject("microformat")?.optJSONObject("microformatDataRenderer")
-                    if (microformat != null) {
-                        channelName = microformat.optString("title", channelId)
-                        avatarUrl = microformat.optJSONObject("thumbnail")?.optJSONArray("thumbnails")?.optJSONObject(0)?.optString("url") ?: ""
+                if (ytDataRaw != null) {
+                    try {
+                        val json = org.json.JSONObject(ytDataRaw)
+                        val microformat = json.optJSONObject("microformat")?.optJSONObject("microformatDataRenderer")
+                        if (microformat != null) {
+                            channelName = microformat.optString("title", channelId)
+                            val thumbnails = microformat.optJSONObject("thumbnail")?.optJSONArray("thumbnails")
+                            if (thumbnails != null && thumbnails.length() > 0) {
+                                avatarUrl = thumbnails.optJSONObject(thumbnails.length() - 1)?.optString("url") ?: ""
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("YouTubeService", "JSON parse error for channel metadata", e)
                     }
-                } catch (e: Exception) {
-                    // Fallback using Regex if JSON parsing fails
+                }
+
+                // Basic fallbacks for name/avatar if JSON parsing failed or was incomplete
+                if (channelName == channelId) {
                     channelName = Regex(""""title"\s*:\s*"([^"]+)"""").find(firstBody)?.groupValues?.get(1) ?: channelId
+                }
+                if (avatarUrl.isEmpty()) {
                     avatarUrl = Regex(""""avatar"\s*:\s*\{\s*"thumbnails"\s*:\s*\[\s*\{\s*"url"\s*:\s*"([^"]+)"""").find(firstBody)?.groupValues?.get(1) ?: ""
                 }
 
                 val sections = mutableListOf<ChannelSection>()
+                val seenTitles = mutableSetOf<String>()
                 
                 for ((tab, body) in results) {
+                    val tabJsonRaw = extractJson(body)
+                    val contentString = tabJsonRaw ?: body
+                    
                     val videos = mutableListOf<VideoInfo>()
-                    
-                    val tabDataRaw = Regex("""var ytInitialData = (\{.*?\});</script>""").find(body)?.groupValues?.get(1)
-                    val contentString = tabDataRaw ?: body // fallback to full body
-                    
-                    // Renderer starts
                     val rendererRegex = Regex(""""videoRenderer"\s*:\s*\{|"(gridVideo|reelItem|gridPlaylist|playlist)Renderer"\s*:\s*\{|"(shortsLockupViewModel)"\s*:\s*\{""")
                     val rendererStarts = rendererRegex.findAll(contentString).map { it.range.first }.toList()
                     
@@ -244,15 +290,22 @@ class YouTubeService {
                             val title = Regex(""""headline"\s*:\s*\{\s*"simpleText"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
                                 ?: Regex(""""title"\s*:\s*\{\s*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
                                 ?: Regex(""""title"\s*:\s*\{\s*"simpleText"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
-                                ?: Regex(""""accessibilityText"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)?.substringBefore(", ") // Shorts accessibility title
+                                ?: Regex(""""accessibilityText"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)?.substringBefore(", ")
                                 ?: continue
                                 
                             val thumbnail = if (vid.startsWith("PL")) 
                                 Regex(""""url"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)?.replace("\\u0026", "&") ?: ""
                             else "https://i.ytimg.com/vi/$vid/hqdefault.jpg"
                             
-                            val lengthText = Regex(""""lengthText"\s*:\s*\{\s*"[^"]*"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1) ?: "0"
+                            val lengthIdx = subBody.indexOf("\"lengthText\"")
+                            val lengthText = if (lengthIdx != -1) Regex(""""(?:simpleText|text)"\s*:\s*"([0-9:]+)"""").find(subBody, lengthIdx)?.groupValues?.get(1) ?: "0" else "0"
                             val durationSec = parseDuration(lengthText)
+                            
+                            val viewIdx = subBody.indexOf("\"viewCountText\"")
+                            val viewCountText = if (viewIdx != -1) Regex(""""simpleText"\s*:\s*"([^"]+)"""").find(subBody, viewIdx)?.groupValues?.get(1) else null
+                            
+                            val pubIdx = subBody.indexOf("\"publishedTimeText\"")
+                            val publishedTimeText = if (pubIdx != -1) Regex(""""simpleText"\s*:\s*"([^"]+)"""").find(subBody, pubIdx)?.groupValues?.get(1) else null
 
                             videos.add(VideoInfo(
                                 videoId = vid,
@@ -260,31 +313,50 @@ class YouTubeService {
                                 channelName = channelName,
                                 channelId = channelId,
                                 duration = durationSec.toString(),
-                                thumbnailUrl = thumbnail
+                                thumbnailUrl = thumbnail,
+                                uploadDate = publishedTimeText,
+                                viewCountText = viewCountText
                             ))
-                        } catch (e: Exception) {
-                            // Skip malformed parse
-                        }
+                        } catch (e: Exception) {}
                     }
+
                     if (videos.isNotEmpty()) {
                         val sectionTitle = when(tab) {
-                            "videos", "featured" -> "Videos"
+                            "videos" -> "Videos"
+                            "featured", "" -> "Home"
                             "shorts" -> "Shorts"
                             "streams" -> "Live"
                             "playlists" -> "Playlists"
                             else -> tab.replaceFirstChar { it.uppercase() }
                         }
-                        sections.add(ChannelSection(sectionTitle, videos, null))
+                        
+                        // Removed strict deduplication that dropped entire tabs like 'Videos'
+                        // just because the first video matched 'Home'. We want all tabs to show.
+                        if (!seenTitles.contains(sectionTitle)) {
+                            sections.add(ChannelSection(sectionTitle, videos, null))
+                            seenTitles.add(sectionTitle)
+                        }
                     }
                 }
-
+                
+                // Final sort to put Videos/Home first
+                sections.sortBy { 
+                    when(it.title) {
+                        "Home" -> 0
+                        "Videos" -> 1
+                        "Shorts" -> 2
+                        "Live" -> 3
+                        "Playlists" -> 4
+                        else -> 5
+                    }
+                }
 
                 Log.d("YouTubeService", "Scraped ${sections.size} tabs from regular YouTube")
                 
                 if (sections.isNotEmpty()) {
                     return@runCatching ChannelPageResult(
                         channelName = channelName,
-                        channelAvatar = avatarUrl ?: "",
+                        channelAvatar = avatarUrl,
                         sections = sections
                     )
                 }

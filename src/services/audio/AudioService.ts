@@ -23,7 +23,7 @@ export const AudioService = {
                     channelTitle: item.channelName,
                     duration: item.duration,
                     description: item.description || '',
-                    uploadedAt: item.uploadDate.toString(),
+                    uploadedAt: item.uploadDate ? item.uploadDate.toString() : '',
                     views: item.viewCount || 0
                 }));
             } catch (error) {
@@ -48,7 +48,7 @@ export const AudioService = {
                     channelTitle: item.channelName,
                     duration: item.duration,
                     description: item.description || '',
-                    uploadedAt: item.uploadDate.toString(),
+                    uploadedAt: item.uploadDate ? item.uploadDate.toString() : '',
                     views: item.viewCount || 0
                 }));
             } catch (error) {

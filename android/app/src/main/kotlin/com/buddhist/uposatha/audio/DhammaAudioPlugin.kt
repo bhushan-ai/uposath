@@ -208,6 +208,9 @@ class DhammaAudioPlugin : Plugin() {
                             put("channelId", video.channelId)
                             put("duration", video.duration)
                             put("thumbnailUrl", video.thumbnailUrl)
+                            put("uploadDate", video.uploadDate)
+                            put("viewCountText", video.viewCountText)
+                            put("viewCount", video.viewCount)
                         })
                     }
                     sectionsArr.put(JSObject().apply {

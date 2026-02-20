@@ -51,8 +51,9 @@ export interface VideoInfo {
     channelName: string;
     duration: number; // seconds
     thumbnailUrl: string;
-    uploadDate: number; // timestamp
-    viewCount: number;
+    uploadDate?: number | string; // timestamp or string like "2 weeks ago"
+    viewCount?: number;
+    viewCountText?: string;
     description?: string;
 }
 
