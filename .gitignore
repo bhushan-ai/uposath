@@ -22,8 +22,9 @@ node_modules/
 /.nx/cache
 
 # IDEs
+.vscode
 .vscode/
-!.vscode/extensions.json
+.idea
 .idea/
 *.iml
 *.iws
