@@ -144,7 +144,7 @@ class YouTubeService {
                 ?: "Unknown"
             
             // Extract avatar
-            val avatar = extractFromHtml(body, """"avatar"\s*:\s*\{[^}]*"url"\s*:\s*"([^"]+)"""")
+            val avatar = extractFromHtml(body, """"avatar"\s*:\s*\{\s*"thumbnails"\s*:\s*\[\s*\{\s*"url"\s*:\s*"([^"]+)"""")
                 ?: ""
 
             Log.d("YouTubeService", "Resolved: id=$channelId, name=$name")
@@ -192,7 +192,7 @@ class YouTubeService {
                     ?: channelId
                 
                 // Extract avatar URL
-                val avatarUrl = extractFromHtml(body, """"avatar"\s*:\s*\{[^}]*"url"\s*:\s*"([^"]+)"""")
+                val avatarUrl = extractFromHtml(body, """"avatar"\s*:\s*\{\s*"thumbnails"\s*:\s*\[\s*\{\s*"url"\s*:\s*"([^"]+)"""")
                 
                 // Extract video renderers with titles
                 val videos = mutableListOf<VideoInfo>()
