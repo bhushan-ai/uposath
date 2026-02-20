@@ -183,6 +183,27 @@ class YouTubeService {
                         val response = client.newCall(request).execute()
                         val body = response.body?.string() ?: return@withContext null
                         
+                        // Ensure we are actually on the requested tab and not soft-redirected to 'Videos'
+                        if (tab == "streams" || tab == "playlists" || tab == "videos") {
+                            val expectedTitle = when (tab) {
+                                "streams" -> "Live"
+                                "playlists" -> "Playlists"
+                                else -> "Videos"
+                            }
+                            
+                            val selectedTitleMatch = Regex(""""title"\s*:\s*"([^"]+)"[^}]*"selected"\s*:\s*true""").find(body)
+                                ?: Regex(""""tabRenderer"\s*:\s*\{[^}]*"title"\s*:\s*"([^"]+)"[^}]*"selected"\s*:\s*true""").find(body)
+                                ?: Regex(""""selected"\s*:\s*true[^}]*"title"\s*:\s*"([^"]+)"""").find(body)
+                                
+                            val selectedTitle = selectedTitleMatch?.groupValues?.get(1)
+                            
+                            // If YouTube redirected us to a different tab because the requested one doesn't exist, skip it
+                            if (selectedTitle != null && !selectedTitle.equals(expectedTitle, ignoreCase = true)) {
+                                Log.d("YouTubeService", "Tab $tab soft-redirected to $selectedTitle, returning empty list.")
+                                return@withContext Pair(tab, "") // Return empty string so the regex finds 0 items later
+                            }
+                        }
+                        
                         // YouTube's canonical URLs no longer reliably append /streams or /playlists,
                         // so we simply parse whatever DOM we get. If it's empty, the regex will safely return 0 items.
                         Pair(tab, body)
