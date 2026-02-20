@@ -159,11 +159,12 @@ export class DhammaAudioWeb extends WebPlugin implements DhammaAudioPlugin {
 
     async getPlaybackState(): Promise<PlaybackState> {
         return {
+            state: this.isPlaying ? 'PLAYING' : (this.currentVideo ? 'PAUSED' : 'IDLE'),
             isPlaying: this.isPlaying,
             isPaused: !this.isPlaying && this.currentVideo !== null,
             currentVideo: this.currentVideo,
             position: this.position,
-            duration: this.currentVideo?.duration ? this.currentVideo.duration * 1000 : 0,
+            duration: this.currentVideo?.duration ? (typeof this.currentVideo.duration === 'number' ? this.currentVideo.duration * 1000 : parseInt(this.currentVideo.duration) * 1000) : 0,
             queue: this.mockVideos,
             currentIndex: 0
         };

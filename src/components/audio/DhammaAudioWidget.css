@@ -5,7 +5,7 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  /* Inherits glass-card: background, backdrop-filter, border-radius, border, box-shadow */
+  /* Inherits glass-card styles */
 }
 
 /* Playing or Featured state refinements */
@@ -94,58 +94,45 @@
 }
 
 /* 
-   SURGICAL OVERRIDE FOR PLAY BUTTON
-   We target the native part directly to kill the black artifact.
+   PLAY BUTTON CUSTOM - NO ION-BUTTON ARTIFACTS
 */
-.play-button {
-  --padding-start: 0 !important;
-  --padding-end: 0 !important;
-  --border-radius: 50% !important;
-  width: 64px !important;
-  height: 64px !important;
-  margin: 0 !important;
-  background: transparent !important;
-  color: var(--color-accent-primary);
-}
-
-.play-button.primary-button {
-  color: var(--color-bg-primary);
-}
-
-.play-button::part(native) {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+.play-button-custom {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  color: inherit;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  color: var(--color-accent-primary);
+  padding: 0;
+  cursor: pointer;
+  outline: none;
   transition: all 0.2s var(--transition-spring);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-.play-button.primary-button::part(native) {
+.play-button-custom:active {
+  transform: scale(0.92);
+}
+
+.play-button-custom.primary-button {
   background: var(--color-accent-primary);
+  color: var(--color-bg-primary);
   border: none;
-  color: inherit;
   box-shadow: var(--shadow-glow);
 }
 
-/* Remove the hover background artifact from Ionic */
-.play-button::part(native)::after {
-  display: none !important;
-}
-
-.play-button ion-icon {
-  font-size: 2.2rem !important;
+.play-button-custom ion-icon {
+  font-size: 2.2rem;
   margin: 0;
 }
 
-.play-button:active {
-  transform: scale(0.92);
+.play-button-custom.is-loading {
+  cursor: default;
 }
 
 .audio-widget__footer {
@@ -187,9 +174,9 @@
 }
 
 .spinner-small {
-  width: 28px;
-  height: 28px;
-  --color: currentColor !important;
+  width: 32px;
+  height: 32px;
+  --color: currentColor;
 }
 
 /* Empty state info tweak */

@@ -86,6 +86,7 @@ export interface ChannelPageResult {
 }
 
 export interface PlaybackState {
+    state: string;
     isPlaying: boolean;
     isPaused: boolean;
     currentVideo: VideoInfo | null;

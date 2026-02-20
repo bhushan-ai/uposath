@@ -49,12 +49,19 @@ const DhammaAudioWidget: React.FC = () => {
         loadState();
 
         const stateListener = DhammaAudio.addListener('playbackStateChanged', (state) => {
-            setPlaybackState(state);
+            setPlaybackState(prev => prev ? { ...prev, ...state } : state);
             setIsToggling(false);
         });
 
         const progressListener = DhammaAudio.addListener('progressUpdate', (data) => {
-            setPlaybackState(prev => prev ? { ...prev, position: data.position, duration: data.duration } : null);
+            // If we're getting progress updates, we're likely playing
+            setPlaybackState(prev => prev ? {
+                ...prev,
+                position: data.position,
+                duration: data.duration,
+                isPlaying: true // If progress is updating, it's virtually always playing
+            } : null);
+            setIsToggling(false);
         });
 
         return () => {
@@ -90,8 +97,13 @@ const DhammaAudioWidget: React.FC = () => {
         e.stopPropagation();
         if (featuredVideo) {
             setIsToggling(true);
-            await DhammaAudio.playVideo({ video: featuredVideo });
-            history.push('/player');
+            try {
+                await DhammaAudio.playVideo({ video: featuredVideo });
+                history.push('/player');
+            } catch (err) {
+                console.error('Failed to start featured play:', err);
+                setIsToggling(false);
+            }
         }
     };
 
@@ -100,11 +112,19 @@ const DhammaAudioWidget: React.FC = () => {
         if (!playbackState || isToggling) return;
 
         setIsToggling(true);
-        if (playbackState.isPlaying) {
-            await DhammaAudio.pause();
-        } else {
-            await DhammaAudio.resume();
+        try {
+            if (playbackState.isPlaying) {
+                await DhammaAudio.pause();
+            } else {
+                await DhammaAudio.resume();
+            }
+        } catch (err) {
+            console.error('Toggle play failed:', err);
+            setIsToggling(false);
         }
+
+        // Safety timeout to reset toggling if no events arrive
+        setTimeout(() => setIsToggling(false), 2000);
     };
 
     const openLibrary = () => {
@@ -125,7 +145,9 @@ const DhammaAudioWidget: React.FC = () => {
     }
 
     if (playbackState?.currentVideo) {
-        const { currentVideo, isPlaying, position, duration } = playbackState;
+        const { currentVideo, state, position, duration } = playbackState;
+        const isPlaying = state === 'PLAYING' || state === 'LOADING';
+        const isLoading = state === 'LOADING' || isToggling;
         const progress = duration > 0 ? position / duration : 0;
 
         return (
@@ -140,13 +162,16 @@ const DhammaAudioWidget: React.FC = () => {
                             <IonText color="medium" className="audio-widget__subtitle">{currentVideo.channelName}</IonText>
                         </div>
                         <div className="audio-widget__controls">
-                            <IonButton fill="clear" onClick={togglePlay} className="play-button">
-                                {isToggling ? (
+                            <button
+                                onClick={togglePlay}
+                                className={`play-button-custom ${isLoading ? 'is-loading' : ''} ${isPlaying ? 'is-playing' : ''}`}
+                            >
+                                {isLoading ? (
                                     <IonSpinner name="crescent" className="spinner-small" />
                                 ) : (
                                     <IonIcon icon={isPlaying ? pause : play} />
                                 )}
-                            </IonButton>
+                            </button>
                         </div>
                     </div>
                     <div className="audio-widget__footer">
@@ -168,13 +193,16 @@ const DhammaAudioWidget: React.FC = () => {
                 <div className="audio-widget__content">
                     {featuredVideo && (
                         <div className="audio-widget__controls">
-                            <IonButton fill="clear" onClick={startFeaturedPlay} className="play-button primary-button">
+                            <button
+                                onClick={startFeaturedPlay}
+                                className={`play-button-custom primary-button ${isToggling ? 'is-loading' : ''}`}
+                            >
                                 {isToggling ? (
                                     <IonSpinner name="crescent" className="spinner-small" />
                                 ) : (
                                     <IonIcon icon={play} />
                                 )}
-                            </IonButton>
+                            </button>
                         </div>
                     )}
 
