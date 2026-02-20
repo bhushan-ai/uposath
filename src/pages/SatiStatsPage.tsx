@@ -28,7 +28,7 @@ import { AnapanasatiService, AnapanasatiStats } from '../services/AnapanasatiSer
 import { MantraService } from '../services/MantraService';
 import { EmptinessService } from '../services/EmptinessService';
 import { SatiStatsService } from '../services/SatiStatsService';
-import { MalaEntry, MalaStats, GlobalStats, UnifiedSession, PracticeCategory, EmptinessStats } from '../types/SatiTypes';
+import { MalaEntry, MalaStats, GlobalStats, UnifiedSession, PracticeCategory, EmptinessStats, Mantra, MantraSession } from '../types/SatiTypes';
 import UposathaStatsView from '../components/uposatha/UposathaStatsView';
 
 
@@ -58,28 +58,50 @@ const SatiStatsPage: React.FC = () => {
     const [editingSession, setEditingSession] = useState<{ id: string, category: PracticeCategory, count: number, timestamp: string } | null>(null);
 
     const loadData = async () => {
-        const g = await SatiStatsService.getGlobalStats();
-        const h = await SatiStatsService.getUnifiedHistory();
-        setGlobalStats(g);
-        setHistory(h);
+        try {
+            // Use settled promises so one failing service doesn't break the whole page
+            const results = await Promise.allSettled([
+                SatiStatsService.getGlobalStats(),
+                SatiStatsService.getUnifiedHistory(),
+                MalaService.getStats(),
+                AnapanasatiService.getStats(),
+                EmptinessService.getStats(),
+                MantraService.getMantras(),
+                MantraService.getSessions()
+            ]);
 
-        // Load specific stats for cards
-        setMalaStats(await MalaService.getStats());
-        setAnapanasatiStats(await AnapanasatiService.getStats());
-        setEmptinessStats(await EmptinessService.getStats());
+            if (results[0].status === 'fulfilled') setGlobalStats(results[0].value);
+            if (results[1].status === 'fulfilled') setHistory(results[1].value);
+            if (results[2].status === 'fulfilled') setMalaStats(results[2].value);
+            if (results[3].status === 'fulfilled') setAnapanasatiStats(results[3].value);
+            if (results[4].status === 'fulfilled') setEmptinessStats(results[4].value);
 
-        // Mantra aggregation for card and details
-        const mList = await MantraService.getMantras();
-        const mSessions = await MantraService.getSessions();
-        setMantras(mList);
-        setMantraSessions(mSessions);
+            let mList: Mantra[] = [];
+            let mSessions: MantraSession[] = [];
+            if (results[5].status === 'fulfilled') {
+                mList = results[5].value as Mantra[];
+                setMantras(mList);
+            }
+            if (results[6].status === 'fulfilled') {
+                mSessions = results[6].value as MantraSession[];
+                setMantraSessions(mSessions);
+            }
 
-        const mBeads = mSessions.reduce((acc, s) => acc + s.reps, 0);
-        setMantraStats({
-            totalSessions: mSessions.length,
-            totalBeads: mBeads,
-            totalMalas: (mBeads / 108).toFixed(1)
-        });
+            const mBeads = mSessions.reduce((acc, s) => acc + (Number(s.reps) || 0), 0);
+            setMantraStats({
+                totalSessions: mSessions.length,
+                totalBeads: mBeads,
+                totalMalas: (mBeads / 108).toFixed(1)
+            });
+
+            // Log status for debugging on device
+            const failedCount = results.filter(r => r.status === 'rejected').length;
+            if (failedCount > 0) {
+                console.warn(`${failedCount} sati services failed to load on device`);
+            }
+        } catch (err) {
+            console.error('Critical failure in sati loadData:', err);
+        }
     };
 
     useIonViewWillEnter(() => {
@@ -219,18 +241,24 @@ const SatiStatsPage: React.FC = () => {
                                 <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.1rem', fontWeight: '600', opacity: 0.9, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                     Journey Overview
                                 </h3>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', alignItems: 'flex-end' }}>
                                     <div>
-                                        <div style={{ fontSize: '3.5rem', fontWeight: '800', lineHeight: 1 }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1 }}>
                                             {globalStats.totalSessions}
                                         </div>
-                                        <div style={{ fontSize: '0.95rem', opacity: 0.7, marginTop: '4px' }}>Total Sessions</div>
+                                        <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '4px' }}>Sessions</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1, color: '#FCD34D' }}>
+                                            {globalStats.totalBeads.toLocaleString()}
+                                        </div>
+                                        <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '4px' }}>Total Beads</div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '2rem', fontWeight: '700', color: '#FCD34D' }}>
-                                            {globalStats.currentStreak} <span style={{ fontSize: '1rem' }}>days</span>
+                                        <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--color-accent-primary)' }}>
+                                            {globalStats.currentStreak} <span style={{ fontSize: '0.9rem' }}>d</span>
                                         </div>
-                                        <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>Current Streak 🔥</div>
+                                        <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>Streak 🔥</div>
                                     </div>
                                 </div>
                             </div>
@@ -435,10 +463,22 @@ const SatiStatsPage: React.FC = () => {
                     {malaStats && (
                         <div style={{ display: 'grid', gap: '16px', paddingTop: '16px' }}>
                             {(['buddha', 'dhamma', 'sangha'] as const).map(type => {
+                                // Source of truth: filter from history
+                                const titlePart = type.toLowerCase().includes('budd') ? 'buddha' : (type.toLowerCase().includes('dham') ? 'dhamma' : 'sangha');
+                                const typeSessions = history.filter(h =>
+                                    h.category === 'mala' &&
+                                    h.title.toLowerCase().includes(titlePart)
+                                ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+                                const totalBeads = typeSessions.reduce((acc, s) => {
+                                    const match = s.detail.match(/(\d+)/);
+                                    return acc + (match ? parseInt(match[0]) : 0);
+                                }, 0);
+
                                 const typeStats = malaStats.byType[type];
                                 const color = type === 'buddha' ? '#D4AF37' : (type === 'dhamma' ? '#0056b3' : '#b45309');
                                 const bg = type === 'buddha' ? '#fffbf0' : (type === 'dhamma' ? '#f0f7ff' : '#fff7ed');
-                                const title = type === 'buddha' ? 'Buddhanusati' : (type === 'dhamma' ? 'Dhammanusati' : 'Sanghanusati');
+                                const displayTitle = type === 'buddha' ? 'Buddhanusati' : (type === 'dhamma' ? 'Dhammanusati' : 'Sanghanusati');
                                 const icon = type === 'buddha' ? '☸️' : (type === 'dhamma' ? '📜' : '👥');
 
                                 return (
@@ -451,18 +491,18 @@ const SatiStatsPage: React.FC = () => {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                                             <div style={{ fontSize: '1.5rem' }}>{icon}</div>
                                             <h3 style={{ margin: 0, fontSize: '1.2rem', color: color, fontWeight: 'bold' }}>
-                                                {title}
+                                                {displayTitle}
                                             </h3>
                                         </div>
 
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                                             <div>
                                                 <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Total Beads</div>
-                                                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{typeStats.totalBeads.toLocaleString()}</div>
+                                                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{totalBeads.toLocaleString()}</div>
                                             </div>
                                             <div>
                                                 <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Malas</div>
-                                                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{(typeStats.totalBeads / 108).toFixed(1)}</div>
+                                                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{(totalBeads / 108).toFixed(1)}</div>
                                             </div>
                                             <div>
                                                 <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Current Streak</div>
@@ -472,30 +512,23 @@ const SatiStatsPage: React.FC = () => {
                                             </div>
                                             <div>
                                                 <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Sessions</div>
-                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1F2937' }}>{typeStats.totalSessions}</div>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1F2937' }}>{typeSessions.length}</div>
                                             </div>
                                         </div>
 
                                         {/* Mini Log List for this Type */}
-                                        {(() => {
-                                            const typeHistory = history.filter(h =>
-                                                h.category === 'mala' &&
-                                                h.title.toLowerCase().includes(title.replace('nusati', '').toLowerCase())
-                                            );
-
-                                            if (typeHistory.length === 0) return null;
-
-                                            return (
-                                                <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '8px' }}>
-                                                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', paddingLeft: '8px' }}>RECENT LOGS</div>
-                                                    {typeHistory.slice(0, 5).map(log => (
-                                                        <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                                                            <div>
-                                                                <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#333' }}>{log.detail}</div>
-                                                                <div style={{ fontSize: '0.75rem', color: '#888' }}>
-                                                                    {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                                                </div>
+                                        {typeSessions.length > 0 && (
+                                            <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '8px' }}>
+                                                <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', paddingLeft: '8px' }}>RECENT LOGS</div>
+                                                {typeSessions.slice(0, 5).map(log => (
+                                                    <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                                                        <div>
+                                                            <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#333' }}>{log.detail}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: '#888' }}>
+                                                                {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                             </div>
+                                                        </div>
+                                                        <div style={{ display: 'flex' }}>
                                                             <div style={{ display: 'flex' }}>
                                                                 <IonButton
                                                                     fill="clear"
@@ -517,13 +550,55 @@ const SatiStatsPage: React.FC = () => {
                                                                 </IonButton>
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            );
-                                        })()}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
+
+                            {/* Legacy/Misc Mala Section */}
+                            {(() => {
+                                const legacySessions = history.filter(h =>
+                                    h.category === 'mala' &&
+                                    !['budd', 'dham', 'sang'].some(key => h.title.toLowerCase().includes(key))
+                                );
+
+                                if (legacySessions.length === 0) return null;
+
+                                const totalBeads = legacySessions.reduce((acc, s) => {
+                                    const match = s.detail.match(/(\d+)/);
+                                    return acc + (match ? parseInt(match[0]) : 0);
+                                }, 0);
+
+                                return (
+                                    <div style={{
+                                        backgroundColor: '#F3F4F6',
+                                        border: '1px solid #D1D5DB',
+                                        borderRadius: '16px',
+                                        padding: '20px',
+                                        opacity: 0.8
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                                            <div style={{ fontSize: '1.5rem' }}>📿</div>
+                                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#4B5563', fontWeight: 'bold' }}>
+                                                Other Recollection
+                                            </h3>
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                                            <div>
+                                                <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Total Beads</div>
+                                                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{totalBeads.toLocaleString()}</div>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Sessions</div>
+                                                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{legacySessions.length}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     )}
                 </IonContent>
@@ -549,8 +624,11 @@ const SatiStatsPage: React.FC = () => {
                 <IonContent className="ion-padding" fullscreen={true}>
                     <div style={{ display: 'grid', gap: '16px', paddingTop: '16px' }}>
                         {mantras.map(mantra => {
-                            // Filter sessions for this mantra
-                            const sessions = mantraSessions.filter(s => s.mantraId === mantra.id).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                            // Filter sessions for this mantra - DERIVE STATS FROM SESSIONS LIST AS SOURCE OF TRUTH
+                            const mantraSessionsList = mantraSessions.filter(s => s.mantraId === mantra.id).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                            const totalReps = mantraSessionsList.reduce((acc, s) => acc + (Number(s.reps) || 0), 0);
+                            const totalSessionsCount = mantraSessionsList.length;
+                            const currentStreak = mantra.stats?.currentStreak || 0; // Keep streak from object or recalculate? Recalculating is safer but object might have history.
 
                             return (
                                 <div key={mantra.id} style={{
@@ -572,29 +650,29 @@ const SatiStatsPage: React.FC = () => {
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                                         <div>
                                             <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Total Beads</div>
-                                            <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{mantra.stats.totalReps.toLocaleString()}</div>
+                                            <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{totalReps.toLocaleString()}</div>
                                         </div>
                                         <div>
                                             <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Malas</div>
-                                            <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{(mantra.stats.totalReps / 108).toFixed(1)}</div>
+                                            <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{(totalReps / 108).toFixed(1)}</div>
                                         </div>
                                         <div>
                                             <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Current Streak</div>
                                             <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1F2937' }}>
-                                                {mantra.stats.currentStreak} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>days</span>
+                                                {currentStreak} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>days</span>
                                             </div>
                                         </div>
                                         <div>
                                             <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Sessions</div>
-                                            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1F2937' }}>{mantra.stats.totalSessions}</div>
+                                            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1F2937' }}>{totalSessionsCount}</div>
                                         </div>
                                     </div>
 
                                     {/* Mini Log List for this Mantra */}
-                                    {sessions.length > 0 && (
+                                    {mantraSessionsList.length > 0 && (
                                         <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '8px' }}>
                                             <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', paddingLeft: '8px' }}>RECENT LOGS</div>
-                                            {sessions.slice(0, 5).map((log: any) => (
+                                            {mantraSessionsList.slice(0, 5).map((log: any) => (
                                                 <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                                                     <div>
                                                         <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#333' }}>{log.reps} beads</div>
@@ -637,6 +715,73 @@ const SatiStatsPage: React.FC = () => {
                                 </div>
                             );
                         })}
+
+                        {/* Legacy/Orphaned Mantra Sessions Section */}
+                        {(() => {
+                            const mantraIds = new Set(mantras.map(m => m.id));
+                            const orphanedSessions = mantraSessions.filter(s => !mantraIds.has(s.mantraId)).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+                            if (orphanedSessions.length === 0) return null;
+
+                            const orphanBeads = orphanedSessions.reduce((acc, s) => acc + (Number(s.reps) || 0), 0);
+
+                            return (
+                                <div style={{
+                                    backgroundColor: '#F3F4F6',
+                                    border: '1px solid #D1D5DB',
+                                    borderRadius: '16px',
+                                    padding: '20px',
+                                    opacity: 0.8
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                                        <div style={{ fontSize: '1.5rem' }}>🪦</div>
+                                        <div>
+                                            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#374151', fontWeight: 'bold' }}>
+                                                Legacy Practice
+                                            </h3>
+                                            <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Sessions from deleted mantras</div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                                        <div>
+                                            <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Total Beads</div>
+                                            <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{orphanBeads.toLocaleString()}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '4px' }}>Sessions</div>
+                                            <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#1F2937' }}>{orphanedSessions.length}</div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '12px', padding: '8px' }}>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', paddingLeft: '8px' }}>ORPHANED LOGS</div>
+                                        {orphanedSessions.slice(0, 5).map((log: any) => (
+                                            <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#333' }}>{log.reps} beads</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>
+                                                        {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex' }}>
+                                                    <IonButton
+                                                        fill="clear"
+                                                        size="small"
+                                                        color="medium"
+                                                        onClick={() => {
+                                                            setEntryToDelete({ id: log.id, category: 'mantra' });
+                                                        }}
+                                                    >
+                                                        <IonIcon icon={trashOutline} />
+                                                    </IonButton>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </IonContent>
             </IonModal>

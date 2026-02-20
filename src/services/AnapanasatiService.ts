@@ -1,5 +1,7 @@
 import { Preferences } from '@capacitor/preferences';
 import anapanasatiData from '../assets/data/anapanasati.json';
+import { BasePracticeRepository } from './BasePracticeRepository';
+import { StatsCalculator } from './StatsCalculator';
 
 // Types
 export interface AnapanasatiSession {
@@ -58,32 +60,27 @@ const DEFAULT_SETTINGS: AnapanasatiSettings = {
     bellSound: 'tibetan_bowl'
 };
 
+const sessionRepository = new BasePracticeRepository<AnapanasatiSession>(SESSION_KEY);
+
 export const AnapanasatiService = {
     // Content
     getContent: () => anapanasatiData,
 
     // Sessions
     getSessions: async (): Promise<AnapanasatiSession[]> => {
-        const { value } = await Preferences.get({ key: SESSION_KEY });
-        return value ? JSON.parse(value) : [];
+        return sessionRepository.getAll();
     },
 
     saveSession: async (session: AnapanasatiSession): Promise<void> => {
-        const sessions = await AnapanasatiService.getSessions();
-        sessions.unshift(session); // Add to top
-        await Preferences.set({ key: SESSION_KEY, value: JSON.stringify(sessions) });
+        await sessionRepository.add(session);
     },
 
     deleteSession: async (id: string): Promise<void> => {
-        let sessions = await AnapanasatiService.getSessions();
-        sessions = sessions.filter(s => s.id !== id);
-        await Preferences.set({ key: SESSION_KEY, value: JSON.stringify(sessions) });
+        await sessionRepository.delete(id);
     },
 
     updateSession: async (updatedSession: AnapanasatiSession): Promise<void> => {
-        let sessions = await AnapanasatiService.getSessions();
-        sessions = sessions.map(s => s.id === updatedSession.id ? updatedSession : s);
-        await Preferences.set({ key: SESSION_KEY, value: JSON.stringify(sessions) });
+        await sessionRepository.update(updatedSession);
     },
 
     // Stats
@@ -99,32 +96,9 @@ export const AnapanasatiService = {
             completedSessions.map(s => s.timestamp.split('T')[0])
         )).sort().reverse(); // Descending order
 
-        let currentStreak = 0;
+        const currentStreak = StatsCalculator.calculateStreak(uniqueDates);
         let longestStreak = 0;
         let lastPracticeDate = uniqueDates.length > 0 ? uniqueDates[0] : null;
-
-        if (uniqueDates.length > 0) {
-            const today = new Date().toISOString().split('T')[0];
-            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-            // Check if streak is active (practiced today or yesterday)
-            if (uniqueDates[0] === today || uniqueDates[0] === yesterday) {
-                currentStreak = 1;
-                // Count backwards
-                for (let i = 0; i < uniqueDates.length - 1; i++) {
-                    const d1 = new Date(uniqueDates[i]);
-                    const d2 = new Date(uniqueDates[i + 1]);
-                    const diffTime = Math.abs(d1.getTime() - d2.getTime());
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    if (diffDays === 1) {
-                        currentStreak++;
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
 
         // Longest streak logic could be more complex, simpler version for now:
         // (Just returning current for longest if it's the max for simplicity, could implement full scan later)

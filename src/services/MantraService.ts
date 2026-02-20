@@ -1,5 +1,7 @@
 import { Preferences } from '@capacitor/preferences';
 import { Mantra, MantraSession, MantraTradition } from '../types/SatiTypes';
+import { BasePracticeRepository } from './BasePracticeRepository';
+import { StatsCalculator } from './StatsCalculator';
 
 const MANTRA_STORAGE_KEY = 'user_mantras';
 const SESSION_STORAGE_KEY = 'mantra_sessions';
@@ -91,88 +93,63 @@ const DEFAULT_MANTRAS: Mantra[] = [
     }
 ];
 
+const mantraRepository = new BasePracticeRepository<Mantra>(MANTRA_STORAGE_KEY);
+const sessionRepository = new BasePracticeRepository<MantraSession>(SESSION_STORAGE_KEY);
+
 export const MantraService = {
 
     async getMantras(): Promise<Mantra[]> {
-        const { value } = await Preferences.get({ key: MANTRA_STORAGE_KEY });
-        if (!value) {
+        const mantras = await mantraRepository.getAll();
+        if (mantras.length === 0) {
             // Seed defaults if empty
             await this.saveMantras(DEFAULT_MANTRAS);
             return DEFAULT_MANTRAS;
         }
-        return JSON.parse(value);
+        return mantras;
     },
 
     async saveMantras(mantras: Mantra[]): Promise<void> {
-        await Preferences.set({
-            key: MANTRA_STORAGE_KEY,
-            value: JSON.stringify(mantras)
-        });
+        await mantraRepository.saveAll(mantras);
     },
 
     async addMantra(mantra: Mantra): Promise<void> {
+        // Appending to the end traditionally for mantras
         const mantras = await this.getMantras();
         mantras.push(mantra);
         await this.saveMantras(mantras);
     },
 
     async updateMantra(updatedMantra: Mantra): Promise<void> {
-        const mantras = await this.getMantras();
-        const index = mantras.findIndex(m => m.id === updatedMantra.id);
-        if (index !== -1) {
-            mantras[index] = updatedMantra;
-            await this.saveMantras(mantras);
-        }
+        await mantraRepository.update(updatedMantra);
     },
 
     async deleteMantra(id: string): Promise<void> {
-        const mantras = await this.getMantras();
-        const filtered = mantras.filter(m => m.id !== id);
-        await this.saveMantras(filtered);
+        await mantraRepository.delete(id);
     },
 
     async getSessions(): Promise<MantraSession[]> {
-        const { value } = await Preferences.get({ key: SESSION_STORAGE_KEY });
-        return value ? JSON.parse(value) : [];
+        return sessionRepository.getAll();
     },
 
     async saveSession(session: MantraSession): Promise<void> {
-        const sessions = await this.getSessions();
-        sessions.push(session);
-        await Preferences.set({
-            key: SESSION_STORAGE_KEY,
-            value: JSON.stringify(sessions)
-        });
+        await sessionRepository.add(session);
 
         // Update stats for the mantra
-        await this.updateMantraStats(session);
+        await this.recalculateMantraStats(session.mantraId);
     },
 
     async deleteSession(id: string): Promise<void> {
-        let sessions = await this.getSessions();
+        const sessions = await this.getSessions();
         const sessionToDelete = sessions.find(s => s.id === id);
         if (sessionToDelete) {
-            sessions = sessions.filter(s => s.id !== id);
-            await Preferences.set({
-                key: SESSION_STORAGE_KEY,
-                value: JSON.stringify(sessions)
-            });
-
+            await sessionRepository.delete(id);
             await this.recalculateMantraStats(sessionToDelete.mantraId);
         }
     },
 
     async updateSession(updatedSession: MantraSession): Promise<void> {
-        let sessions = await this.getSessions();
-        const index = sessions.findIndex(s => s.id === updatedSession.id);
-        if (index !== -1) {
-            sessions[index] = updatedSession;
-            await Preferences.set({
-                key: SESSION_STORAGE_KEY,
-                value: JSON.stringify(sessions)
-            });
-            await this.recalculateMantraStats(updatedSession.mantraId);
-        }
+        await sessionRepository.update(updatedSession);
+        await this.recalculateMantraStats(updatedSession.mantraId);
     },
 
     async recalculateMantraStats(mantraId: string): Promise<void> {
@@ -191,60 +168,9 @@ export const MantraService = {
 
             const uniqueDates = Array.from(new Set(mantraSessions.map(s => s.timestamp.split('T')[0]))).sort().reverse();
             m.stats.lastPracticeDate = uniqueDates.length > 0 ? uniqueDates[0] : undefined;
+            m.stats.currentStreak = StatsCalculator.calculateStreak(uniqueDates);
 
-            let currentStreak = 0;
-            if (uniqueDates.length > 0) {
-                const today = new Date().toISOString().split('T')[0];
-                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-                if (uniqueDates[0] === today || uniqueDates[0] === yesterday) {
-                    currentStreak = 1;
-                    for (let i = 0; i < uniqueDates.length - 1; i++) {
-                        const d1 = new Date(uniqueDates[i]);
-                        const d2 = new Date(uniqueDates[i + 1]);
-                        const diffTime = Math.abs(d1.getTime() - d2.getTime());
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        if (diffDays === 1) currentStreak++;
-                        else break;
-                    }
-                }
-            }
-            m.stats.currentStreak = currentStreak;
-
-            mantras[mantraIndex] = m;
-            await this.saveMantras(mantras);
-        }
-    },
-
-    async updateMantraStats(session: MantraSession) {
-        const mantras = await this.getMantras();
-        const mantra = mantras.find(m => m.id === session.mantraId);
-
-        if (mantra) {
-            mantra.stats.totalSessions += 1;
-            mantra.stats.totalReps += session.reps;
-            mantra.stats.totalDurationMinutes += session.durationMinutes;
-            mantra.stats.lastPracticeDate = session.timestamp;
-
-            // Simple streak calculation (mock logic for now, similar to EmptinessService)
-            // check if last practice date was yesterday/today...
-            // For now, just increment if practiced today and different day than last time?
-            // Actually, let's keep it simple: just saved fields.
-            // A clearer streak calculation would require parsing dates.
-
-            // Very basic daily check
-            const today = new Date().toISOString().split('T')[0];
-            const lastDate = mantra.stats.lastPracticeDate ? mantra.stats.lastPracticeDate.split('T')[0] : null;
-
-            if (lastDate !== today) {
-                // If consecutive or just simple +1? 
-                // Let's implement full logic later if needed. For now just increment if updated.
-                // Or simplistic:
-                mantra.stats.currentStreak += 1; // This is naive, but okay for MVP.
-            }
-
-            mantra.updated = new Date().toISOString();
-            await this.updateMantra(mantra);
+            await this.updateMantra(m);
         }
     },
 

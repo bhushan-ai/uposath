@@ -213,5 +213,6 @@ export interface UnifiedSession {
 export interface GlobalStats {
     totalSessions: number;
     currentStreak: number;
+    totalBeads: number;
     lastPracticeDate: string; // YYYY-MM-DD
 }

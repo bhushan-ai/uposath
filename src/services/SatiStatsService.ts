@@ -4,6 +4,7 @@ import { AnapanasatiService } from './AnapanasatiService';
 import { MantraService } from './MantraService';
 import { EmptinessService } from './EmptinessService';
 import { GlobalStats, UnifiedSession, PracticeCategory } from '../types/SatiTypes';
+import { StatsCalculator } from './StatsCalculator';
 
 export const SatiStatsService = {
 
@@ -27,6 +28,10 @@ export const SatiStatsService = {
             mantraSessions.length +
             emptinessStats.totalSessions;
 
+        const totalBeads =
+            malaStats.overall.totalBeads +
+            mantraSessions.reduce((acc, s) => acc + (Number(s.reps) || 0), 0);
+
         // Date Aggregation for Streak Calculation
         const malaEntries = await MalaService.getEntries();
         const anaSessions = await AnapanasatiService.getSessions();
@@ -35,39 +40,23 @@ export const SatiStatsService = {
         const allDates = new Set<string>();
 
         // Mala Dates
-        malaEntries.forEach(e => allDates.add(e.timestamp.split('T')[0]));
-        // Anapanasati Dates (filter completed/significant)
-        anaSessions.filter(s => s.completed || s.durationMinutes > 5).forEach(s => allDates.add(s.timestamp.split('T')[0]));
+        malaEntries.filter(e => e.timestamp).forEach(e => allDates.add(e.timestamp.split('T')[0]));
+        // Anapanasati Dates
+        anaSessions.filter(s => s.timestamp && (s.completed || s.durationMinutes > 5)).forEach(s => allDates.add(s.timestamp.split('T')[0]));
         // Mantra Dates
-        mantraSessions.forEach(s => allDates.add(s.timestamp.split('T')[0]));
+        mantraSessions.filter(s => s.timestamp).forEach(s => allDates.add(s.timestamp.split('T')[0]));
         // Emptiness Dates
-        empSessions.filter(s => s.completed || s.durationMinutes > 5).forEach(s => allDates.add(s.timestamp.split('T')[0]));
+        empSessions.filter(s => s.timestamp && (s.completed || s.durationMinutes > 5)).forEach(s => allDates.add(s.timestamp.split('T')[0]));
 
         const uniqueDates = Array.from(allDates).sort().reverse();
 
         // Calculate Global Streak
-        let currentStreak = 0;
-        if (uniqueDates.length > 0) {
-            const today = new Date().toISOString().split('T')[0];
-            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-            if (uniqueDates[0] === today || uniqueDates[0] === yesterday) {
-                currentStreak = 1;
-                for (let i = 0; i < uniqueDates.length - 1; i++) {
-                    const d1 = new Date(uniqueDates[i]);
-                    const d2 = new Date(uniqueDates[i + 1]);
-                    const diffTime = Math.abs(d1.getTime() - d2.getTime());
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    if (diffDays === 1) currentStreak++;
-                    else break;
-                }
-            }
-        }
+        const currentStreak = StatsCalculator.calculateStreak(uniqueDates);
 
         return {
             totalSessions,
             currentStreak,
+            totalBeads,
             lastPracticeDate: uniqueDates.length > 0 ? uniqueDates[0] : ''
         };
     },

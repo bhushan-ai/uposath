@@ -11,13 +11,14 @@ import {
   IonButtons,
   IonButton,
   IonIcon,
-  IonLabel
+  IonLabel,
+  useIonViewWillEnter
 } from '@ionic/react';
 import { settingsOutline, statsChartOutline, leafOutline, calendarOutline, musicalNotesOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import NextUposathaWidget from '../components/uposatha/NextUposathaWidget';
 import DhammaAudioWidget from '../components/audio/DhammaAudioWidget';
-import { MalaService } from '../services/MalaService';
+import { SatiStatsService } from '../services/SatiStatsService';
 import { getSavedLocation, getObserver } from '../services/locationManager';
 import { getDefaultChannel } from '../services/channelManager';
 import { warmUpFestivalCache } from '../services/festivalCacheService';
@@ -25,21 +26,23 @@ import './Home.css';
 
 const Home: React.FC = () => {
   const history = useHistory();
-  const [nextUposatha, setNextUposatha] = useState<any>(null);
   const [stats, setStats] = useState({
-    chantingStreak: 0,
     meditationMinutes: 0,
-    malaCount: 0
+    totalBeads: 0,
+    currentStreak: 0
   });
   const [channelName, setChannelName] = useState('Dhamma Inspiration');
 
-  useEffect(() => {
+  useIonViewWillEnter(() => {
     loadStats();
-    // Warm up festival cache in background
+    loadChannel();
+  });
+
+  useEffect(() => {
+    // Warm up festival cache in background once on mount
     getSavedLocation().then(loc => {
       warmUpFestivalCache(getObserver(loc));
     });
-    loadChannel();
   }, []);
 
   const loadChannel = async () => {
@@ -55,12 +58,15 @@ const Home: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      // Assuming MalaService.getEntries() exists based on lint feedback
-      const entries = await MalaService.getEntries();
-      const count = entries.reduce((acc: number, s: any) => acc + (s.beads || 0), 0);
-      setStats(prev => ({ ...prev, malaCount: count }));
+      const globalStats = await SatiStatsService.getGlobalStats();
+
+      setStats({
+        meditationMinutes: 0,
+        totalBeads: globalStats.totalBeads,
+        currentStreak: globalStats.currentStreak
+      });
     } catch (err) {
-      console.error('Failed to load mala stats:', err);
+      console.error('Failed to load practice stats:', err);
     }
   };
 
@@ -119,11 +125,12 @@ const Home: React.FC = () => {
 
             <div className="stats-grid">
               <div className="glass-card stat-card" onClick={() => history.push('/sati/stats')}>
-                <div className="stat-value">{stats.malaCount}</div>
+                <div className="stat-value">{stats.totalBeads}</div>
                 <div className="stat-label">Total Beads</div>
               </div>
+
               <div className="glass-card stat-card" onClick={() => history.push('/sati/stats')}>
-                <div className="stat-value">{stats.chantingStreak}</div>
+                <div className="stat-value">{stats.currentStreak}</div>
                 <div className="stat-label">Day Streak</div>
               </div>
             </div>
