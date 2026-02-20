@@ -13,10 +13,9 @@ import {
   IonIcon,
   IonLabel
 } from '@ionic/react';
-import { settingsOutline, statsChartOutline, leafOutline, calendarOutline, musicalNotesOutline } from 'ionicons/icons';
+import { settingsOutline, statsChartOutline, leafOutline, calendarOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import NextUposathaWidget from '../components/uposatha/NextUposathaWidget';
-import DhammaAudioWidget from '../components/audio/DhammaAudioWidget';
 import { MalaService } from '../services/MalaService';
 import { getSavedLocation, getObserver } from '../services/locationManager';
 import { warmUpFestivalCache } from '../services/festivalCacheService';
@@ -83,16 +82,6 @@ const Home: React.FC = () => {
             <NextUposathaWidget />
           </section>
 
-          {/* New Audio Section */}
-          <section>
-            <div className="home-section-header">
-              <div className="icon-wrapper icon-wrapper--small icon-wrapper--primary">
-                <IonIcon icon={musicalNotesOutline} color="primary" />
-              </div>
-              <h3 className="home-section-title">Dhamma Inspiration</h3>
-            </div>
-            <DhammaAudioWidget />
-          </section>
 
           {/* Stats Section */}
           <section>
