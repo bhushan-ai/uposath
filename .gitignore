@@ -58,6 +58,10 @@ verify_*.test.ts
 android/build_output*.txt
 android/log_check.txt
 android/log_raw.txt
+*.png
+*.txt
+!src/**/*.png
+!public/**/*.png
 
 # Capacitor/Cordova artifacts
 /www

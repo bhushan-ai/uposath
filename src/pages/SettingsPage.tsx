@@ -26,7 +26,8 @@ import {
 } from '../services/dailyVerseNotificationService';
 import { Observer } from '@ishubhamx/panchangam-js';
 import { getTimezones } from '../services/timeUtils';
-import { cityMapping } from 'city-timezones';
+import { City } from 'country-state-city';
+import tzLookup from 'tz-lookup';
 import { IonSelect, IonSelectOption, IonIcon, useIonAlert } from '@ionic/react';
 import { locationOutline, timeOutline, globeOutline, caretUpCircleOutline } from 'ionicons/icons';
 import { MalaService } from '../services/MalaService';
@@ -109,20 +110,36 @@ const SettingsPage: React.FC = () => {
 
     const handleCitySearch = (query: string) => {
         setCitySearch(query);
-        if (query.length > 0) {
+        if (query.length > 2) {
             const q = query.toLowerCase();
-            const matches = cityMapping
-                .filter((c: any) => c.city.toLowerCase().includes(q))
-                .slice(0, 8)
-                .map((c: any) => ({
-                    name: `${c.city}, ${c.country}`,
-                    latitude: c.lat,
-                    longitude: c.lng,
-                    altitude: 0,
-                    timezone: c.timezone
-                }));
+            const allCities = City.getAllCities();
+            const matches = allCities
+                .filter((c) => c.name.toLowerCase().includes(q))
+                .sort((a, b) => {
+                    const aName = a.name.toLowerCase();
+                    const bName = b.name.toLowerCase();
+                    // Exact starts-with hits first
+                    const aStarts = aName.startsWith(q);
+                    const bStarts = bName.startsWith(q);
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+                    // Then shorter names
+                    return aName.length - bName.length;
+                })
+                .slice(0, 10)
+                .map((c) => {
+                    const lat = parseFloat(c.latitude);
+                    const lon = parseFloat(c.longitude);
+                    return {
+                        name: `${c.name}, ${c.stateCode}, ${c.countryCode}`,
+                        latitude: lat,
+                        longitude: lon,
+                        altitude: 0,
+                        timezone: tzLookup(lat, lon)
+                    };
+                });
             setFilteredCities(matches);
-            setShowCityDropdown(matches.length > 0);
+            setShowCityDropdown(true);
         } else {
             setFilteredCities([]);
             setShowCityDropdown(false);
@@ -244,7 +261,7 @@ const SettingsPage: React.FC = () => {
                 </IonToolbar>
             </IonHeader>
             <IonContent fullscreen>
-                <IonList inset>
+                <IonList inset style={{ overflow: 'visible', contain: 'none', position: 'relative', zIndex: 20 }}>
                     <IonItemDivider>
                         <IonLabel>Location & Timezone</IonLabel>
                     </IonItemDivider>
@@ -258,68 +275,83 @@ const SettingsPage: React.FC = () => {
                         </IonLabel>
                     </IonItem>
 
-                    <div style={{ position: 'relative', padding: '0 16px 12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                    <div style={{ padding: '0 16px 12px', position: 'relative', zIndex: 100 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                             <IonIcon icon={globeOutline} color="secondary" style={{ fontSize: '1.2rem' }} />
                             <span style={{ fontWeight: '600', fontSize: '0.95rem', color: 'var(--color-text-primary, #f5f0e8)' }}>Search City</span>
                         </div>
-                        <input
-                            type="text"
-                            value={citySearch}
-                            onChange={e => handleCitySearch(e.target.value)}
-                            onFocus={() => { if (citySearch.length > 0) setShowCityDropdown(filteredCities.length > 0); }}
-                            placeholder="Type a city name..."
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                borderRadius: '12px',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                background: 'rgba(255, 255, 255, 0.04)',
-                                color: 'var(--color-text-primary, #f5f0e8)',
-                                fontSize: '0.95rem',
-                                fontFamily: 'Inter, sans-serif',
-                                outline: 'none',
-                                boxSizing: 'border-box' as any,
-                                transition: 'border-color 0.2s ease',
-                            }}
-                            onBlur={() => setTimeout(() => setShowCityDropdown(false), 200)}
-                        />
-                        {showCityDropdown && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: '16px',
-                                right: '16px',
-                                zIndex: 999,
-                                background: 'rgba(20, 18, 14, 0.97)',
-                                border: '1px solid rgba(255, 198, 112, 0.15)',
-                                borderRadius: '12px',
-                                maxHeight: '240px',
-                                overflowY: 'auto',
-                                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
-                                backdropFilter: 'blur(12px)',
-                            }}>
-                                {filteredCities.map(city => (
-                                    <div
-                                        key={city.name}
-                                        onMouseDown={() => selectCity(city)}
-                                        style={{
-                                            padding: '12px 16px',
-                                            cursor: 'pointer',
-                                            borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-                                            transition: 'background 0.15s',
-                                            fontSize: '0.9rem',
-                                            color: 'var(--color-text-primary, #f5f0e8)',
-                                        }}
-                                    >
-                                        <div style={{ fontWeight: '600' }}>{city.name}</div>
-                                        <div style={{ fontSize: '0.72rem', color: 'rgba(255, 198, 112, 0.5)', marginTop: '2px' }}>
-                                            {city.timezone}
+                        <div style={{ position: 'relative', zIndex: 101 }}>
+                            <input
+                                type="text"
+                                autoComplete="off"
+                                value={citySearch}
+                                onChange={e => handleCitySearch(e.target.value)}
+                                onFocus={() => { if (citySearch.length > 0) setShowCityDropdown(true); }}
+                                placeholder="Type a city name..."
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    borderRadius: showCityDropdown ? '12px 12px 0 0' : '12px',
+                                    border: showCityDropdown ? '1px solid rgba(255, 198, 112, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
+                                    borderBottom: showCityDropdown ? 'none' : undefined,
+                                    background: 'rgba(255, 255, 255, 0.04)',
+                                    color: 'var(--color-text-primary, #f5f0e8)',
+                                    fontSize: '0.95rem',
+                                    fontFamily: 'Inter, sans-serif',
+                                    outline: 'none',
+                                    boxSizing: 'border-box' as any,
+                                    transition: 'border-color 0.2s ease',
+                                }}
+                                onBlur={() => setTimeout(() => setShowCityDropdown(false), 200)}
+                            />
+                            {showCityDropdown && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    left: '0',
+                                    right: '0',
+                                    zIndex: 9999,
+                                    background: 'rgba(18, 18, 18, 0.98)',
+                                    border: '1px solid rgba(255, 198, 112, 0.4)',
+                                    borderTop: 'none',
+                                    borderRadius: '0 0 12px 12px',
+                                    maxHeight: '280px',
+                                    overflowY: 'auto',
+                                    boxShadow: '0 30px 60px rgba(0, 0, 0, 0.9)',
+                                    backdropFilter: 'blur(25px)',
+                                }}>
+                                    {filteredCities.length > 0 ? (
+                                        filteredCities.map((city, idx) => (
+                                            <div
+                                                key={`${city.name}-${idx}`}
+                                                onMouseDown={() => selectCity(city)}
+                                                style={{
+                                                    padding: '14px 18px',
+                                                    cursor: 'pointer',
+                                                    borderBottom: idx === filteredCities.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.04)',
+                                                    fontSize: '0.9rem',
+                                                    color: '#f5f0e8',
+                                                }}
+                                            >
+                                                <div style={{ fontWeight: '600', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <span>{city.name}</span>
+                                                    <span style={{ fontSize: '0.65rem', color: '#ffc670', opacity: 0.8 }}>
+                                                        {city.timezone?.split('/').pop()?.replace(/_/g, ' ')}
+                                                    </span>
+                                                </div>
+                                                <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', marginTop: '2px' }}>
+                                                    {city.latitude.toFixed(2)}°, {city.longitude.toFixed(2)}°
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem' }}>
+                                            No matches found for "{citySearch}"
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <IonItem>
