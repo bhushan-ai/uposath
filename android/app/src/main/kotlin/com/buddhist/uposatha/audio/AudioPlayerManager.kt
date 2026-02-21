@@ -49,6 +49,7 @@ class AudioPlayerManager(private val context: Context) {
                         mediaController = controller
                         controllerDeferred.complete(controller)
                         setupListeners()
+                        updateState() // Sync immediately on connection
                     } catch (e: Exception) {
                         Log.e("AudioPlayerManager", "Failed to get MediaController", e)
                         controllerDeferred.completeExceptionally(e)
@@ -99,8 +100,28 @@ class AudioPlayerManager(private val context: Context) {
         // Sanitize duration: if unknown (C.TIME_UNSET), report as 0
         val duration = if (controller.duration == C.TIME_UNSET) 0L else controller.duration
         
+        // Hydrate currentVideo from MediaController if available
+        var currentVideo = _playbackState.value.currentVideo
+        val currentMediaItem = controller.currentMediaItem
+        if (currentMediaItem != null) {
+            val metadata = currentMediaItem.mediaMetadata
+            val extras = metadata.extras
+            currentVideo = VideoInfo(
+                videoId = currentMediaItem.mediaId,
+                title = metadata.title?.toString() ?: "",
+                channelName = metadata.artist?.toString() ?: "",
+                channelId = extras?.getString("channelId") ?: "",
+                duration = extras?.getString("duration") ?: "0",
+                thumbnailUrl = metadata.artworkUri?.toString() ?: "",
+                uploadDate = extras?.getString("uploadDate"),
+                viewCountText = extras?.getString("viewCountText"),
+                viewCount = extras?.getLong("viewCount")?.takeIf { extras.containsKey("viewCount") }
+            )
+        }
+
         _playbackState.value = _playbackState.value.copy(
             state = state,
+            currentVideo = currentVideo,
             position = controller.currentPosition,
             duration = duration,
             speed = controller.playbackParameters.speed,
@@ -151,9 +172,22 @@ class AudioPlayerManager(private val context: Context) {
                 val controller = mediaController ?: controllerDeferred.await()
                 withContext(Dispatchers.Main) {
                     Log.d("AudioPlayerManager", "Setting media items and starting playback")
+                    val metadataExtras = android.os.Bundle().apply {
+                        putString("channelId", video.channelId)
+                        putString("duration", video.duration)
+                        video.uploadDate?.let { putString("uploadDate", it) }
+                        video.viewCountText?.let { putString("viewCountText", it) }
+                        video.viewCount?.let { putLong("viewCount", it) }
+                    }
                     val mediaItem = MediaItem.Builder()
                         .setUri(url)
                         .setMediaId(video.videoId)
+                        .setMediaMetadata(androidx.media3.common.MediaMetadata.Builder()
+                            .setTitle(video.title)
+                            .setArtist(video.channelName)
+                            .setArtworkUri(android.net.Uri.parse(video.thumbnailUrl))
+                            .setExtras(metadataExtras)
+                            .build())
                         .build()
                     controller.setMediaItem(mediaItem)
                     if (startPosition > 0) {

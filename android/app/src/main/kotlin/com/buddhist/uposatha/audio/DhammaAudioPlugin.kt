@@ -61,6 +61,7 @@ class DhammaAudioPlugin : Plugin() {
                             put("title", video.title)
                             put("channelName", video.channelName)
                             put("channelId", video.channelId)
+                            put("duration", video.duration)
                             put("thumbnailUrl", video.thumbnailUrl)
                         })
                     }
@@ -187,6 +188,7 @@ class DhammaAudioPlugin : Plugin() {
                     put("title", video.title)
                     put("channelName", video.channelName)
                     put("channelId", video.channelId)
+                    put("duration", video.duration)
                     put("thumbnailUrl", video.thumbnailUrl)
                 })
             }

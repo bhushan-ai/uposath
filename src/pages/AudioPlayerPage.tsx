@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Preferences } from '@capacitor/preferences';
 import {
     IonContent,
     IonHeader,
@@ -38,11 +39,16 @@ const AudioPlayerPage: React.FC = () => {
                 const merged = {
                     ...(prev || {}),
                     ...stateEvt,
+                    currentVideo: stateEvt.currentVideo ?? prev?.currentVideo,
                     isPlaying,
                     isPaused,
-                    position: prev?.position ?? 0,
-                    duration: prev?.duration ?? stateEvt.duration ?? 0
+                    position: stateEvt.position ?? prev?.position ?? 0,
+                    duration: stateEvt.duration ?? prev?.duration ?? 0
                 };
+                console.log('[AudioPlayer] Native state changed:', stateEvt.state, 'Video:', merged.currentVideo?.title);
+                if (merged.currentVideo) {
+                    Preferences.set({ key: 'last_playing_video', value: JSON.stringify(merged.currentVideo) }).catch(console.error);
+                }
                 return merged;
             });
         });
@@ -62,7 +68,27 @@ const AudioPlayerPage: React.FC = () => {
     const loadState = async () => {
         try {
             const state = await DhammaAudio.getPlaybackState();
-            setPlayerState(state);
+            let savedVideo = null;
+            try {
+                const { value } = await Preferences.get({ key: 'last_playing_video' });
+                if (value) savedVideo = JSON.parse(value);
+            } catch (e) {
+                console.error('Failed to load saved video', e);
+            }
+
+            setPlayerState(prev => {
+                const newState = {
+                    ...(prev || {}),
+                    ...state,
+                    currentVideo: state.currentVideo ?? prev?.currentVideo ?? savedVideo,
+                    isPlaying: state.state === 'PLAYING' || state.isPlaying === true,
+                    isPaused: state.state === 'PAUSED' || state.isPaused === true,
+                    position: state.position ?? prev?.position ?? 0,
+                    duration: state.duration ?? prev?.duration ?? 0
+                };
+                console.log('[AudioPlayer] Initial state loaded. Background Video:', state.currentVideo?.title, 'Saved Video:', savedVideo?.title);
+                return newState;
+            });
         } catch (err) {
             console.error('Failed to load player state:', err);
         }
