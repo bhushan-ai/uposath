@@ -17,17 +17,16 @@ import {
     IonItemDivider
 } from '@ionic/react';
 import { Preferences } from '@capacitor/preferences';
-import { getSavedLocation, saveLocation, getCurrentGPS, type SavedLocation } from '../services/locationManager';
+import { getSavedLocation, saveLocation, type SavedLocation } from '../services/locationManager';
 import { scheduleUposathaNotifications, scheduleFestivalNotifications, cancelAllNotifications } from '../services/notificationScheduler';
 import {
     cancelDailyVerseNotifications,
     requestDailyVersePermissionIfNeeded,
-    scheduleDailyVerseNotifications,
-    type DailyVerseTime
+    scheduleDailyVerseNotifications
 } from '../services/dailyVerseNotificationService';
 import { Observer } from '@ishubhamx/panchangam-js';
 import { getTimezones } from '../services/timeUtils';
-import { MAJOR_CITIES } from '../services/locationData';
+import { cityMapping } from 'city-timezones';
 import { IonSelect, IonSelectOption, IonIcon, useIonAlert } from '@ionic/react';
 import { locationOutline, timeOutline, globeOutline, caretUpCircleOutline } from 'ionicons/icons';
 import { MalaService } from '../services/MalaService';
@@ -38,8 +37,6 @@ const SettingsPage: React.FC = () => {
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [festivalsEnabled, setFestivalsEnabled] = useState(false);
     const [dailyVerseEnabled, setDailyVerseEnabled] = useState(true);
-    const [dailyVerseTime, setDailyVerseTime] = useState<DailyVerseTime>({ hour: 6, minute: 0 });
-    const [dailyVerseTimeLabel, setDailyVerseTimeLabel] = useState('06:00');
     const [showDailyVerseCard, setShowDailyVerseCard] = useState(true);
     const [timezones] = useState(getTimezones());
     const [paliScript, setPaliScript] = useState('roman');
@@ -66,20 +63,6 @@ const SettingsPage: React.FC = () => {
         const { value: dailyVerseEnabledRaw } = await Preferences.get({ key: 'notifications_daily_verse_enabled' });
         setDailyVerseEnabled(dailyVerseEnabledRaw === null || dailyVerseEnabledRaw === '' || dailyVerseEnabledRaw === 'true');
 
-        const { value: dailyVerseTimeRaw } = await Preferences.get({ key: 'notifications_daily_verse_time' });
-        if (dailyVerseTimeRaw) {
-            try {
-                const parsed = JSON.parse(dailyVerseTimeRaw) as DailyVerseTime;
-                if (typeof parsed.hour === 'number' && typeof parsed.minute === 'number') {
-                    setDailyVerseTime(parsed);
-                    const hh = String(parsed.hour).padStart(2, '0');
-                    const mm = String(parsed.minute).padStart(2, '0');
-                    setDailyVerseTimeLabel(`${hh}:${mm}`);
-                }
-            } catch {
-                // ignore and keep default
-            }
-        }
 
         const { value: showVerse } = await Preferences.get({ key: 'settings_show_daily_verse' });
         setShowDailyVerseCard(showVerse === null || showVerse === '' || showVerse === 'true');
@@ -119,8 +102,7 @@ const SettingsPage: React.FC = () => {
         const updated = { ...location, timezone: tz };
         setLocation(updated);
         await saveLocation(updated);
-        // Reschedule if notifications are on
-        if (notificationsEnabled || festivalsEnabled) {
+        if (notificationsEnabled || festivalsEnabled || dailyVerseEnabled) {
             await reschedule(updated);
         }
     };
@@ -129,7 +111,16 @@ const SettingsPage: React.FC = () => {
         setCitySearch(query);
         if (query.length > 0) {
             const q = query.toLowerCase();
-            const matches = MAJOR_CITIES.filter(c => c.name.toLowerCase().includes(q)).slice(0, 8);
+            const matches = cityMapping
+                .filter((c: any) => c.city.toLowerCase().includes(q))
+                .slice(0, 8)
+                .map((c: any) => ({
+                    name: `${c.city}, ${c.country}`,
+                    latitude: c.lat,
+                    longitude: c.lng,
+                    altitude: 0,
+                    timezone: c.timezone
+                }));
             setFilteredCities(matches);
             setShowCityDropdown(matches.length > 0);
         } else {
@@ -149,28 +140,11 @@ const SettingsPage: React.FC = () => {
         setLocation(city);
         await saveLocation(city);
         // Reschedule if notifications are on
-        if (notificationsEnabled || festivalsEnabled) {
+        if (notificationsEnabled || festivalsEnabled || dailyVerseEnabled) {
             await reschedule(city);
         }
     };
 
-    const handleGPS = async () => {
-        try {
-            const gps = await getCurrentGPS();
-            if (gps) {
-                await saveLocation(gps);
-                setLocation(gps);
-                // Reschedule if notifications are on
-                if (notificationsEnabled || festivalsEnabled) {
-                    await reschedule(gps);
-                }
-            } else {
-                alert('Could not get GPS location.');
-            }
-        } catch (e) {
-            alert('Could not get GPS location. Ensure permissions are granted.');
-        }
-    };
 
     const toggleUposatha = async (enabled: boolean) => {
         if (enabled) {
@@ -214,27 +188,16 @@ const SettingsPage: React.FC = () => {
                 alert('Daily verse notifications are disabled because notification permission was not granted. You can enable notifications in system settings.');
                 return;
             }
-            await cancelDailyVerseNotifications();
-            await scheduleDailyVerseNotifications(dailyVerseTime);
+            if (location) {
+                const observer = new Observer(location.latitude, location.longitude, location.altitude);
+                await cancelDailyVerseNotifications();
+                await scheduleDailyVerseNotifications(observer);
+            }
         } else {
             await cancelDailyVerseNotifications();
         }
     };
 
-    const handleDailyVerseTimeChange = async (timeString: string) => {
-        setDailyVerseTimeLabel(timeString);
-        const [hh, mm] = timeString.split(':').map(part => parseInt(part, 10));
-        if (Number.isNaN(hh) || Number.isNaN(mm)) return;
-
-        const time: DailyVerseTime = { hour: hh, minute: mm };
-        setDailyVerseTime(time);
-        await Preferences.set({ key: 'notifications_daily_verse_time', value: JSON.stringify(time) });
-
-        if (dailyVerseEnabled) {
-            await cancelDailyVerseNotifications();
-            await scheduleDailyVerseNotifications(time);
-        }
-    };
 
     const toggleShowDailyVerseCard = async (enabled: boolean) => {
         setShowDailyVerseCard(enabled);
@@ -267,6 +230,10 @@ const SettingsPage: React.FC = () => {
         await cancelAllNotifications();
         if (notificationsEnabled) await scheduleUposathaNotifications(observer);
         if (festivalsEnabled) await scheduleFestivalNotifications(observer);
+        if (dailyVerseEnabled) {
+            await cancelDailyVerseNotifications();
+            await scheduleDailyVerseNotifications(observer);
+        }
     };
 
     return (
@@ -289,9 +256,6 @@ const SettingsPage: React.FC = () => {
                             <p>{location ? location.name : 'Not set'}</p>
                             {location && <p className="text-xs">{location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}</p>}
                         </IonLabel>
-                        <IonButton slot="end" size="small" fill="outline" onClick={handleGPS}>
-                            Detect GPS
-                        </IonButton>
                     </IonItem>
 
                     <div style={{ position: 'relative', padding: '0 16px 12px' }}>
@@ -390,32 +354,15 @@ const SettingsPage: React.FC = () => {
                         />
                     </IonItem>
                     <IonItem>
-                        <IonLabel>Daily Dhammapada Verse</IonLabel>
+                        <IonLabel className="ion-text-wrap">
+                            <h2>Daily Dhammapada Verse</h2>
+                            <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>A persistent notification updated daily at sunrise.</p>
+                        </IonLabel>
                         <IonToggle
                             slot="end"
                             checked={dailyVerseEnabled}
                             onIonChange={e => toggleDailyVerse(e.detail.checked)}
                         />
-                    </IonItem>
-                    <IonItem>
-                        <IonLabel className="ion-text-wrap">
-                            <h2>Daily Verse Time</h2>
-                            <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>Local time for the daily verse notification.</p>
-                        </IonLabel>
-                        <IonSelect
-                            slot="end"
-                            interface="action-sheet"
-                            placeholder="Select time"
-                            style={{ maxWidth: '40%' }}
-                            value={dailyVerseTimeLabel}
-                            onIonChange={e => handleDailyVerseTimeChange(e.detail.value)}
-                        >
-                            {['04:30', '05:00', '05:30', '06:00', '06:30', '07:00', '07:30', '08:00'].map(t => (
-                                <IonSelectOption key={t} value={t}>
-                                    {t}
-                                </IonSelectOption>
-                            ))}
-                        </IonSelect>
                     </IonItem>
                     <IonItem lines="none">
                         <IonNote className="ion-text-wrap" style={{ fontSize: '0.8rem' }}>

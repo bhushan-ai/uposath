@@ -16,6 +16,9 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { type Observer } from 'astronomy-engine';
 import { getUpcomingFestivals } from './buddhistFestivalService';
 import { getMonthUposathaDays } from './uposathaCalculator';
+import { Preferences } from '@capacitor/preferences';
+import { getSavedLocation, getObserver } from './locationManager';
+import { cancelDailyVerseNotifications, scheduleDailyVerseNotifications } from './dailyVerseNotificationService';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -46,6 +49,7 @@ async function scheduleNotification(
                 body,
                 schedule: { at: scheduleAt },
                 sound: undefined, // default
+                iconColor: '#ffc670',
                 attachments: [],
                 actionTypeId: '',
                 extra: null,
@@ -135,5 +139,37 @@ export async function cancelAllNotifications() {
     const pending = await LocalNotifications.getPending();
     if (pending.notifications.length > 0) {
         await LocalNotifications.cancel(pending);
+    }
+}
+
+/**
+ * Bootstrap all notifications. Called on app startup to ensure
+ * scheduled and persistent notifications are active based on settings.
+ */
+export async function bootstrapNotifications() {
+    try {
+        const { display } = await LocalNotifications.checkPermissions();
+        if (display !== 'granted') return;
+
+        const location = await getSavedLocation();
+        const observer = getObserver(location);
+
+        const uposathaRes = await Preferences.get({ key: 'notifications_uposatha' });
+        const festivalsRes = await Preferences.get({ key: 'notifications_festivals' });
+        const dailyVerseRes = await Preferences.get({ key: 'notifications_daily_verse_enabled' });
+
+        const uposatha = uposathaRes.value === 'true';
+        const festivals = festivalsRes.value === 'true';
+        // default enabled for daily verse if not set? In Settings it defaults to true if null/''
+        const dailyVerse = dailyVerseRes.value === null || dailyVerseRes.value === '' || dailyVerseRes.value === 'true';
+
+        await cancelAllNotifications(); // This cancels Uposatha and Festivals
+        if (uposatha) await scheduleUposathaNotifications(observer);
+        if (festivals) await scheduleFestivalNotifications(observer);
+
+        await cancelDailyVerseNotifications();
+        if (dailyVerse) await scheduleDailyVerseNotifications(observer);
+    } catch (e) {
+        console.error('Error bootstrapping notifications', e);
     }
 }

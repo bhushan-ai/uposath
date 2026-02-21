@@ -1,0 +1,226 @@
+diff --git a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.java b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.java
+index 0b826a5..2b70137 100644
+--- a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.java
++++ b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.java
+@@ -53,7 +53,8 @@ public class LocalNotificationManager {
+     private NotificationStorage storage;
+     private PluginConfig config;
+ 
+-    public LocalNotificationManager(NotificationStorage notificationStorage, Activity activity, Context context, CapConfig config) {
++    public LocalNotificationManager(NotificationStorage notificationStorage, Activity activity, Context context,
++            CapConfig config) {
+         storage = notificationStorage;
+         this.activity = activity;
+         this.context = context;
+@@ -61,7 +62,8 @@ public class LocalNotificationManager {
+     }
+ 
+     /**
+-     * Method extecuted when notification is launched by user from the notification bar.
++     * Method extecuted when notification is launched by user from the notification
++     * bar.
+      */
+     public JSObject handleNotificationActionPerformed(Intent data, NotificationStorage notificationStorage) {
+         Logger.debug(Logger.tags("LN"), "LocalNotification received: " + data.getDataString());
+@@ -83,16 +85,22 @@ public class LocalNotificationManager {
+         }
+         String menuAction = data.getStringExtra(LocalNotificationManager.ACTION_INTENT_KEY);
+ 
+-        dismissVisibleNotification(notificationId);
+-
+         dataJson.put("actionId", menuAction);
+         JSONObject request = null;
++        boolean isAutoCancel = true;
+         try {
+             String notificationJsonString = data.getStringExtra(LocalNotificationManager.NOTIFICATION_OBJ_INTENT_KEY);
+             if (notificationJsonString != null) {
+                 request = new JSObject(notificationJsonString);
++                isAutoCancel = request.optBoolean("autoCancel", true);
+             }
+-        } catch (JSONException e) {}
++        } catch (JSONException e) {
++        }
++
++        if (isAutoCancel) {
++            dismissVisibleNotification(notificationId);
++        }
++
+         dataJson.put("notification", request);
+         return dataJson;
+     }
+@@ -110,16 +118,17 @@ public class LocalNotificationManager {
+             NotificationChannel channel = new NotificationChannel(DEFAULT_NOTIFICATION_CHANNEL_ID, name, importance);
+             channel.setDescription(description);
+             AudioAttributes audioAttributes = new AudioAttributes.Builder()
+-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+-                .setUsage(AudioAttributes.USAGE_ALARM)
+-                .build();
++                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
++                    .setUsage(AudioAttributes.USAGE_ALARM)
++                    .build();
+             Uri soundUri = this.getDefaultSoundUrl(context);
+             if (soundUri != null) {
+                 channel.setSound(soundUri, audioAttributes);
+             }
+             // Register the channel with the system; you can't change the importance
+             // or other notification behaviors after this
+-            android.app.NotificationManager notificationManager = context.getSystemService(android.app.NotificationManager.class);
++            android.app.NotificationManager notificationManager = context
++                    .getSystemService(android.app.NotificationManager.class);
+             notificationManager.createNotificationChannel(channel);
+         }
+     }
+@@ -160,26 +169,26 @@ public class LocalNotificationManager {
+     // TODO expandable notification NotificationCompat.MessagingStyle
+     // TODO media style notification support NotificationCompat.MediaStyle
+     // TODO custom small/large icons
+-    private void buildNotification(NotificationManagerCompat notificationManager, LocalNotification localNotification, PluginCall call) {
++    private void buildNotification(NotificationManagerCompat notificationManager, LocalNotification localNotification,
++            PluginCall call) {
+         String channelId = DEFAULT_NOTIFICATION_CHANNEL_ID;
+         if (localNotification.getChannelId() != null) {
+             channelId = localNotification.getChannelId();
+         }
+         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this.context, channelId)
+-            .setContentTitle(localNotification.getTitle())
+-            .setContentText(localNotification.getBody())
+-            .setAutoCancel(localNotification.isAutoCancel())
+-            .setOngoing(localNotification.isOngoing())
+-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+-            .setGroupSummary(localNotification.isGroupSummary());
++                .setContentTitle(localNotification.getTitle())
++                .setContentText(localNotification.getBody())
++                .setAutoCancel(localNotification.isAutoCancel())
++                .setOngoing(localNotification.isOngoing())
++                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
++                .setGroupSummary(localNotification.isGroupSummary());
+ 
+         if (localNotification.getLargeBody() != null) {
+             // support multiline text
+             mBuilder.setStyle(
+-                new NotificationCompat.BigTextStyle()
+-                    .bigText(localNotification.getLargeBody())
+-                    .setSummaryText(localNotification.getSummaryText())
+-            );
++                    new NotificationCompat.BigTextStyle()
++                            .bigText(localNotification.getLargeBody())
++                            .setSummaryText(localNotification.getSummaryText()));
+         }
+ 
+         if (localNotification.getInboxList() != null) {
+@@ -230,7 +239,8 @@ public class LocalNotificationManager {
+         }
+ 
+         createActionIntents(localNotification, mBuilder);
+-        // notificationId is a unique int for each localNotification that you must define
++        // notificationId is a unique int for each localNotification that you must
++        // define
+         Notification buildNotification = mBuilder.build();
+         if (localNotification.isScheduled()) {
+             triggerScheduledNotification(buildNotification, localNotification);
+@@ -238,7 +248,8 @@ public class LocalNotificationManager {
+             try {
+                 JSObject notificationJson = new JSObject(localNotification.getSource());
+                 LocalNotificationsPlugin.fireReceived(notificationJson);
+-            } catch (JSONException e) {}
++            } catch (JSONException e) {
++            }
+             notificationManager.notify(localNotification.getId(), buildNotification);
+         }
+     }
+@@ -262,18 +273,17 @@ public class LocalNotificationManager {
+                 // TODO Add custom icons to actions
+                 Intent actionIntent = buildIntent(localNotification, notificationAction.getId());
+                 PendingIntent actionPendingIntent = PendingIntent.getActivity(
+-                    context,
+-                    localNotification.getId() + notificationAction.getId().hashCode(),
+-                    actionIntent,
+-                    flags
+-                );
++                        context,
++                        localNotification.getId() + notificationAction.getId().hashCode(),
++                        actionIntent,
++                        flags);
+                 NotificationCompat.Action.Builder actionBuilder = new NotificationCompat.Action.Builder(
+-                    R.drawable.ic_transparent,
+-                    notificationAction.getTitle(),
+-                    actionPendingIntent
+-                );
++                        R.drawable.ic_transparent,
++                        notificationAction.getTitle(),
++                        actionPendingIntent);
+                 if (notificationAction.isInput()) {
+-                    RemoteInput remoteInput = new RemoteInput.Builder(REMOTE_INPUT_KEY).setLabel(notificationAction.getTitle()).build();
++                    RemoteInput remoteInput = new RemoteInput.Builder(REMOTE_INPUT_KEY)
++                            .setLabel(notificationAction.getTitle()).build();
+                     actionBuilder.addRemoteInput(remoteInput);
+                 }
+                 mBuilder.addAction(actionBuilder.build());
+@@ -291,7 +301,8 @@ public class LocalNotificationManager {
+         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+             flags = PendingIntent.FLAG_MUTABLE;
+         }
+-        PendingIntent deleteIntent = PendingIntent.getBroadcast(context, localNotification.getId(), dissmissIntent, flags);
++        PendingIntent deleteIntent = PendingIntent.getBroadcast(context, localNotification.getId(), dissmissIntent,
++                flags);
+         mBuilder.setDeleteIntent(deleteIntent);
+     }
+ 
+@@ -367,21 +378,20 @@ public class LocalNotificationManager {
+             pendingIntent = PendingIntent.getBroadcast(context, request.getId(), notificationIntent, flags);
+             setExactIfPossible(alarmManager, schedule, trigger, pendingIntent);
+             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+-            Logger.debug(Logger.tags("LN"), "notification " + request.getId() + " will next fire at " + sdf.format(new Date(trigger)));
++            Logger.debug(Logger.tags("LN"),
++                    "notification " + request.getId() + " will next fire at " + sdf.format(new Date(trigger)));
+         }
+     }
+ 
+     private void setExactIfPossible(
+-        AlarmManager alarmManager,
+-        LocalNotificationSchedule schedule,
+-        long trigger,
+-        PendingIntent pendingIntent
+-    ) {
++            AlarmManager alarmManager,
++            LocalNotificationSchedule schedule,
++            long trigger,
++            PendingIntent pendingIntent) {
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+             Logger.warn(
+-                "Capacitor/LocalNotification",
+-                "Exact alarms not allowed in user settings.  Notification scheduled with non-exact alarm."
+-            );
++                    "Capacitor/LocalNotification",
++                    "Exact alarms not allowed in user settings.  Notification scheduled with non-exact alarm.");
+             if (schedule.allowWhileIdle()) {
+                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent);
+             } else {
+@@ -434,13 +444,15 @@ public class LocalNotificationManager {
+     public Uri getDefaultSoundUrl(Context context) {
+         int soundId = this.getDefaultSound(context);
+         if (soundId != AssetUtil.RESOURCE_ID_ZERO_VALUE) {
+-            return Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.getPackageName() + "/" + soundId);
++            return Uri
++                    .parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.getPackageName() + "/" + soundId);
+         }
+         return null;
+     }
+ 
+     private int getDefaultSound(Context context) {
+-        if (defaultSoundID != AssetUtil.RESOURCE_ID_ZERO_VALUE) return defaultSoundID;
++        if (defaultSoundID != AssetUtil.RESOURCE_ID_ZERO_VALUE)
++            return defaultSoundID;
+ 
+         int resId = AssetUtil.RESOURCE_ID_ZERO_VALUE;
+         String soundConfigResourceName = config.getString("sound");
+@@ -455,7 +467,8 @@ public class LocalNotificationManager {
+     }
+ 
+     private int getDefaultSmallIcon(Context context) {
+-        if (defaultSmallIconID != AssetUtil.RESOURCE_ID_ZERO_VALUE) return defaultSmallIconID;
++        if (defaultSmallIconID != AssetUtil.RESOURCE_ID_ZERO_VALUE)
++            return defaultSmallIconID;
+ 
+         int resId = AssetUtil.RESOURCE_ID_ZERO_VALUE;
+         String smallIconConfigResourceName = config.getString("smallIcon");

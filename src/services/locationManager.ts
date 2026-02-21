@@ -7,9 +7,7 @@
  * Default location: Nagpur, Maharashtra (Center of India / Deekshabhoomi).
  */
 import { Preferences } from '@capacitor/preferences';
-import { Geolocation } from '@capacitor/geolocation';
 import { Observer } from '@ishubhamx/panchangam-js';
-import { guessTimezone } from './timeUtils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,9 +24,9 @@ export interface SavedLocation {
 const STORAGE_KEY = 'uposatha_location';
 
 const DEFAULT_LOCATION: SavedLocation = {
-    name: 'Gaya, Bihar',
-    latitude: 24.7914,
-    longitude: 85.0002,
+    name: 'Bodh Gaya, Bihar',
+    latitude: 24.6959,
+    longitude: 84.9914,
     altitude: 111,
     timezone: 'Asia/Kolkata',
 };
@@ -60,25 +58,7 @@ export async function saveLocation(location: SavedLocation): Promise<void> {
     });
 }
 
-/**
- * Get current GPS location.
- * Returns null if permission denied or error.
- */
-export async function getCurrentGPS(): Promise<SavedLocation | null> {
-    try {
-        const position = await Geolocation.getCurrentPosition();
-        return {
-            name: 'Current Location',
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            altitude: position.coords.altitude || 0,
-            timezone: guessTimezone(),
-        };
-    } catch (e) {
-        console.error('Error getting GPS location', e);
-        return null;
-    }
-}
+
 
 /**
  * Convert internal SavedLocation to astronomy-engine Observer.

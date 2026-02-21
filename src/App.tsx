@@ -13,6 +13,7 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import { calendar, rose, settings, leaf, home, library, musicalNotes } from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { bootstrapNotifications } from './services/notificationScheduler';
 
 /* Core CSS */
 import '@ionic/react/css/core.css';
@@ -94,8 +95,10 @@ setupIonicReact();
 
 const App: React.FC = () => {
   useEffect(() => {
-    // Request notification permissions on first launch
-    LocalNotifications.requestPermissions().catch(() => { });
+    // Request notification permissions on first launch, then bootstrap
+    LocalNotifications.requestPermissions().then(() => {
+      bootstrapNotifications();
+    }).catch(() => { });
   }, []);
 
   return (
