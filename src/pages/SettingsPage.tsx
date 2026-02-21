@@ -519,9 +519,6 @@ const SettingsPage: React.FC = () => {
                             >
                                 <IonSelectOption value="roman">Roman (Default)</IonSelectOption>
                                 <IonSelectOption value="devanagari">Devanagari (देवनागरी)</IonSelectOption>
-                                <IonSelectOption value="sinhala">Sinhala (සිංහල)</IonSelectOption>
-                                <IonSelectOption value="thai">Thai (ไทย)</IonSelectOption>
-                                <IonSelectOption value="burmese">Burmese (မြန်မာ)</IonSelectOption>
                             </IonSelect>
                         </div>
                     </div>
