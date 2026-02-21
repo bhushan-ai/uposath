@@ -5,11 +5,13 @@ node_modules/
 /.pnp
 .pnp.js
 
-# testing
 /coverage
+/cypress/screenshots
+/cypress/videos
 
-# production
 /dist
+.vite/
+node_modules/.vite/
 
 # misc
 .DS_Store
@@ -38,9 +40,18 @@ yarn-debug.log*
 yarn-error.log*
 *.log
 android/build_log*.txt
+# Agent / AI artifacts
 .gemini/
 .agent/
+.agents/
+_agent/
+_agents/
 .antigravity/
+.antigravityignore
+**/_agent/
+**/_agents/
+**/.agent/
+**/.agents/
 
 # Optional eslint cache
 .eslintcache
@@ -100,6 +111,10 @@ google-services.json
 .externalNativeBuild
 .cxx
 local.properties
+.kotlin/
+CapacitorConfig.json
+capacitor.config.json.tmp
+captures/
 
 # Server artifacts
 server/yt-dlp.exe
