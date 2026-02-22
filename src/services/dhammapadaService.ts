@@ -3,42 +3,49 @@ import dhammapadaData from '../assets/data/dhammapada_max_muller_clean.json';
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 export interface DhammapadaVerse {
-  globalVerseNumber: number;
+  globalVerseNumber: string; // Keep as string to support "58, 59"
   chapterNumber: number;
   chapterTitle: string;
-  chapterVerseNumber: number;
+  chapterVerseNumber: string;
   text: string;
+  pali?: string;
 }
 
-interface DhammapadaChapter {
-  chapterNumber: number;
-  title: string;
-  verses: {
-    globalVerseNumber: number;
-    chapterVerseNumber: number;
-    text: string;
-  }[];
+interface RawVerse {
+  local: number | string;
+  text: string;
+  pali: string;
 }
 
-interface DhammapadaData {
-  title: string;
-  translator: string;
-  source: string;
-  chapters: DhammapadaChapter[];
+interface RawChapter {
+  chapter_number: number;
+  chapter_roman: string;
+  chapter_title: string;
+  verses: { [key: string]: RawVerse };
 }
 
-const data = dhammapadaData as DhammapadaData;
+type RawDhammapadaData = RawChapter[];
+
+const rawData = dhammapadaData as unknown as RawDhammapadaData;
 
 // Flatten all verses once at module load.
-const allVerses: DhammapadaVerse[] = data.chapters.flatMap((chapter) =>
-  chapter.verses.map((v) => ({
-    globalVerseNumber: v.globalVerseNumber,
-    chapterNumber: chapter.chapterNumber,
-    chapterTitle: chapter.title,
-    chapterVerseNumber: v.chapterVerseNumber,
+const allVerses: DhammapadaVerse[] = rawData.flatMap((chapter) => {
+  const chapterVerses = Object.entries(chapter.verses).map(([globalNum, v]) => ({
+    globalVerseNumber: globalNum,
+    chapterNumber: chapter.chapter_number,
+    chapterTitle: chapter.chapter_title,
+    chapterVerseNumber: String(v.local),
     text: v.text,
-  })),
-);
+    pali: v.pali,
+  }));
+
+  // Sort verses within the chapter numerically by the first verse number in the key.
+  return chapterVerses.sort((a, b) => {
+    const aNum = parseInt(a.globalVerseNumber.split(',')[0], 10);
+    const bNum = parseInt(b.globalVerseNumber.split(',')[0], 10);
+    return aNum - bNum;
+  });
+});
 
 // Fixed epoch so the same civil date maps to the same verse globally.
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -78,8 +85,9 @@ export function getAllVerses(): DhammapadaVerse[] {
   return allVerses;
 }
 
-export function getVerseByGlobalNumber(globalVerseNumber: number): DhammapadaVerse | undefined {
-  return allVerses.find((v) => v.globalVerseNumber === globalVerseNumber);
+export function getVerseByGlobalNumber(globalVerseNumber: string | number): DhammapadaVerse | undefined {
+  const searchStr = String(globalVerseNumber);
+  return allVerses.find((v) => v.globalVerseNumber === searchStr);
 }
 
 export function getVerseForDate(date: Date): DhammapadaVerse {
@@ -89,7 +97,7 @@ export function getVerseForDate(date: Date): DhammapadaVerse {
   return allVerses[index];
 }
 
-export function getRandomVerse(excludeGlobalVerseNumber?: number): DhammapadaVerse {
+export function getRandomVerse(excludeGlobalVerseNumber?: string | number): DhammapadaVerse {
   if (allVerses.length === 0) {
     throw new Error('Dhammapada data not available');
   }
@@ -98,11 +106,13 @@ export function getRandomVerse(excludeGlobalVerseNumber?: number): DhammapadaVer
     return allVerses[0];
   }
 
+  const excludeStr = excludeGlobalVerseNumber ? String(excludeGlobalVerseNumber) : undefined;
+
   let verse: DhammapadaVerse;
   do {
     const idx = Math.floor(Math.random() * allVerses.length);
     verse = allVerses[idx];
-  } while (excludeGlobalVerseNumber && verse.globalVerseNumber === excludeGlobalVerseNumber);
+  } while (excludeStr && verse.globalVerseNumber === excludeStr);
 
   return verse;
 }
@@ -122,6 +132,6 @@ export function getVerseExcerpt(verse: DhammapadaVerse, maxChars = 120): string 
 }
 
 export function getVerseDisplayReference(verse: DhammapadaVerse): string {
-  return `Dhammapada ${verse.chapterNumber}:${verse.chapterVerseNumber}`;
+  return `Verse ${verse.globalVerseNumber}`;
 }
 

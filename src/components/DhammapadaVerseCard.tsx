@@ -19,18 +19,24 @@ const DhammapadaVerseCard: React.FC<Props> = ({ verse, isPrimaryForDay = false, 
       <div className="dhamma-card__halo" />
       <div className="dhamma-card__header">
         <div className="dhamma-card__title">
-          <span className="dhamma-card__eyebrow">Dhammapada</span>
+          <span className="dhamma-card__eyebrow">Dhammapada • Chapter {verse.chapterNumber}</span>
           <h3 className="dhamma-card__heading">
             {verse.chapterTitle}
           </h3>
         </div>
         <div className="dhamma-card__reference">
-          <span className="dhamma-card__reference-label">{reference}</span>
           {isPrimaryForDay && (
             <span className="dhamma-card__badge">Verse of the Day</span>
           )}
+          <span className="dhamma-card__reference-label">{reference}</span>
         </div>
       </div>
+
+      {verse.pali && (
+        <p className="dhamma-card__pali">
+          {verse.pali}
+        </p>
+      )}
 
       <p className="dhamma-card__text">
         {text}
