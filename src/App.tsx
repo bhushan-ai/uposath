@@ -14,6 +14,9 @@ import { IonReactRouter } from '@ionic/react-router';
 import { calendar, rose, settings, leaf, home, library, musicalNotes } from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { bootstrapNotifications } from './services/notificationScheduler';
+import { getSavedLocation } from './services/locationManager';
+import { Observer } from '@ishubhamx/panchangam-js';
+import { UposathaObservanceService } from './services/UposathaObservanceService';
 
 /* Core CSS */
 import '@ionic/react/css/core.css';
@@ -92,6 +95,18 @@ const NotificationRouterBridge: React.FC = () => {
   return null;
 };
 
+const SyncManager: React.FC = () => {
+  useEffect(() => {
+    const syncMissed = async () => {
+      const loc = await getSavedLocation();
+      const observer = loc ? new Observer(loc.latitude, loc.longitude, loc.altitude) : new Observer(24.7914, 85.0002, 111);
+      await UposathaObservanceService.syncMissedObservances(observer);
+    };
+    syncMissed();
+  }, []);
+  return null;
+};
+
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -107,6 +122,7 @@ const App: React.FC = () => {
       <IonReactRouter>
         <NotificationRouterBridge />
         <FocusManager />
+        <SyncManager />
         <IonTabs>
           <IonRouterOutlet>
             <Route exact path="/calendar" component={CalendarPage} />

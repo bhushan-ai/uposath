@@ -1,6 +1,7 @@
-
 import { Preferences } from '@capacitor/preferences';
 import { UposathaObservance, UposathaStats } from '../types/ObservanceTypes';
+import { getUposathaStatus } from './uposathaCalculator';
+import { Observer } from '@ishubhamx/panchangam-js';
 
 const STORE_KEY_OBSERVANCE = 'uposatha_observance_entries';
 
@@ -48,6 +49,66 @@ export const UposathaObservanceService = {
 
     async clearHistory(): Promise<void> {
         await Preferences.remove({ key: STORE_KEY_OBSERVANCE });
+    },
+
+    async syncMissedObservances(observer: Observer): Promise<void> {
+        let history = await UposathaObservanceService.getHistory();
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // Start boundary: strictly before today (00:00:00)
+
+        // Find the earliest date we need to scan back to (max 45 days)
+        const earliestScanDate = new Date(now);
+        earliestScanDate.setDate(earliestScanDate.getDate() - 45);
+
+        // Map existing recorded dates for fast lookup
+        const recordedDates = new Set(history.map(o => o.date));
+
+        let newEntries: UposathaObservance[] = [];
+
+        // Scan backwards from yesterday
+        let scanDate = new Date(now);
+        scanDate.setDate(scanDate.getDate() - 1);
+
+        while (scanDate >= earliestScanDate) {
+            const dateStr = scanDate.toISOString().split('T')[0];
+
+            if (!recordedDates.has(dateStr)) {
+                // Determine if this past day was an Uposatha Day using local noon check
+                const checkDate = new Date(scanDate);
+                checkDate.setHours(12, 0, 0, 0);
+                const status = getUposathaStatus(checkDate, observer);
+
+                if (status.isUposatha || status.isOptional) {
+                    const moonPhase = status.isFullMoon ? 'full'
+                        : status.isNewMoon ? 'new'
+                            : status.isChaturdashi ? 'chaturdashi'
+                                : 'quarter';
+
+                    newEntries.push({
+                        id: crypto.randomUUID(),
+                        date: dateStr,
+                        moonPhase,
+                        paksha: status.paksha as 'Shukla' | 'Krishna',
+                        status: 'skipped',
+                        skipReason: 'forgot',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            }
+            scanDate.setDate(scanDate.getDate() - 1);
+        }
+
+        if (newEntries.length > 0) {
+            history.push(...newEntries);
+            // Re-sort descending just in case
+            history = history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+            await Preferences.set({
+                key: STORE_KEY_OBSERVANCE,
+                value: JSON.stringify(history)
+            });
+        }
     },
 
     async getStats(): Promise<UposathaStats> {
