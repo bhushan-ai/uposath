@@ -27,8 +27,8 @@ const EmptinessSessionPage: React.FC = () => {
     const [reflection, setReflection] = useState('');
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const startBellRef = useRef(new Audio('/assets/audio/meditation-bell-start.mp3'));
-    const endBellRef = useRef(new Audio('/assets/audio/meditation-bell-end.mp3'));
+    const startBellRef = useRef(new Audio('/assets/audio/zen-bell.mp3'));
+    const endBellRef = useRef(new Audio('/assets/audio/zen-bell.mp3'));
 
     const content = EmptinessService.getContent();
     const sections = content.sections;
