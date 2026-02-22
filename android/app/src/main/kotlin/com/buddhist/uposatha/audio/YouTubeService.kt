@@ -5,13 +5,16 @@ import android.util.Log
 import com.buddhist.uposatha.innertube.NewPipeUtils
 import com.buddhist.uposatha.innertube.YouTube
 import com.buddhist.uposatha.innertube.models.ArtistItem
+import com.buddhist.uposatha.innertube.models.PlaylistItem
 import com.buddhist.uposatha.innertube.models.SongItem
+import com.buddhist.uposatha.innertube.models.VideoItem
 import com.buddhist.uposatha.innertube.models.YTItem
 import com.buddhist.uposatha.innertube.models.YouTubeClient
 import com.buddhist.uposatha.innertube.pages.SearchResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.async
+import okhttp3.MediaType.Companion.toMediaType
 
 class YouTubeService {
 
@@ -54,14 +57,72 @@ class YouTubeService {
         Log.d("YouTubeService", "getChannelVideos() called for channelId: $channelId, continuation: $continuation")
         runCatching {
             if (continuation != null) {
-                val result = YouTube.artistItemsContinuation(continuation).getOrThrow()
-                Log.d("YouTubeService", "Continuation for $channelId found ${result.items.size} items")
+                Log.d("YouTubeService", "getChannelVideos() continuation: $continuation")
+                // Direct HTTP POST to InnerTube browse endpoint for WEB client continuations
+                val client = okhttp3.OkHttpClient.Builder().build()
+                val jsonBody = """{"context":{"client":{"clientName":"WEB","clientVersion":"2.20240101.00.00","hl":"en","gl":"US"}},"continuation":"$continuation"}"""
+                val requestBody = okhttp3.RequestBody.create(
+                    "application/json".toMediaType(), jsonBody
+                )
+                val request = okhttp3.Request.Builder()
+                    .url("https://www.youtube.com/youtubei/v1/browse?prettyPrint=false")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .post(requestBody)
+                    .build()
+                val response = client.newCall(request).execute()
+                val responseBody = response.body?.string() ?: throw Exception("Empty continuation response")
+                Log.d("YouTubeService", "Continuation response length: ${responseBody.length}")
+
+                val videos = mutableListOf<VideoInfo>()
+                val seenIds = mutableSetOf<String>()
+                val rendererRegex = Regex(""""videoRenderer"\s*:\s*\{|"(gridVideo|reelItem|gridPlaylist|playlist)Renderer"\s*:\s*\{""")
+                val rendererStarts = rendererRegex.findAll(responseBody).map { it.range.first }.toList()
+
+                for (start in rendererStarts.take(100)) {
+                    try {
+                        val subBody = responseBody.substring(start, minOf(start + 10000, responseBody.length))
+                        val videoId = Regex(""""videoId"\s*:\s*"([a-zA-Z0-9_-]{11,12})"""")
+                            .find(subBody)?.groupValues?.get(1) ?: continue
+                        if (seenIds.contains(videoId)) continue
+
+                        val title = Regex(""""title"\s*:\s*\{\s*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"""")
+                            .find(subBody)?.groupValues?.get(1)
+                            ?: Regex(""""title"\s*:\s*\{\s*"simpleText"\s*:\s*"([^"]+)"""")
+                                .find(subBody)?.groupValues?.get(1)
+                            ?: Regex(""""title"\s*:\s*\{\s*"content"\s*:\s*"([^"]+)"""")
+                                .find(subBody)?.groupValues?.get(1)
+                            ?: continue
+
+                        val thumbnail = "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
+                        val lengthIdx = subBody.indexOf("\"lengthText\"")
+                        val lengthText = if (lengthIdx != -1) Regex(""""(?:simpleText|text)"\s*:\s*"([0-9:]+)"""")
+                            .find(subBody, lengthIdx)?.groupValues?.get(1) ?: "0" else "0"
+                        val durationSec = parseDuration(lengthText)
+                        val viewIdx = subBody.indexOf("\"viewCountText\"")
+                        val viewCountText = if (viewIdx != -1) Regex(""""simpleText"\s*:\s*"([^"]+)"""")
+                            .find(subBody, viewIdx)?.groupValues?.get(1) else null
+                        val pubIdx = subBody.indexOf("\"publishedTimeText\"")
+                        val publishedTimeText = if (pubIdx != -1) Regex(""""simpleText"\s*:\s*"([^"]+)"""")
+                            .find(subBody, pubIdx)?.groupValues?.get(1) else null
+
+                        videos.add(VideoInfo(
+                            videoId = videoId, title = title,
+                            channelName = "", channelId = channelId,
+                            duration = durationSec.toString(), thumbnailUrl = thumbnail,
+                            uploadDate = publishedTimeText, viewCountText = viewCountText
+                        ))
+                        seenIds.add(videoId)
+                    } catch (e: Exception) { /* skip malformed entry */ }
+                }
+
+                // Extract next continuation token
+                val nextContRegex = Regex(""""continuationCommand"\s*:\s*\{\s*"token"\s*:\s*"([^"]{20,})"""")
+                val nextContinuation = nextContRegex.findAll(responseBody).lastOrNull()?.groupValues?.get(1)
+
+                Log.d("YouTubeService", "Continuation parsed ${videos.size} videos, nextCont: ${nextContinuation != null}")
                 ChannelVideosResult(
-                    videos = result.items.map { 
-                        Log.d("YouTubeService", "Mapping continuation item: ${it.title} (type: ${it.javaClass.simpleName})")
-                        toVideoInfo(it) 
-                    },
-                    continuation = result.continuation
+                    videos = videos,
+                    continuation = nextContinuation
                 )
             } else {
                 val artistPage = YouTube.artist(channelId).getOrThrow()
@@ -95,19 +156,24 @@ class YouTubeService {
             channelName = when (item) {
                 is SongItem -> item.artists.firstOrNull()?.name ?: ""
                 is ArtistItem -> item.title
+                is VideoItem -> item.author?.name ?: ""
                 else -> ""
             },
             channelId = when (item) {
                 is SongItem -> item.artists.firstOrNull()?.id ?: ""
                 is ArtistItem -> item.id
+                is VideoItem -> item.author?.id ?: ""
+                is PlaylistItem -> item.author?.id ?: ""
                 else -> ""
             },
             duration = when (item) {
                 is SongItem -> item.duration?.toString() ?: "0"
+                is VideoItem -> item.durationText ?: "0"
                 else -> "0"
             },
             thumbnailUrl = item.thumbnail ?: "",
-            uploadDate = null,
+            uploadDate = (item as? VideoItem)?.viewCountText, // reusing field if needed or just leave null
+            viewCountText = (item as? VideoItem)?.viewCountText,
             viewCount = null
         )
     }
@@ -294,11 +360,88 @@ class YouTubeService {
                     val tabJsonRaw = extractJson(body)
                     val contentString = tabJsonRaw ?: body
                     
+                    var tabContinuation: String? = null
+                    try {
+                        if (tabJsonRaw != null) {
+                            val json = org.json.JSONObject(tabJsonRaw)
+                            // Deep dive into tabs to find the selected one and its continuation
+                            val tabs = json.optJSONObject("contents")
+                                ?.optJSONObject("twoColumnBrowseResultsRenderer")
+                                ?.optJSONArray("tabs")
+                            
+                            if (tabs != null) {
+                                for (i in 0 until tabs.length()) {
+                                    val t = tabs.optJSONObject(i)?.optJSONObject("tabRenderer")
+                                    if (t?.optBoolean("selected") == true) {
+                                        val tabContent = t.optJSONObject("content")
+
+                                        // ── PRIMARY: richGridRenderer (modern YouTube layout) ──
+                                        val richGrid = tabContent?.optJSONObject("richGridRenderer")
+                                        if (richGrid != null) {
+                                            val richContents = richGrid.optJSONArray("contents")
+                                            if (richContents != null) {
+                                                for (j in richContents.length() - 1 downTo 0) {
+                                                    val item = richContents.optJSONObject(j)
+                                                    tabContinuation = item?.optJSONObject("continuationItemRenderer")
+                                                        ?.optJSONObject("continuationEndpoint")
+                                                        ?.optJSONObject("continuationCommand")
+                                                        ?.optString("token")
+                                                    if (tabContinuation != null) break
+                                                }
+                                            }
+                                        }
+
+                                        // ── SECONDARY: sectionListRenderer (older/fallback layout) ──
+                                        if (tabContinuation == null) {
+                                            val sectionList = tabContent?.optJSONObject("sectionListRenderer")
+                                            val contents = sectionList?.optJSONArray("contents")
+                                            if (contents != null && contents.length() > 0) {
+                                                val lastItem = contents.optJSONObject(contents.length() - 1)
+                                                tabContinuation = lastItem?.optJSONObject("continuationItemRenderer")
+                                                    ?.optJSONObject("continuationEndpoint")
+                                                    ?.optJSONObject("continuationCommand")
+                                                    ?.optString("token")
+
+                                                if (tabContinuation == null) {
+                                                    val itemSection = contents.optJSONObject(0)?.optJSONObject("itemSectionRenderer")
+                                                    val itemContents = itemSection?.optJSONArray("contents")
+                                                    if (itemContents != null) {
+                                                        for (j in itemContents.length() - 1 downTo 0) {
+                                                            val subItem = itemContents.optJSONObject(j)
+                                                            tabContinuation = subItem?.optJSONObject("continuationItemRenderer")
+                                                                ?.optJSONObject("continuationEndpoint")
+                                                                ?.optJSONObject("continuationCommand")
+                                                                ?.optString("token")
+                                                            if (tabContinuation != null) break
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("YouTubeService", "Failed to extract tab continuation for $tab", e)
+                    }
+
+                    // ── FALLBACK: regex-based continuation token extraction from raw JSON ──
+                    if (tabContinuation == null && contentString.length > 100) {
+                        val contRegex = Regex(""""continuationCommand"\s*:\s*\{\s*"token"\s*:\s*"([^"]{20,})"""")
+                        tabContinuation = contRegex.findAll(contentString).lastOrNull()?.groupValues?.get(1)
+                        if (tabContinuation != null) {
+                            Log.d("YouTubeService", "Continuation found via regex fallback for tab $tab")
+                        }
+                    }
+
                     val videos = mutableListOf<VideoInfo>()
+                    val seenVideoIds = mutableSetOf<String>()
                     val rendererRegex = Regex(""""videoRenderer"\s*:\s*\{|"(gridVideo|reelItem|gridPlaylist|playlist)Renderer"\s*:\s*\{|"(shortsLockupViewModel|lockupViewModel)"\s*:\s*\{""")
                     val rendererStarts = rendererRegex.findAll(contentString).map { it.range.first }.toList()
                     
-                    for (start in rendererStarts.take(30)) {
+                    for (start in rendererStarts.take(100)) {
                         try {
                             val subBody = contentString.substring(start, minOf(start + 10000, contentString.length))
                             
@@ -310,10 +453,13 @@ class YouTubeService {
                                 ?: Regex(""""url"\s*:\s*"/shorts/([a-zA-Z0-9_-]{11,12})"""").find(subBody)?.groupValues?.get(1)
 
                             val vid = if (isPlaylistTab) {
-                                regexPlaylistId ?: regexVideoId // Fallback to videoId just in case
+                                regexPlaylistId ?: regexVideoId
                             } else {
-                                regexVideoId ?: regexPlaylistId // Fallback to playlistId if it's a playlist returned in a mixed tab
+                                regexVideoId ?: regexPlaylistId
                             } ?: continue
+                            
+                            // Skip duplicates
+                            if (seenVideoIds.contains(vid)) continue
                                 
                             val title = Regex(""""headline"\s*:\s*\{\s*"simpleText"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
                                 ?: Regex(""""title"\s*:\s*\{\s*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"""").find(subBody)?.groupValues?.get(1)
@@ -354,6 +500,7 @@ class YouTubeService {
                                 uploadDate = publishedTimeText,
                                 viewCountText = displayViewCount
                             ))
+                            seenVideoIds.add(vid)
                         } catch (e: Exception) {}
                     }
 
@@ -363,9 +510,9 @@ class YouTubeService {
                         "playlists" -> "Playlists"
                         else -> tab.replaceFirstChar { it.uppercase() }
                     }
-                    
                     if (!seenTitles.contains(sectionTitle)) {
-                        sections.add(ChannelSection(sectionTitle, videos, null))
+                        Log.d("YouTubeService", "Extracted ${videos.size} videos for tab $tab. Continuation found: ${tabContinuation != null}")
+                        sections.add(ChannelSection(sectionTitle, videos, tabContinuation))
                         seenTitles.add(sectionTitle)
                     }
                 }
@@ -454,6 +601,7 @@ class YouTubeService {
             Log.e("YouTubeService", "getPlaylistVideos() failed", it)
         }
     }
+
 
     /**
      * Normalize various YouTube URL formats to a full channel URL.
