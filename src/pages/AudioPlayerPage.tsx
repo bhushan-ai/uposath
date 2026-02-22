@@ -25,6 +25,18 @@ import './AudioPlayerPage.css';
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
+/** Decode literal \uXXXX escapes and HTML entities from YouTube metadata */
+const decodeText = (text: string): string => {
+    if (!text) return '';
+    return text
+        .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+};
+
 const AudioPlayerPage: React.FC = () => {
     const history = useHistory();
     const [playerState, setPlayerState] = useState<PlaybackState | null>(null);
@@ -189,9 +201,9 @@ const AudioPlayerPage: React.FC = () => {
 
                     {/* Track Info */}
                     <div className="player-info">
-                        <h1 className="player-title">{currentVideo.title}</h1>
+                        <h1 className="player-title">{decodeText(currentVideo.title)}</h1>
                         {currentVideo.channelName && (
-                            <p className="player-artist">{currentVideo.channelName}</p>
+                            <p className="player-artist">{decodeText(currentVideo.channelName)}</p>
                         )}
                     </div>
 
@@ -232,6 +244,9 @@ const AudioPlayerPage: React.FC = () => {
 
                     {/* Controls */}
                     <div className="player-controls">
+                        <IonButton fill="clear" className="player-control-btn player-control-btn--secondary" style={{ visibility: 'hidden' }}>
+                            <IonIcon icon={repeat} />
+                        </IonButton>
                         <IonButton fill="clear" className="player-control-btn player-control-btn--secondary">
                             <IonIcon icon={playSkipBack} />
                         </IonButton>
