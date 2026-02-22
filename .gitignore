@@ -42,6 +42,8 @@ google-services.json
 /android/capacitor-cordova-android-plugins/
 CapacitorConfig.json
 capacitor.config.json.tmp
+*.apk
+*.idsig
 
 # AI / Agent Artifacts
 .gemini/
