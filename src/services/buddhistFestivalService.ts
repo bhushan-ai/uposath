@@ -159,8 +159,10 @@ const FIXED_DATE_FESTIVALS: BuddhistFestival[] = [
 
 /**
  * Separate detection for Ashoka Vijayadashami (Ashwin Shukla Dashami).
- * Uses the native festival calculation from panchangam-js which precisely
- * determines the correct observance day based on complete panchang rules.
+ * A tithi can span across multiple calendar days (e.g., Oct 20 evening to Oct 21 evening).
+ * To prevent the festival from appearing twice, we only return it on the day
+ * the tithi *begins* (i.e., when the previous day's tithi was Navami, or earlier 
+ * today was Navami).
  */
 function checkVijayadashami(
     date: Date,
@@ -169,9 +171,51 @@ function checkVijayadashami(
 ): BuddhistFestival | null {
     const p = panchangam ?? getPanchangam(date, observer);
 
-    const hasVijayadashami = p.festivals?.some(f => f.name.includes("Vijaya Dashami (Dussehra)"));
+    const ASHWIN_INDEX = 6;
+    const DASHAMI_TITHI = 9; // Shukla Dashami (0-indexed)
 
-    if (hasVijayadashami) {
+    // Strategy: To determine the exact single calendar day the tithi *starts*:
+    // We only check if tomorrow is Dashami (starts later today) OR if today is Dashami AND yesterday was NOT Dashami.
+    // However, if tomorrow is Dashami, it means it starts today, so we return it today.
+    // But then tomorrow, today will be Dashami and yesterday was NOT Dashami (it was Navami), 
+    // which would make us return it again tomorrow!
+    // To fix this, we ONLY return it on the day it starts.
+    // Meaning: If today at sunrise is NOT Dashami, but tomorrow is, it starts today -> return true.
+    // If today at sunrise IS Dashami, check if it started before today's sunrise. 
+    // If it started before today's sunrise (yesterday was NOT Dashami), it belongs to yesterday's calendar day, 
+    // so we return FALSE today.
+
+    let isStartDay = false;
+
+    if (p.masa.index === ASHWIN_INDEX && p.tithi === DASHAMI_TITHI) {
+        // Dashami at sunrise today. It means it started either yesterday or very early today.
+        // We will assign the festival to the day it *started*.
+        // If yesterday was NOT Dashami, it means the transition happened after yesterday's sunrise.
+        // So we assign it to yesterday! Which means today we should NOT return it.
+        // If yesterday WAS Dashami, it means it started the day before yesterday.
+        // In all cases where today at sunrise is Dashami, the transition day was in the past.
+        // So we never return true if it is already Dashami at sunrise.
+        isStartDay = false;
+    } else {
+        // Not Dashami at sunrise today. Check tomorrow.
+        try {
+            const nextDay = new Date(date);
+            nextDay.setDate(nextDay.getDate() + 1);
+            const nextP = getPanchangam(nextDay, observer);
+            if (nextP.masa.index === ASHWIN_INDEX && nextP.tithi === DASHAMI_TITHI) {
+                // If tomorrow at sunrise IS Dashami, it means the transition from Navami to Dashami
+                // happens between today's sunrise and tomorrow's sunrise.
+                // Therefore, today is the calendar day the tithi *starts*.
+                isStartDay = true;
+            }
+        } catch { /* ignore */ }
+    }
+
+    // Also include the native panchangam-js calculation for Dussehra, 
+    // as some regions observe Ashoka Vijayadashami on that specific calculated day.
+    const hasNativeDussehra = p.festivals?.some(f => f.name.includes("Vijaya Dashami (Dussehra)"));
+
+    if (isStartDay || hasNativeDussehra) {
         return {
             id: 'ashoka_vijayadashami',
             name: "Ashoka Vijayadashami / Dhamma Diksha Day",
