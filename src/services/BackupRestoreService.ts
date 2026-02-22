@@ -53,7 +53,7 @@ export interface RestoreResult {
     emptinessSessions: number;
 }
 
-const APP_VERSION = '0.1.0-alpha';
+const APP_VERSION = __APP_VERSION__;
 const BACKUP_FILENAME = () =>
     `uposatha_backup_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.json`;
 

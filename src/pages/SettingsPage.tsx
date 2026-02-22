@@ -732,7 +732,7 @@ const SettingsPage: React.FC = () => {
                 </div>
 
                 <div className="about-footer">
-                    <p style={{ fontWeight: '700', color: 'var(--color-text-secondary)' }}>Uposatha v0.1.0-alpha</p>
+                    <p style={{ fontWeight: '700', color: 'var(--color-text-secondary)' }}>Uposatha v{__APP_VERSION__}</p>
                     <p>Designed for reflection and awareness.</p>
                 </div>
             </IonContent>

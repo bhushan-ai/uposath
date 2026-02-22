@@ -1,7 +1,7 @@
 {
   "name": "uposatha-app",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0-alpha",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run frontend\" \"npm run server\"",
@@ -12,7 +12,8 @@
     "test.e2e": "cypress run",
     "test.unit": "vitest",
     "lint": "eslint",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "sync-version": "node --no-warnings -e \"require('child_process').execSync('npx capacitor-set-version set:android -v ' + require('./package.json').version + ' -b ' + Math.floor(Date.now() / 1000), {stdio: 'inherit', env: {...process.env, NODE_NO_WARNINGS: '1'}})\""
   },
   "dependencies": {
     "@capacitor/android": "^8.1.0",
@@ -50,6 +51,7 @@
     "@types/react-dom": "19.0.4",
     "@vitejs/plugin-legacy": "^5.0.0",
     "@vitejs/plugin-react": "^4.0.1",
+    "capacitor-set-version": "^2.2.0",
     "concurrently": "^9.2.1",
     "cypress": "^13.5.0",
     "eslint": "^9.20.1",
