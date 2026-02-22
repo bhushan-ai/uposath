@@ -348,10 +348,10 @@ Contributions are warmly welcomed! Whether it's fixing a bug, adding a new medit
 ## 🙏 Acknowledgments
 
 - **Dhammapada** texts sourced from [Project Gutenberg](https://www.gutenberg.org/) (public domain, Max Müller translation)
-- **Astronomical calculations** via [`astronomy-engine`](https://github.com/cosinekitty/astronomy)
-- **Vedic Pañcāṅga** via [`panchangam-js`](https://github.com/ishubhamx/panchangam-js)
-- **Chinese Lunar Calendar** via [`chinese-lunar-calendar`](https://www.npmjs.com/package/chinese-lunar-calendar)
-- Built with [Ionic Framework](https://ionicframework.com/) and [Capacitor](https://capacitorjs.com/)
+- **Vedic Pañcāṅga calculations** via [`@ishubhamx/panchangam-js`](https://github.com/ishubhamx/panchangam-js) by Shubham
+- **Mahāyāna lunar phase tracking** via [`chinese-lunar-calendar`](https://www.npmjs.com/package/chinese-lunar-calendar) by linlifengx
+- **Offline global location lookups** via [`country-state-city`](https://www.npmjs.com/package/country-state-city) by Harpreet Singh
+- **Offline geospatial timezone mapping** via [`tz-lookup`](https://www.npmjs.com/package/tz-lookup) by The Dark Sky Company
 
 ---
 
