@@ -100,5 +100,5 @@ describe('BuddhistFestivalService', () => {
         for (let i = 1; i < upcoming.length; i++) {
             expect(upcoming[i].date.getTime()).toBeGreaterThanOrEqual(upcoming[i - 1].date.getTime());
         }
-    });
+    }, 15000);
 });

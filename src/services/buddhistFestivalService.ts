@@ -159,22 +159,19 @@ const FIXED_DATE_FESTIVALS: BuddhistFestival[] = [
 
 /**
  * Separate detection for Ashoka Vijayadashami (Ashwin Shukla Dashami).
- * Checks both current and next day panchangam to capture the tithi
- * at its start time rather than only at sunrise.
+ * Uses the native festival calculation from panchangam-js which precisely
+ * determines the correct observance day based on complete panchang rules.
  */
 function checkVijayadashami(
     date: Date,
     observer: Observer,
     panchangam?: Panchangam
 ): BuddhistFestival | null {
-    // Ashwin = masaIndex 6, Dashami = tithi 9 (0-indexed)
-    const ASHWIN_INDEX = 6;
-    const DASHAMI_TITHI = 9;
-
     const p = panchangam ?? getPanchangam(date, observer);
 
-    // Check current day
-    if (p.masa.index === ASHWIN_INDEX && p.tithi === DASHAMI_TITHI) {
+    const hasVijayadashami = p.festivals?.some(f => f.name.includes("Vijaya Dashami (Dussehra)"));
+
+    if (hasVijayadashami) {
         return {
             id: 'ashoka_vijayadashami',
             name: "Ashoka Vijayadashami / Dhamma Diksha Day",
@@ -183,22 +180,6 @@ function checkVijayadashami(
             region: "India",
         };
     }
-
-    // Also check next day's panchangam to detect tithi that started after sunrise
-    try {
-        const nextDay = new Date(date);
-        nextDay.setDate(nextDay.getDate() + 1);
-        const pNext = getPanchangam(nextDay, observer);
-        if (pNext?.masa?.index === ASHWIN_INDEX && pNext?.tithi === DASHAMI_TITHI) {
-            return {
-                id: 'ashoka_vijayadashami',
-                name: "Ashoka Vijayadashami / Dhamma Diksha Day",
-                description: "Emperor Ashoka's embrace of Buddhism; Dhamma Diksha Day — Dr. Ambedkar and ~500,000 followers converted to Buddhism at Deekshabhoomi, Nagpur (14 Oct 1956)",
-                tradition: 'Theravada',
-                region: "India",
-            };
-        }
-    } catch { /* next-day panchangam unavailable */ }
 
     return null;
 }
