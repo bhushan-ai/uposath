@@ -130,11 +130,6 @@ const SatiStatsPage: React.FC = () => {
     };
 
     const handleEditClick = async (session: UnifiedSession) => {
-        // Extract count from detail string or fetch it? 
-        // Detail string is like "108 beads" or "20 mins".
-        // Let's parse it for now as a quick solution, or fetch full object if needed.
-        // Parsing is risky if format changes.
-        // Better: We can rely on the fact that we know the structure.
         let count = 0;
         const numMatch = session.detail.match(/(\d+(\.\d+)?)/);
         if (numMatch) {
@@ -159,6 +154,13 @@ const SatiStatsPage: React.FC = () => {
             if (orig) {
                 technique = orig.focus;
                 seconds = orig.durationSeconds;
+            }
+        } else if (session.category === 'mantra') {
+            const mSessions = await MantraService.getSessions();
+            const orig = mSessions.find(s => s.id === session.id);
+            if (orig) {
+                count = orig.reps;
+                seconds = (orig.durationMinutes || 0) * 60 + (orig.durationSeconds || 0);
             }
         }
 
@@ -229,7 +231,8 @@ const SatiStatsPage: React.FC = () => {
                     mantraId: mantras[0].id, // Default to first for manual log
                     timestamp: editingSession.timestamp,
                     reps: editingSession.count,
-                    durationMinutes: 0,
+                    durationMinutes: editingSession.seconds ? Math.floor(editingSession.seconds / 60) : 0,
+                    durationSeconds: editingSession.seconds ? editingSession.seconds % 60 : 0,
                     completed: true,
                     notes: editingSession.notes
                 };
@@ -1148,6 +1151,47 @@ const SatiStatsPage: React.FC = () => {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Duration field for mantra and mala */}
+                            {(editingSession.category === 'mantra' || editingSession.category === 'mala') && (
+                                <div>
+                                    <div className="stat-label-small" style={{ marginBottom: '12px' }}>Duration</div>
+                                    <div style={{ display: 'flex', gap: '12px' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <IonItem lines="none" className="glass-card" style={{ '--background': 'transparent', '--padding-start': '12px' }}>
+                                                <IonInput
+                                                    type="number"
+                                                    label="Min"
+                                                    labelPlacement="stacked"
+                                                    value={editingSession.seconds !== undefined ? Math.floor(editingSession.seconds / 60) : 0}
+                                                    onIonChange={e => {
+                                                        const mins = parseInt(e.detail.value!) || 0;
+                                                        const secs = (editingSession.seconds || 0) % 60;
+                                                        setEditingSession({ ...editingSession, seconds: mins * 60 + secs });
+                                                    }}
+                                                    style={{ fontSize: '1.2rem', fontWeight: '700' }}
+                                                />
+                                            </IonItem>
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <IonItem lines="none" className="glass-card" style={{ '--background': 'transparent', '--padding-start': '12px' }}>
+                                                <IonInput
+                                                    type="number"
+                                                    label="Sec"
+                                                    labelPlacement="stacked"
+                                                    value={editingSession.seconds !== undefined ? editingSession.seconds % 60 : 0}
+                                                    onIonChange={e => {
+                                                        const secs = parseInt(e.detail.value!) || 0;
+                                                        const mins = Math.floor((editingSession.seconds || 0) / 60);
+                                                        setEditingSession({ ...editingSession, seconds: mins * 60 + secs });
+                                                    }}
+                                                    style={{ fontSize: '1.2rem', fontWeight: '700' }}
+                                                />
+                                            </IonItem>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {/* Category Specific Fields */}
                             {editingSession.category === 'anapanasati' && (
                                 <div>

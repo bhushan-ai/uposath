@@ -103,12 +103,21 @@ export const SatiStatsService = {
         const mantras = await MantraService.getMantras(); // Efficient lookup map would be better but array is small
         mantraSessions.forEach(s => {
             const m = mantras.find(m => m.id === s.mantraId);
+            let detail = `${s.reps} beads`;
+            // Append duration if tracked
+            if (s.durationMinutes > 0 || (s.durationSeconds !== undefined && s.durationSeconds > 0)) {
+                const mins = s.durationMinutes || 0;
+                const secs = s.durationSeconds !== undefined ? s.durationSeconds : 0;
+                detail += ` · ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+            const totalSecs = (s.durationMinutes || 0) * 60 + (s.durationSeconds || 0);
             history.push({
                 id: s.id,
                 timestamp: s.timestamp,
                 category: 'mantra',
                 title: m ? m.basic.name : 'Mantra Practice',
-                detail: `${s.reps} beads`,
+                detail,
+                durationSeconds: totalSecs > 0 ? totalSecs : undefined,
                 notes: s.notes,
                 tithi: s.tithi
             });

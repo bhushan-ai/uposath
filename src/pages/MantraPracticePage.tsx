@@ -106,12 +106,14 @@ const MantraPracticePage: React.FC = () => {
         if (!mantra || isSaving.current) return;
         isSaving.current = true;
 
-        const durationMinutes = Math.ceil(elapsedSeconds / 60);
+        const durationMinutes = Math.floor(elapsedSeconds / 60);
+        const durationSecs = elapsedSeconds % 60;
         const session: MantraSession = {
             id: crypto.randomUUID(),
             mantraId: mantra.id,
             timestamp: new Date().toISOString(),
             durationMinutes: durationMinutes,
+            durationSeconds: durationSecs,
             reps: count,
             completed: count >= mantra.practice.defaultReps
         };
