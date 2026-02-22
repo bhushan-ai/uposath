@@ -9,8 +9,6 @@ import {
     IonBackButton,
     IonButton,
     IonIcon,
-    IonRange,
-    IonSpinner
 } from '@ionic/react';
 import {
     play,
@@ -18,13 +16,17 @@ import {
     playSkipBack,
     playSkipForward,
     repeat,
-    shuffle,
-    musicalNotes
+    musicalNotes,
+    libraryOutline,
 } from 'ionicons/icons';
+import { useHistory } from 'react-router-dom';
 import { DhammaAudio, PlaybackState } from '../plugins/dhamma-audio';
 import './AudioPlayerPage.css';
 
+const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
 const AudioPlayerPage: React.FC = () => {
+    const history = useHistory();
     const [playerState, setPlayerState] = useState<PlaybackState | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [dragPosition, setDragPosition] = useState(0);
@@ -43,9 +45,9 @@ const AudioPlayerPage: React.FC = () => {
                     isPlaying,
                     isPaused,
                     position: stateEvt.position ?? prev?.position ?? 0,
-                    duration: stateEvt.duration ?? prev?.duration ?? 0
+                    duration: stateEvt.duration ?? prev?.duration ?? 0,
+                    speed: stateEvt.speed ?? prev?.speed ?? 1,
                 };
-                console.log('[AudioPlayer] Native state changed:', stateEvt.state, 'Video:', merged.currentVideo?.title);
                 if (merged.currentVideo) {
                     Preferences.set({ key: 'last_playing_video', value: JSON.stringify(merged.currentVideo) }).catch(console.error);
                 }
@@ -76,19 +78,16 @@ const AudioPlayerPage: React.FC = () => {
                 console.error('Failed to load saved video', e);
             }
 
-            setPlayerState(prev => {
-                const newState = {
-                    ...(prev || {}),
-                    ...state,
-                    currentVideo: state.currentVideo ?? prev?.currentVideo ?? savedVideo,
-                    isPlaying: state.state === 'PLAYING' || state.isPlaying === true,
-                    isPaused: state.state === 'PAUSED' || state.isPaused === true,
-                    position: state.position ?? prev?.position ?? 0,
-                    duration: state.duration ?? prev?.duration ?? 0
-                };
-                console.log('[AudioPlayer] Initial state loaded. Background Video:', state.currentVideo?.title, 'Saved Video:', savedVideo?.title);
-                return newState;
-            });
+            setPlayerState(prev => ({
+                ...(prev || {}),
+                ...state,
+                currentVideo: state.currentVideo ?? prev?.currentVideo ?? savedVideo,
+                isPlaying: state.state === 'PLAYING' || (state as any).isPlaying === true,
+                isPaused: state.state === 'PAUSED' || (state as any).isPaused === true,
+                position: state.position ?? prev?.position ?? 0,
+                duration: state.duration ?? prev?.duration ?? 0,
+                speed: (state as any).speed ?? prev?.speed ?? 1,
+            }));
         } catch (err) {
             console.error('Failed to load player state:', err);
         }
@@ -115,9 +114,13 @@ const AudioPlayerPage: React.FC = () => {
         const modes: ('OFF' | 'ALL' | 'ONE')[] = ['OFF', 'ALL', 'ONE'];
         const currentIdx = modes.indexOf(playerState.repeatMode || 'OFF');
         const nextMode = modes[(currentIdx + 1) % modes.length];
-
         await DhammaAudio.setRepeatMode({ mode: nextMode });
         setPlayerState(prev => prev ? { ...prev, repeatMode: nextMode } : null);
+    };
+
+    const handleSetSpeed = async (speed: number) => {
+        await DhammaAudio.setPlaybackSpeed({ speed });
+        setPlayerState(prev => prev ? { ...prev, speed } : null);
     };
 
     const formatTime = (ms: number) => {
@@ -127,7 +130,7 @@ const AudioPlayerPage: React.FC = () => {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
-    // Empty state
+    // Empty state — no video loaded or playing yet
     if (!playerState?.currentVideo) {
         return (
             <IonPage>
@@ -139,7 +142,16 @@ const AudioPlayerPage: React.FC = () => {
                 <IonContent fullscreen>
                     <div className="player-empty">
                         <IonIcon icon={musicalNotes} className="player-empty-icon" />
-                        <span className="player-empty-text">No track playing</span>
+                        <span className="player-empty-text">Nothing playing yet</span>
+                        <span className="player-empty-sub">Select a track from the Dhamma Audio library to begin</span>
+                        <IonButton
+                            className="player-empty-btn"
+                            fill="outline"
+                            onClick={() => history.push('/library')}
+                        >
+                            <IonIcon icon={libraryOutline} slot="start" />
+                            Browse Dhamma Audio
+                        </IonButton>
                     </div>
                 </IonContent>
             </IonPage>
@@ -147,6 +159,7 @@ const AudioPlayerPage: React.FC = () => {
     }
 
     const { currentVideo, isPlaying, position, duration } = playerState;
+    const currentSpeed = playerState.speed ?? 1;
 
     return (
         <IonPage>
@@ -184,13 +197,19 @@ const AudioPlayerPage: React.FC = () => {
 
                     {/* Progress */}
                     <div className="player-progress-section">
-                        <IonRange
-                            value={isDragging ? dragPosition : position}
-                            max={duration || 1}
-                            onIonKnobMoveStart={() => setIsDragging(true)}
-                            onIonInput={(e: any) => setDragPosition(e.detail.value as number)}
-                            onIonKnobMoveEnd={(e: any) => handleSeek(e.detail.value as number)}
+                        <input
+                            type="range"
                             className="player-progress-bar"
+                            value={isDragging ? dragPosition : position}
+                            min={0}
+                            max={duration || 1}
+                            step={500}
+                            onMouseDown={() => setIsDragging(true)}
+                            onTouchStart={() => setIsDragging(true)}
+                            onChange={(e) => setDragPosition(Number(e.target.value))}
+                            onMouseUp={(e) => handleSeek(Number((e.target as HTMLInputElement).value))}
+                            onTouchEnd={(e) => handleSeek(Number((e.target as HTMLInputElement).value))}
+                            style={{ width: '100%', accentColor: 'var(--color-accent-primary, #ffc670)' }}
                         />
                         <div className="player-time-row">
                             <span className="player-time">{formatTime(isDragging ? dragPosition : position)}</span>
@@ -198,12 +217,22 @@ const AudioPlayerPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Speed Chips */}
+                    <div className="speed-row">
+                        {SPEED_OPTIONS.map(s => (
+                            <button
+                                key={s}
+                                className={`speed-chip ${currentSpeed === s ? 'speed-chip--active' : ''}`}
+                                onClick={() => handleSetSpeed(s)}
+                            >
+                                {s === 1 ? '1×' : `${s}×`}
+                            </button>
+                        ))}
+                    </div>
+
                     {/* Controls */}
                     <div className="player-controls">
                         <IonButton fill="clear" className="player-control-btn player-control-btn--secondary">
-                            <IonIcon icon={shuffle} />
-                        </IonButton>
-                        <IonButton fill="clear" className="player-control-btn">
                             <IonIcon icon={playSkipBack} />
                         </IonButton>
                         <IonButton
@@ -213,7 +242,7 @@ const AudioPlayerPage: React.FC = () => {
                         >
                             <IonIcon icon={isPlaying ? pause : play} />
                         </IonButton>
-                        <IonButton fill="clear" className="player-control-btn">
+                        <IonButton fill="clear" className="player-control-btn player-control-btn--secondary">
                             <IonIcon icon={playSkipForward} />
                         </IonButton>
                         <IonButton

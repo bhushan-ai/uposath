@@ -94,6 +94,7 @@ export interface PlaybackState {
     position: number; // milliseconds
     duration: number; // milliseconds
     repeatMode: RepeatMode;
+    speed?: number; // 0.5 | 0.75 | 1 | 1.25 | 1.5 | 2
     queue: VideoInfo[];
     currentIndex: number;
 }
