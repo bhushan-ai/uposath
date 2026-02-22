@@ -14,17 +14,13 @@ import './EmptinessPage.css';
 
 const SUPPORTED_SCRIPTS = [
     { code: 'roman', label: 'Roman (Default)' },
-    { code: 'devanagari', label: 'Devanagari (देवनागरी)' },
-    { code: 'sinhala', label: 'Sinhala (සිංහල)' },
-    { code: 'thai', label: 'Thai (ไทย)' },
-    { code: 'burmese', label: 'Burmese (မြန်မာ)' }
+    { code: 'devanagari', label: 'Devanagari (देवनागरी)' }
 ];
 
 const SUPPORTED_LANGUAGES = [
     { code: 'en', label: 'English' },
     { code: 'hi', label: 'Hindi (हिंदी)' },
-    { code: 'mr', label: 'Marathi (मराठी)' },
-    { code: 'pa', label: 'Punjabi (ਪੰਜਾਬੀ)' }
+    { code: 'mr', label: 'Marathi (मराठी)' }
 ];
 
 const EmptinessPage: React.FC = () => {
