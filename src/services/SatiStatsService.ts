@@ -67,11 +67,13 @@ export const SatiStatsService = {
         // 1. Mala
         const malaEntries = await MalaService.getEntries();
         malaEntries.forEach(e => {
+            const pt = e.practiceType || 'buddha';
+            const displayTitle = pt.charAt(0).toUpperCase() + pt.slice(1);
             history.push({
                 id: e.id,
                 timestamp: e.timestamp,
                 category: 'mala',
-                title: `${e.practiceType || 'Buddha'} Recollection`,
+                title: `${displayTitle} Recollection`,
                 detail: `${e.beads} beads`,
                 notes: e.notes,
                 tithi: e.tithi
