@@ -188,6 +188,7 @@ const DayDetailPage: React.FC = () => {
                                         : 'quarter'
                         }
                         paksha={data.status.paksha as 'Shukla' | 'Krishna'}
+                        tithi={`${data.status.paksha}: ${data.status.tithiName}`}
                     />
                 )}
 

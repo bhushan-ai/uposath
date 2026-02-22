@@ -28,9 +28,10 @@ interface MarkObservedDialogProps {
     onClose: () => void;
     onSave: (data: Partial<UposathaObservance>) => void;
     date: Date;
+    tithi?: string;
 }
 
-const MarkObservedDialog: React.FC<MarkObservedDialogProps> = ({ isOpen, onClose, onSave, date }) => {
+const MarkObservedDialog: React.FC<MarkObservedDialogProps> = ({ isOpen, onClose, onSave, date, tithi }) => {
     const [level, setLevel] = useState<'full' | 'partial' | 'minimal'>('full');
     const [precepts, setPrecepts] = useState<string[]>(['8_precepts']);
     const [meditation, setMeditation] = useState<number>(0);
@@ -47,6 +48,7 @@ const MarkObservedDialog: React.FC<MarkObservedDialogProps> = ({ isOpen, onClose
             practiceMinutes: { meditation, chanting, study },
             quality,
             reflection,
+            tithi,
             date: date.toISOString().split('T')[0]
         });
         onClose();

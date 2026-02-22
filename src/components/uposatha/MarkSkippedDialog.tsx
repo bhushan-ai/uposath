@@ -22,9 +22,10 @@ interface MarkSkippedDialogProps {
     onClose: () => void;
     onSave: (data: Partial<UposathaObservance>) => void;
     date: Date;
+    tithi?: string;
 }
 
-const MarkSkippedDialog: React.FC<MarkSkippedDialogProps> = ({ isOpen, onClose, onSave, date }) => {
+const MarkSkippedDialog: React.FC<MarkSkippedDialogProps> = ({ isOpen, onClose, onSave, date, tithi }) => {
     const [reason, setReason] = useState<string>('work');
     const [note, setNote] = useState<string>('');
 
@@ -33,6 +34,7 @@ const MarkSkippedDialog: React.FC<MarkSkippedDialogProps> = ({ isOpen, onClose, 
             status: 'skipped',
             skipReason: reason as any,
             skipNote: note,
+            tithi,
             date: date.toISOString().split('T')[0]
         });
         onClose();

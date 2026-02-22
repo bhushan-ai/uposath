@@ -16,6 +16,7 @@ export interface AnapanasatiSession {
     quality?: number; // 1-5
     reflection?: string;
     tags?: string[];
+    tithi?: string;
 }
 
 export interface AnapanasatiStats {

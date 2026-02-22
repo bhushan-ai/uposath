@@ -4,6 +4,15 @@
     --padding-top: 16px;
 }
 
+/* Sati Glass Toolbar overrides */
+.sati-toolbar {
+    --background: rgba(20, 20, 25, 0.75) !important;
+    --border-color: rgba(255, 255, 255, 0.05) !important;
+    --border-width: 0 0 1px 0 !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
 .journey-overview-card {
     padding: 24px;
     margin-bottom: 24px;

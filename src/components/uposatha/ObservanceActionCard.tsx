@@ -11,10 +11,11 @@ interface ObservanceActionCardProps {
     date: Date;
     moonPhase?: 'full' | 'new' | 'quarter' | 'chaturdashi';
     paksha?: 'Shukla' | 'Krishna';
+    tithi?: string;
     onUpdate?: () => void;
 }
 
-const ObservanceActionCard: React.FC<ObservanceActionCardProps> = ({ date, moonPhase = 'full', paksha, onUpdate }) => {
+const ObservanceActionCard: React.FC<ObservanceActionCardProps> = ({ date, moonPhase = 'full', paksha, tithi, onUpdate }) => {
     const [observance, setObservance] = useState<UposathaObservance | null>(null);
     const [showObservedDialog, setShowObservedDialog] = useState(false);
     const [showSkippedDialog, setShowSkippedDialog] = useState(false);
@@ -148,6 +149,7 @@ const ObservanceActionCard: React.FC<ObservanceActionCardProps> = ({ date, moonP
                     onClose={() => setShowObservedDialog(false)}
                     onSave={handleSave}
                     date={date}
+                    tithi={tithi}
                 />
 
                 <MarkSkippedDialog
@@ -155,6 +157,7 @@ const ObservanceActionCard: React.FC<ObservanceActionCardProps> = ({ date, moonP
                     onClose={() => setShowSkippedDialog(false)}
                     onSave={handleSave}
                     date={date}
+                    tithi={tithi}
                 />
             </IonCardContent>
         </IonCard>

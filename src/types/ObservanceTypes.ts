@@ -3,6 +3,7 @@ export interface UposathaObservance {
     date: string; // ISO YYYY-MM-DD
     moonPhase: 'full' | 'new' | 'quarter' | 'chaturdashi';
     paksha?: 'Shukla' | 'Krishna';
+    tithi?: string; // Formatted as 'Paksha: TithiName'
     status: 'observed' | 'skipped';
     level?: 'full' | 'partial' | 'minimal';
     precepts?: string[]; // e.g., '8_precepts', 'monastery', 'study'

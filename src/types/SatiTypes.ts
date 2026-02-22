@@ -39,6 +39,7 @@ export interface MalaEntry {
     beads: number;
     practiceType: PracticeType;
     notes?: string;
+    tithi?: string;
 }
 
 export interface PracticeStats {
@@ -109,6 +110,7 @@ export interface EmptinessSession {
     quality?: number; // 1-5
     reflection?: string;
     tags?: string[];
+    tithi?: string;
 }
 
 export interface EmptinessStats {
@@ -200,6 +202,7 @@ export interface MantraSession {
     completed: boolean;
     quality?: number; // 1-5
     notes?: string;
+    tithi?: string;
 }
 
 // --- Unified Stats Types ---
@@ -214,6 +217,7 @@ export interface UnifiedSession {
     detail: string; // e.g., "108 beads", "20 mins", "Green Tara"
     durationSeconds?: number;
     notes?: string;
+    tithi?: string;
 }
 
 export interface GlobalStats {

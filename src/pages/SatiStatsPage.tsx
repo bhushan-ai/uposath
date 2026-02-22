@@ -333,7 +333,7 @@ const SatiStatsPage: React.FC = () => {
                     </IonButtons>
                     <IonTitle>Sati Bhāvanā</IonTitle>
                 </IonToolbar>
-                <IonToolbar style={{ '--background': 'transparent' }}>
+                <IonToolbar className="sati-toolbar">
                     <IonSegment value={statsView} onIonChange={e => setStatsView(e.detail.value as any)}>
                         <IonSegmentButton value="practice">
                             <IonLabel>Practice</IonLabel>
@@ -514,6 +514,7 @@ const SatiStatsPage: React.FC = () => {
                                                             {item.category.toUpperCase()}
                                                         </span>
                                                         • {new Date(item.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                                        {item.tithi && ` • ${item.tithi}`}
                                                     </p>
                                                     {item.notes && (
                                                         <p style={{ marginTop: '4px', fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontStyle: 'italic', borderLeft: `2px solid ${getCategoryColor(item.category)}`, paddingLeft: '8px' }}>
@@ -648,6 +649,7 @@ const SatiStatsPage: React.FC = () => {
                                                             <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>{log.detail}</div>
                                                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
                                                                 {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                                {log.tithi && ` • ${log.tithi}`}
                                                             </div>
                                                         </div>
                                                         <div>
@@ -786,6 +788,7 @@ const SatiStatsPage: React.FC = () => {
                                                         <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>{log.reps} beads</div>
                                                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
                                                             {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                            {log.tithi && ` • ${log.tithi}`}
                                                         </div>
                                                     </div>
                                                     <div>
@@ -848,6 +851,7 @@ const SatiStatsPage: React.FC = () => {
                                                     <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--color-text-primary)' }}>{log.reps} beads</div>
                                                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
                                                         {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                        {log.tithi && ` • ${log.tithi}`}
                                                     </div>
                                                 </div>
                                                 <div style={{ display: 'flex' }}>
@@ -956,6 +960,7 @@ const SatiStatsPage: React.FC = () => {
                                                         <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>{log.detail}</div>
                                                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
                                                             {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                            {log.tithi && ` • ${log.tithi}`}
                                                         </div>
                                                     </div>
                                                     <div>
@@ -1059,6 +1064,7 @@ const SatiStatsPage: React.FC = () => {
                                                         <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>{log.detail}</div>
                                                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
                                                             {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                            {log.tithi && ` • ${log.tithi}`}
                                                         </div>
                                                     </div>
                                                     <div>

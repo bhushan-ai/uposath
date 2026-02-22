@@ -73,7 +73,8 @@ export const SatiStatsService = {
                 category: 'mala',
                 title: `${e.practiceType || 'Buddha'} Recollection`,
                 detail: `${e.beads} beads`,
-                notes: e.notes
+                notes: e.notes,
+                tithi: e.tithi
             });
         });
 
@@ -90,7 +91,8 @@ export const SatiStatsService = {
                 title: 'Anapanasati',
                 detail,
                 durationSeconds: s.durationSeconds,
-                notes: s.reflection
+                notes: s.reflection,
+                tithi: s.tithi
             });
         });
 
@@ -105,7 +107,8 @@ export const SatiStatsService = {
                 category: 'mantra',
                 title: m ? m.basic.name : 'Mantra Practice',
                 detail: `${s.reps} beads`,
-                notes: s.notes
+                notes: s.notes,
+                tithi: s.tithi
             });
         });
 
@@ -122,9 +125,29 @@ export const SatiStatsService = {
                 title: 'Emptiness',
                 detail,
                 durationSeconds: s.durationSeconds,
-                notes: s.reflection || (s as any).notes
+                notes: s.reflection || (s as any).notes,
+                tithi: s.tithi
             });
         });
+
+        // 5. Backwards Compatibility: Auto-stamp missing tithi on older logs
+        try {
+            const { getSavedLocation, getObserver } = await import('./locationManager');
+            const { getUposathaStatus } = await import('./uposathaCalculator');
+
+            const loc = await getSavedLocation();
+            const observer = getObserver(loc);
+
+            for (let i = 0; i < history.length; i++) {
+                if (!history[i].tithi && history[i].timestamp) {
+                    const date = new Date(history[i].timestamp);
+                    const status = getUposathaStatus(date, observer);
+                    history[i].tithi = `${status.paksha}: ${status.tithiName}`;
+                }
+            }
+        } catch (err) {
+            console.warn('Could not backfill tithi for history', err);
+        }
 
         // Sort Descending
         return history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -165,6 +188,21 @@ export const SatiStatsService = {
     },
 
     async saveSession(session: any, category: PracticeCategory): Promise<void> {
+        if (!session.tithi) {
+            try {
+                const { getSavedLocation, getObserver } = await import('./locationManager');
+                const { getUposathaStatus } = await import('./uposathaCalculator');
+
+                const loc = await getSavedLocation();
+                const observer = getObserver(loc);
+                const date = session.timestamp ? new Date(session.timestamp) : new Date();
+                const status = getUposathaStatus(date, observer);
+                session.tithi = `${status.paksha}: ${status.tithiName}`;
+            } catch (err) {
+                console.warn('Could not auto-stamp tithi for session', err);
+            }
+        }
+
         switch (category) {
             case 'mala':
                 await MalaService.saveEntry(session);
