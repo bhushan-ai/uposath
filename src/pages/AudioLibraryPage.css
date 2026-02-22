@@ -428,3 +428,8 @@ ion-infinite-scroll-content {
     font-size: 0.85rem;
     font-weight: 500;
 }
+
+/* Fallback utilities */
+.hidden-fallback {
+    display: none !important;
+}

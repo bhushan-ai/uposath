@@ -296,13 +296,20 @@ const AudioLibraryPage: React.FC = () => {
                                         onTouchEnd={handleLongPressEnd}
                                     >
                                         <div className="channel-avatar">
-                                            {ch.avatarUrl ? (
-                                                <img src={ch.avatarUrl} alt={ch.name} />
-                                            ) : (
-                                                <div className="channel-avatar-placeholder">
-                                                    {ch.name.charAt(0).toUpperCase()}
-                                                </div>
+                                            {ch.avatarUrl && (
+                                                <img
+                                                    src={ch.avatarUrl}
+                                                    alt=""
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        target.parentElement?.querySelector('.fallback')?.classList.remove('hidden-fallback');
+                                                    }}
+                                                />
                                             )}
+                                            <div className={`channel-avatar-placeholder fallback ${ch.avatarUrl ? 'hidden-fallback' : ''}`}>
+                                                {ch.name.charAt(0).toUpperCase()}
+                                            </div>
                                             {ch.isDefault && <div className="channel-default-dot" />}
                                         </div>
                                         <span className="channel-name">{ch.name}</span>
@@ -351,13 +358,21 @@ const AudioLibraryPage: React.FC = () => {
                                             <div style={{ display: 'flex', alignItems: 'center', padding: '10px 0' }}>
                                                 {isPlaying && <div className="library-now-playing-dot" />}
                                                 <div className="library-thumb-wrapper">
-                                                    {video.thumbnailUrl ? (
-                                                        <img src={video.thumbnailUrl} alt="" className="library-thumb" />
-                                                    ) : (
-                                                        <div className="library-thumb-placeholder">
-                                                            <IonIcon icon={musicalNotes} />
-                                                        </div>
+                                                    {video.thumbnailUrl && (
+                                                        <img
+                                                            src={video.thumbnailUrl}
+                                                            alt=""
+                                                            className="library-thumb"
+                                                            onError={(e) => {
+                                                                const target = e.target as HTMLImageElement;
+                                                                target.style.display = 'none';
+                                                                target.parentElement?.querySelector('.fallback')?.classList.remove('hidden-fallback');
+                                                            }}
+                                                        />
                                                     )}
+                                                    <div className={`library-thumb-placeholder fallback ${video.thumbnailUrl ? 'hidden-fallback' : ''}`}>
+                                                        <IonIcon icon={musicalNotes} />
+                                                    </div>
                                                     {currentSection.title !== 'Playlists' && video.duration > 0 && (
                                                         <span className="library-duration-badge">
                                                             {formatDuration(video.duration)}
