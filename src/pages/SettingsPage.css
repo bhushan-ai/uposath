@@ -28,16 +28,19 @@ ion-toggle {
 
 ion-select::part(placeholder),
 ion-select::part(text) {
-    font-weight: 700;
+    font-weight: 600;
     color: var(--color-accent-primary);
-    text-align: end;
+    text-align: start;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 0.85rem;
 }
 
 ion-select::part(icon) {
-    display: none;
-    /* Hide default icon for cleaner look if requested, or style it */
+    font-size: 12px;
+    opacity: 0.6;
+    margin-left: 8px;
+    color: var(--color-accent-primary);
 }
 
 .settings-section-title {
@@ -60,10 +63,14 @@ ion-select::part(icon) {
 .settings-item {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 16px;
+    gap: 12px;
+    padding: 14px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
+}
+
+.settings-item:active {
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .settings-item:last-child {
@@ -173,10 +180,14 @@ ion-select::part(icon) {
 /* Custom Select Styling */
 .settings-select {
     --placeholder-color: var(--color-text-muted);
-    font-weight: 700;
     color: var(--color-accent-primary);
-    flex-shrink: 1;
-    max-width: 60%;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 6px 12px;
+    max-width: 50%;
+    min-width: 100px;
     --padding-start: 0;
     --padding-end: 0;
 }
