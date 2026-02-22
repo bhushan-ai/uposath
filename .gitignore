@@ -1,46 +1,49 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Standard ignore patterns
 node_modules/
-/.pnp
-.pnp.js
-
-/coverage
-/cypress/screenshots
-/cypress/videos
-
-/dist
-.vite/
-node_modules/.vite/
-
-# misc
-.DS_Store
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-/.nx
-/.nx/cache
+dist/
+dist-ssr/
+www/
+*.local
 
 # IDEs
-.vscode
-.vscode/
-.idea
 .idea/
+.vscode/
 *.iml
 *.iws
-.project
-.settings/
-.classpath
+.DS_Store
+Thumbs.db
 
 # Logs
+**/*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
-android/build_log*.txt
-# Agent / AI artifacts
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+google-services.json
+*.keystore
+*.jks
+
+# Capacitor / Mobile
+/android/.gradle/
+/android/.idea/
+/android/.kotlin/
+/android/build/
+/android/app/build/
+/android/local.properties
+/android/build_log.txt
+/android/output.log
+/android/app/src/main/assets/public/
+/android/app/src/main/assets/capacitor.config.json
+/android/app/src/main/assets/capacitor.plugins.json
+/android/capacitor-cordova-android-plugins/
+CapacitorConfig.json
+capacitor.config.json.tmp
+
+# AI / Agent Artifacts
 .gemini/
 .agent/
 .agents/
@@ -48,87 +51,25 @@ _agent/
 _agents/
 .antigravity/
 .antigravityignore
-**/_agent/
-**/_agents/
-**/.agent/
-**/.agents/
 
-# Optional eslint cache
-.eslintcache
-
-# Local debug / diagnosis artifacts
+# Root level diagnostic/temp artifacts (Screenshots and build logs)
+/*.png
+/*.jpg
+/*.jpeg
+/*.txt
+/*.pdf
+!/src/**
+!/public/**
+!/assets/**
 build_output.txt
-debug_output.txt
 debug_*.txt
 diagnosis_*.txt
-debug_*.ts
-debug_*.test.ts
-diagnose_*.ts
-verify_*.ts
-verify_*.test.ts
-android/build_output*.txt
-android/log_check.txt
-android/log_raw.txt
-*.png
-*.txt
-!src/**/*.png
-!public/**/*.png
 
-# Capacitor/Cordova artifacts
-/www
-/capacitor-cordova-android-plugins
-/capacitor-cordova-ios-plugins
-android/app/src/main/assets/public
-android/app/src/main/assets/capacitor.config.json
-android/capacitor.settings.gradle
-android/app/capacitor.build.gradle
-
-# Android local properties
-**/local.properties
-**/build/
-**/.gradle/
-**/.gradle_home/
-.gradle/
-.gradle_home/
-build/
-bin/
-gen/
-.gradletasknamecache
-gradle-app.setting
-**/build/
-**/.gradle/
-**/.navigation/
-**/captures/
-**/.cxx/
-**/*.apk
-**/*.aar
-**/*.aab
-**/*.dex
-**/*.class
-*.keystore
-*.jks
-google-services.json
-.externalNativeBuild
-.cxx
-local.properties
-.kotlin/
-CapacitorConfig.json
-capacitor.config.json.tmp
-captures/
-
-# Server artifacts
-server/yt-dlp.exe
-server/dist/
+# Project specific
 server/node_modules/
-server/output.txt
-server/*.log
-server/*.txt
-server/*-player-script.js
-server/src/services/*.js
+server/dist/
 server/out/
-server/manifest.txt
-# Temporary cloned repositories
+server/yt-dlp.exe
 temp_outertune/
 OuterTune/
-android/for reference only/
 src/assets/data/final_cleanup.cjs

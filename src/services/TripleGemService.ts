@@ -41,23 +41,10 @@ export const AVAILABLE_LANGUAGES = [
     { code: 'en', label: 'English' },
     { code: 'hi', label: 'Hindi (हिंदी)' },
     { code: 'mr', label: 'Marathi (मराठी)' },
-    { code: 'pa', label: 'Punjabi (ਪੰਜਾਬੀ)' }, // Placeholder label
-    { code: 'si', label: 'Sinhala (සිංහල)' },
-    { code: 'th', label: 'Thai (ไทย)' },
-    { code: 'my', label: 'Burmese (မြန်မာ)' },
-    { code: 'zh', label: 'Chinese (中文)' },
-    { code: 'ja', label: 'Japanese (日本語)' },
-    { code: 'ko', label: 'Korean (한국어)' },
-    { code: 'es', label: 'Spanish (Español)' },
-    { code: 'pt', label: 'Portuguese (Português)' },
-    { code: 'de', label: 'German (Deutsch)' },
-    { code: 'fr', label: 'French (Français)' }
+    { code: 'pa', label: 'Punjabi (ਪੰਜਾਬੀ)' }
 ];
 
 export const AVAILABLE_SCRIPTS = [
     { code: 'roman', label: 'Roman (Latin)' },
-    { code: 'devanagari', label: 'Devanagari (देवनागरी)' },
-    { code: 'sinhala', label: 'Sinhala (සිංහල)' },
-    { code: 'thai', label: 'Thai (ไทย)' },
-    { code: 'burmese', label: 'Burmese (မြန်မာ)' }
+    { code: 'devanagari', label: 'Devanagari (देवनागरी)' }
 ];

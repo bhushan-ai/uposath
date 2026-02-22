@@ -26,10 +26,7 @@ import './TripleGemPage.css';
 
 const SUPPORTED_SCRIPTS = [
     { code: 'roman', label: 'Roman (Default)' },
-    { code: 'devanagari', label: 'Devanagari (देवनागरी)' },
-    { code: 'sinhala', label: 'Sinhala (සිංහල)' },
-    { code: 'thai', label: 'Thai (ไทย)' },
-    { code: 'burmese', label: 'Burmese (မြန်မာ)' }
+    { code: 'devanagari', label: 'Devanagari (देवनागरी)' }
 ];
 
 const SUPPORTED_LANGUAGES = [
