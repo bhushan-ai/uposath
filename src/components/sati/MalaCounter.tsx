@@ -3,6 +3,7 @@ import { IonButton, IonIcon } from '@ionic/react';
 import { add, remove } from 'ionicons/icons';
 import { MalaService } from '../../services/MalaService';
 import { MalaEntry, SatiPreferences, PracticeType, PracticeStats } from '../../types/SatiTypes';
+import './MalaCounter.css';
 
 interface MalaCounterProps {
     practiceType?: PracticeType;
@@ -32,6 +33,7 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
     const [todaySessions, setTodaySessions] = useState<MalaEntry[]>([]);
     const [stats, setStats] = useState<PracticeStats | null>(null);
     const [isLogging, setIsLogging] = useState(false);
+    const [ripple, setRipple] = useState(false);
 
     // For active mode haptics
     useEffect(() => {
@@ -41,9 +43,6 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
 
         // Completion check with guard
         if (mode === 'active' && count >= target && onComplete) {
-            // We rely on the parent (MantraPracticePage) to handle the 
-            // state transition to 'completed' which will prevent 
-            // multiple triggers via props change.
             onComplete();
         }
     }, [count, mode, haptic, target, onComplete]);
@@ -53,7 +52,6 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
         const entries = await MalaService.getEntries();
         const allStats = await MalaService.getStats();
 
-        // Filter today's sessions for THIS type
         const todayStr = new Date().toISOString().split('T')[0];
         const todays = entries.filter(e =>
             e.timestamp.startsWith(todayStr) &&
@@ -65,7 +63,6 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
         setTodaySessions(todays);
         setTodayTotal(total);
 
-        // Set stats for THIS type
         if (allStats.byType && allStats.byType[practiceType]) {
             setStats(allStats.byType[practiceType]);
         }
@@ -97,132 +94,151 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
         await MalaService.saveEntry(newEntry);
         await loadData();
 
-        setBeadsInput(108); // Reset to default
+        setBeadsInput(108);
         setIsLogging(false);
     };
 
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+    const handleTap = () => {
+        if (!onIncrement) return;
+        setRipple(true);
+        setTimeout(() => setRipple(false), 350);
+        onIncrement();
+    };
+
     if (mode === 'active') {
         const progress = Math.min(100, (count / target) * 100);
+        const circumference = 2 * Math.PI * 126;
+        const dashOffset = circumference * (1 - progress / 100);
+        const isComplete = count >= target;
+
         return (
-            <div className="active-mala-counter" style={{ textAlign: 'center', width: '100%', padding: '20px 0' }}>
+            <div className="mala-active-wrapper">
                 <div
-                    onClick={onIncrement}
-                    style={{
-                        width: '240px',
-                        height: '240px',
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle at 35% 35%, #ffffff, #e5e7eb)',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 -10px 20px rgba(0,0,0,0.05)',
-                        margin: '0 auto 40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        border: '8px solid white',
-                        userSelect: 'none',
-                        WebkitTapHighlightColor: 'transparent'
-                    }}
+                    className={`mala-disc${ripple ? ' mala-disc--ripple' : ''}${isComplete ? ' mala-disc--complete' : ''}`}
+                    onClick={handleTap}
                 >
-                    <div style={{ fontSize: '4rem', fontWeight: '900', color: '#111827' }}>
-                        {count}
-                    </div>
-                    {/* Progress Ring */}
-                    <svg style={{ position: 'absolute', top: -14, left: -14, width: '268px', height: '268px', transform: 'rotate(-90deg)', pointerEvents: 'none' }}>
+                    {/* Outer SVG ring */}
+                    <svg className="mala-ring-svg" viewBox="0 0 268 268">
+                        {/* Track */}
                         <circle
                             cx="134" cy="134" r="126"
                             fill="transparent"
-                            stroke="rgba(0,0,0,0.05)"
-                            strokeWidth="12"
+                            stroke="rgba(255,198,112,0.08)"
+                            strokeWidth="10"
                         />
+                        {/* Progress */}
                         <circle
                             cx="134" cy="134" r="126"
                             fill="transparent"
-                            stroke="var(--color-accent-primary, #2563eb)"
-                            strokeWidth="12"
-                            strokeDasharray={2 * Math.PI * 126}
-                            strokeDashoffset={2 * Math.PI * 126 * (1 - progress / 100)}
+                            stroke={isComplete ? '#6bcf7f' : 'var(--color-accent-primary)'}
+                            strokeWidth="10"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={dashOffset}
                             strokeLinecap="round"
-                            style={{ transition: 'stroke-dashoffset 0.2s ease-out' }}
+                            className="mala-ring-progress"
+                            style={{
+                                filter: isComplete
+                                    ? 'drop-shadow(0 0 10px rgba(107,207,127,0.6))'
+                                    : 'drop-shadow(0 0 10px rgba(255,198,112,0.5))'
+                            }}
                         />
                     </svg>
+
+                    {/* Inner disc */}
+                    <div className="mala-disc-inner">
+                        <div className={`mala-count-number${isComplete ? ' mala-count-number--complete' : ''}`}>
+                            {isComplete ? '✓' : count}
+                        </div>
+                        {!isComplete && (
+                            <div className="mala-count-hint">tap</div>
+                        )}
+                    </div>
                 </div>
 
-                <div style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)', fontWeight: '700', letterSpacing: '0.05em' }}>
-                    TARGET: {target}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--color-text-tertiary)', marginTop: '8px' }}>
-                    Tap center to increment
+                <div className="mala-meta">
+                    <div className="mala-target-label">
+                        TARGET: <span className="mala-target-value">{target}</span>
+                    </div>
+                    <div className="mala-tap-hint">Tap center to increment</div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="mala-counter-logging" style={{ marginTop: '24px', padding: '20px', backgroundColor: 'var(--color-bg-card, #fff)', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-            <h4 style={{ margin: '0 0 16px', fontSize: '1rem', color: 'var(--color-text-primary)', fontWeight: 'bold' }}>
+        <div className="mala-log-card glass-card">
+            <h4 className="mala-log-title">
                 {capitalize(practiceType)} Mala Practice
             </h4>
 
             {stats && (
-                <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Streak: <strong>{stats.currentStreak} days</strong> 🔥</div>
-                    <div>Total: <strong>{stats.totalBeads.toLocaleString()}</strong></div>
+                <div className="mala-stats-row">
+                    <div className="mala-stat-badge">
+                        <span className="mala-stat-badge__icon">🔥</span>
+                        <span className="mala-stat-badge__value">{stats.currentStreak}</span>
+                        <span className="mala-stat-badge__label">day streak</span>
+                    </div>
+                    <div className="mala-stat-badge">
+                        <span className="mala-stat-badge__icon">📿</span>
+                        <span className="mala-stat-badge__value">{stats.totalBeads.toLocaleString()}</span>
+                        <span className="mala-stat-badge__label">total</span>
+                    </div>
                 </div>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-                <IonButton fill="outline" size="small" shape="round" onClick={() => adjustInput(-1)} style={{ '--border-radius': '12px' }}>
+            <div className="mala-stepper">
+                <button className="mala-stepper__btn" onClick={() => adjustInput(-1)}>
                     <IonIcon icon={remove} />
-                </IonButton>
+                </button>
 
-                <div style={{ fontSize: '1.4rem', fontWeight: '800', width: '70px', textAlign: 'center', color: 'var(--color-text-primary)', borderBottom: '2px solid var(--color-accent-primary, #2563eb)', paddingBottom: '4px' }}>
+                <div className="mala-stepper__value">
                     {beadsInput}
                 </div>
 
-                <IonButton fill="outline" size="small" shape="round" onClick={() => adjustInput(1)} style={{ '--border-radius': '12px' }}>
+                <button className="mala-stepper__btn" onClick={() => adjustInput(1)}>
                     <IonIcon icon={add} />
-                </IonButton>
+                </button>
 
-                <IonButton color="primary" onClick={logPractice} disabled={isLogging} style={{ flexGrow: 1, fontWeight: 'bold', height: '40px', '--border-radius': '12px' }}>
-                    {isLogging ? 'Logging...' : 'Log Practice'}
-                </IonButton>
+                <button
+                    className={`mala-log-btn${isLogging ? ' mala-log-btn--loading' : ''}`}
+                    onClick={logPractice}
+                    disabled={isLogging}
+                >
+                    {isLogging ? 'Logging…' : 'Log Practice'}
+                </button>
             </div>
 
             {prefs && prefs.quickButtons && (
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                <div className="mala-quick-btns">
                     {prefs.quickButtons.map(amount => (
-                        <IonButton
+                        <button
                             key={amount}
-                            size="small"
-                            fill="outline"
-                            color="medium"
+                            className="mala-quick-btn"
                             onClick={() => handleQuickAdd(amount)}
-                            style={{ '--border-radius': '8px', minWidth: '45px', height: '30px', fontSize: '0.85rem' }}
                         >
                             {amount}
-                        </IonButton>
+                        </button>
                     ))}
                 </div>
             )}
 
             {todaySessions.length > 0 && (
-                <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '16px' }}>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-tertiary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Today's Sessions</div>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                <div className="mala-session-list">
+                    <div className="mala-session-list__heading">Today's Sessions</div>
+                    <ul className="mala-session-list__items">
                         {todaySessions.map(session => (
-                            <li key={session.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '0.9rem' }}>
-                                <span style={{ color: 'var(--color-text-secondary)' }}>
+                            <li key={session.id} className="mala-session-item">
+                                <span className="mala-session-item__time">
                                     {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
-                                <span style={{ fontWeight: '700', color: 'var(--color-text-primary)' }}>
+                                <span className="mala-session-item__beads">
                                     {session.beads} beads
                                 </span>
                             </li>
                         ))}
-                        <li style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0', borderTop: '1px dashed rgba(0,0,0,0.1)', marginTop: '6px', fontWeight: 'bold', fontSize: '1rem', color: 'var(--color-text-primary)' }}>
+                        <li className="mala-session-item mala-session-item--total">
                             <span>Total Today</span>
                             <span>{todayTotal}</span>
                         </li>
@@ -230,8 +246,8 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
                 </div>
             )}
 
-            <div style={{ marginTop: '16px', textAlign: 'center' }}>
-                <IonButton fill="clear" size="small" routerLink="/sati/stats" style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--color-accent-primary)' }}>
+            <div className="mala-stats-link">
+                <IonButton fill="clear" size="small" routerLink="/sati/stats">
                     View Detailed Statistics →
                 </IonButton>
             </div>

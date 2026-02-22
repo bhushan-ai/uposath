@@ -1,0 +1,360 @@
+/* MalaCounter.css – Premium dark glass styles */
+
+/* ────────────────────────────────────────────
+   ACTIVE MODE — Circular Counter
+   ──────────────────────────────────────────── */
+.mala-active-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0 32px;
+    gap: 0;
+}
+
+.mala-disc {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-bottom: 28px;
+    /* tap feedback */
+    transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.mala-disc:active {
+    transform: scale(0.96);
+}
+
+.mala-disc--ripple {
+    animation: discTap 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes discTap {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(0.95);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.mala-disc--complete .mala-ring-progress {
+    stroke: #6bcf7f !important;
+}
+
+/* Inner dark glass face */
+.mala-disc-inner {
+    position: absolute;
+    inset: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%,
+            rgba(28, 28, 36, 0.98) 0%,
+            rgba(10, 10, 16, 1) 100%);
+    box-shadow:
+        inset 0 -6px 20px rgba(0, 0, 0, 0.5),
+        inset 0 2px 8px rgba(255, 255, 255, 0.04),
+        0 12px 40px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+/* The SVG ring — positioned over disc */
+.mala-ring-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    pointer-events: none;
+}
+
+.mala-ring-progress {
+    transition: stroke-dashoffset 0.2s ease-out;
+}
+
+/* Count number inside disk */
+.mala-count-number {
+    font-family: var(--font-family-display);
+    font-size: 4.5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--color-accent-primary);
+    filter: drop-shadow(0 0 18px rgba(255, 198, 112, 0.5));
+    letter-spacing: -0.04em;
+    transition: color 0.3s ease, filter 0.3s ease;
+}
+
+.mala-count-number--complete {
+    color: #6bcf7f;
+    filter: drop-shadow(0 0 18px rgba(107, 207, 127, 0.6));
+    font-size: 3.5rem;
+}
+
+.mala-count-hint {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+}
+
+/* Target / instruction text */
+.mala-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.mala-target-label {
+    font-family: var(--font-family-display);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.mala-target-value {
+    color: var(--color-accent-primary);
+}
+
+.mala-tap-hint {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.02em;
+}
+
+/* ────────────────────────────────────────────
+   LOGGING MODE — Glass Card
+   ──────────────────────────────────────────── */
+.mala-log-card {
+    margin-top: 24px;
+    padding: 24px 20px 16px;
+}
+
+.mala-log-title {
+    font-family: var(--font-family-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-align: center;
+    margin: 0 0 20px;
+    letter-spacing: 0.03em;
+}
+
+/* Stat badges row */
+.mala-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.mala-stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 198, 112, 0.07);
+    border: 1px solid rgba(255, 198, 112, 0.18);
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+}
+
+.mala-stat-badge__icon {
+    font-size: 0.9rem;
+}
+
+.mala-stat-badge__value {
+    font-family: var(--font-family-display);
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--color-accent-primary);
+}
+
+.mala-stat-badge__label {
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.02em;
+}
+
+/* Stepper row */
+.mala-stepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.mala-stepper__btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 198, 112, 0.08);
+    border: 1px solid rgba(255, 198, 112, 0.22);
+    color: var(--color-accent-primary);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.mala-stepper__btn:active {
+    background: rgba(255, 198, 112, 0.18);
+    transform: scale(0.92);
+}
+
+.mala-stepper__value {
+    flex: 1;
+    text-align: center;
+    font-family: var(--font-family-display);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    border-bottom: 2px solid var(--color-accent-primary);
+    padding-bottom: 4px;
+    letter-spacing: -0.02em;
+    filter: drop-shadow(0 0 8px rgba(255, 198, 112, 0.15));
+}
+
+.mala-log-btn {
+    min-width: 110px;
+    height: 44px;
+    border-radius: 14px;
+    background: var(--color-accent-primary);
+    color: var(--color-bg-primary);
+    font-family: var(--font-family-display);
+    font-weight: 800;
+    font-size: 0.88rem;
+    letter-spacing: 0.03em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 4px 20px rgba(255, 198, 112, 0.28);
+    flex-shrink: 0;
+}
+
+.mala-log-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(255, 198, 112, 0.15);
+}
+
+.mala-log-btn--loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Quick count buttons */
+.mala-quick-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.mala-quick-btn {
+    height: 34px;
+    min-width: 52px;
+    padding: 0 12px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+.mala-quick-btn:hover {
+    background: rgba(255, 198, 112, 0.09);
+    border-color: rgba(255, 198, 112, 0.3);
+    color: var(--color-accent-primary);
+}
+
+.mala-quick-btn:active {
+    transform: scale(0.93);
+}
+
+/* Today's sessions */
+.mala-session-list {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 16px;
+    margin-top: 16px;
+}
+
+.mala-session-list__heading {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+    margin-bottom: 12px;
+}
+
+.mala-session-list__items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mala-session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.9rem;
+}
+
+.mala-session-item__time {
+    color: var(--color-text-tertiary);
+}
+
+.mala-session-item__beads {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.mala-session-item--total {
+    border-top: 1px dashed rgba(255, 198, 112, 0.2);
+    border-bottom: none;
+    margin-top: 4px;
+    padding-top: 12px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--color-accent-primary);
+}
+
+/* Stats link */
+.mala-stats-link {
+    text-align: center;
+    margin-top: 12px;
+}
+
+.mala-stats-link ion-button {
+    --color: var(--color-accent-primary);
+    font-size: 0.82rem;
+    font-weight: 700;
+}

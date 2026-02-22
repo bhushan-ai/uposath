@@ -207,7 +207,7 @@ const MantraPracticePage: React.FC = () => {
                         </div>
 
                         {/* Mode Switcher */}
-                        <div style={{ padding: '0 20px 20px' }}>
+                        <div className="practice-segment-wrap">
                             <IonSegment value={practiceMode} onIonChange={e => setPracticeMode(e.detail.value as any)}>
                                 <IonSegmentButton value="interactive">
                                     <IonLabel>Interactive</IonLabel>
@@ -267,77 +267,79 @@ const MantraPracticePage: React.FC = () => {
                                 </div>
                             </>
                         ) : (
-                            <div className="manual-log-container" style={{ padding: '0 20px' }}>
-                                <div className="mala-counter-logging" style={{ padding: '20px', backgroundColor: 'var(--color-bg-card, #fff)', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                                    <h4 style={{ margin: '0 0 16px', fontSize: '1rem', color: 'var(--color-text-primary)', fontWeight: 'bold', textAlign: 'center' }}>
-                                        Log Beads
-                                    </h4>
+                            <div className="glass-card manual-log-card">
+                                <h4>Log Beads</h4>
 
-                                    {/* Stats Display */}
-                                    <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', fontSize: '0.9rem', color: 'var(--color-text-secondary)', justifyContent: 'center' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Streak: <strong>{mantra.stats.currentStreak} days</strong> 🔥</div>
-                                        <div>Total: <strong>{mantra.stats.totalReps.toLocaleString()}</strong></div>
+                                {/* Stats pills */}
+                                <div className="manual-stats-row">
+                                    <div className="manual-stat-pill">
+                                        Streak: <strong>{mantra.stats.currentStreak} days</strong> 🔥
                                     </div>
-
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-                                        <IonButton fill="outline" size="small" shape="round" onClick={() => setManualCount(Math.max(1, manualCount - 1))} style={{ '--border-radius': '12px' }}>
-                                            <IonIcon icon={remove} />
-                                        </IonButton>
-
-                                        <div style={{ fontSize: '1.4rem', fontWeight: '800', width: '70px', textAlign: 'center', color: 'var(--color-text-primary)', borderBottom: '2px solid var(--color-accent-primary, #2563eb)', paddingBottom: '4px' }}>
-                                            {manualCount}
-                                        </div>
-
-                                        <IonButton fill="outline" size="small" shape="round" onClick={() => setManualCount(manualCount + 1)} style={{ '--border-radius': '12px' }}>
-                                            <IonIcon icon={add} />
-                                        </IonButton>
-
-                                        <IonButton color="primary" onClick={handleManualLog} disabled={isLogging} style={{ flexGrow: 1, fontWeight: 'bold', height: '40px', '--border-radius': '12px' }}>
-                                            {isLogging ? 'Logging...' : 'Log Session'}
-                                        </IonButton>
+                                    <div className="manual-stat-pill">
+                                        Total: <strong>{mantra.stats.totalReps.toLocaleString()}</strong>
                                     </div>
-
-                                    {/* Quick Buttons */}
-                                    {prefs && prefs.quickButtons && (
-                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                                            {prefs.quickButtons.map(amount => (
-                                                <IonButton
-                                                    key={amount}
-                                                    size="small"
-                                                    fill="outline"
-                                                    color="medium"
-                                                    onClick={() => setManualCount(amount)}
-                                                    style={{ '--border-radius': '8px', minWidth: '45px', height: '30px', fontSize: '0.85rem' }}
-                                                >
-                                                    {amount}
-                                                </IonButton>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Today's Sessions */}
-                                    {todaySessions.length > 0 && (
-                                        <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '16px', marginTop: '10px' }}>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-tertiary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Today's Sessions</div>
-                                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                                {todaySessions.map(session => (
-                                                    <li key={session.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '0.9rem' }}>
-                                                        <span style={{ color: 'var(--color-text-secondary)' }}>
-                                                            {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
-                                                        <span style={{ fontWeight: '700', color: 'var(--color-text-primary)' }}>
-                                                            {session.reps} beads
-                                                        </span>
-                                                    </li>
-                                                ))}
-                                                <li style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0', borderTop: '1px dashed rgba(0,0,0,0.1)', marginTop: '6px', fontWeight: 'bold', fontSize: '1rem', color: 'var(--color-text-primary)' }}>
-                                                    <span>Total Today</span>
-                                                    <span>{todaySessions.reduce((sum, s) => sum + s.reps, 0)}</span>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    )}
                                 </div>
+
+                                {/* Bead stepper */}
+                                <div className="manual-stepper">
+                                    <button className="manual-stepper__btn" onClick={() => setManualCount(Math.max(1, manualCount - 1))}>
+                                        <IonIcon icon={remove} />
+                                    </button>
+
+                                    <div className="manual-stepper__value">
+                                        {manualCount}
+                                    </div>
+
+                                    <button className="manual-stepper__btn" onClick={() => setManualCount(manualCount + 1)}>
+                                        <IonIcon icon={add} />
+                                    </button>
+
+                                    <button
+                                        className={`manual-log-btn${isLogging ? ' manual-log-btn--loading' : ''}`}
+                                        onClick={handleManualLog}
+                                        disabled={isLogging}
+                                    >
+                                        {isLogging ? 'Logging…' : 'Log Session'}
+                                    </button>
+                                </div>
+
+                                {/* Quick Buttons */}
+                                {prefs && prefs.quickButtons && (
+                                    <div className="manual-quick-btns">
+                                        {prefs.quickButtons.map(amount => (
+                                            <button
+                                                key={amount}
+                                                className="manual-quick-btn"
+                                                onClick={() => setManualCount(amount)}
+                                            >
+                                                {amount}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Today's Sessions */}
+                                {todaySessions.length > 0 && (
+                                    <div className="manual-session-list">
+                                        <div className="manual-session-list__heading">Today's Sessions</div>
+                                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                            {todaySessions.map(session => (
+                                                <li key={session.id} className="manual-session-item">
+                                                    <span className="manual-session-item__time">
+                                                        {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                    <span className="manual-session-item__beads">
+                                                        {session.reps} beads
+                                                    </span>
+                                                </li>
+                                            ))}
+                                            <li className="manual-session-item manual-session-item--total">
+                                                <span>Total Today</span>
+                                                <span>{todaySessions.reduce((sum, s) => sum + s.reps, 0)}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </>

@@ -1,73 +1,305 @@
+/* MantraPracticePage.css — Premium Dark Glass */
+
 .practice-content {
     --background: var(--color-bg-primary);
+}
+
+/* ── Header section ── */
+.practice-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 24px 20px 8px;
     text-align: center;
 }
 
-.practice-header {
-    margin-top: 20px;
-    margin-bottom: 24px;
+.practice-icon {
+    font-size: 3.2rem;
+    filter: drop-shadow(0 4px 16px rgba(255, 198, 112, 0.3));
+    margin-bottom: 4px;
+    animation: iconFloat 4s ease-in-out infinite;
 }
 
-.practice-icon {
-    font-size: 3rem;
-    margin-bottom: 8px;
+@keyframes iconFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
 .practice-deity {
-    font-size: 1.2rem;
+    font-family: var(--font-family-display);
+    font-size: 1.15rem;
+    font-weight: 800;
     color: var(--color-accent-primary);
-    font-weight: 700;
-    margin: 0 0 4px;
+    margin: 0;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
+    filter: drop-shadow(0 0 8px rgba(255, 198, 112, 0.3));
 }
 
 .practice-name {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--color-text-secondary);
     font-weight: 500;
     margin: 0;
+    letter-spacing: 0.02em;
 }
 
+/* ── Segment switcher ── */
+.practice-segment-wrap {
+    padding: 0 20px 16px;
+}
+
+/* ── Mantra text block ── */
 .practice-mantra-text {
-    margin-bottom: 40px;
-    padding: 0 20px;
+    margin: 0 20px 28px;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-2xl);
+    text-align: center;
 }
 
 .practice-mantra-text .primary {
     font-family: 'Noto Serif', serif;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     font-weight: 600;
     color: var(--color-text-primary);
-    margin: 0 0 12px;
-    line-height: 1.4;
+    margin: 0 0 10px;
+    line-height: 1.45;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.08));
 }
 
 .practice-mantra-text .secondary {
     font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    color: var(--color-text-tertiary);
     font-style: italic;
     margin: 0;
 }
 
-.mala-container {
-    margin-bottom: 40px;
-    display: flex;
-    justify-content: center;
-}
-
+/* ── Timer ── */
 .timer-display {
-    font-family: monospace;
-    font-size: 1.2rem;
-    color: var(--color-text-tertiary);
-    margin-bottom: 32px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-accent-primary);
+    letter-spacing: 0.04em;
+    text-align: center;
+    margin-bottom: 28px;
+    filter: drop-shadow(0 0 8px rgba(255, 198, 112, 0.3));
 }
 
+/* ── Controls (pause/resume) ── */
 .controls {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    padding-bottom: 40px;
+    gap: 12px;
+    padding-bottom: 48px;
+}
+
+.controls ion-button[fill="outline"] {
+    --border-radius: 14px;
+    --border-color: rgba(255, 198, 112, 0.4);
+    --color: var(--color-accent-primary);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    min-width: 180px;
+    height: 48px;
+}
+
+.controls ion-button[fill="outline"]:active {
+    --background: rgba(255, 198, 112, 0.1);
+}
+
+/* ── Manual log wrapper ── */
+.manual-log-card {
+    margin: 0 20px 40px;
+    padding: 24px 20px;
+}
+
+.manual-log-card h4 {
+    font-family: var(--font-family-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-align: center;
+    margin: 0 0 20px;
+    letter-spacing: 0.03em;
+}
+
+/* Streak / total pills */
+.manual-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    font-size: 0.88rem;
+    color: var(--color-text-secondary);
+}
+
+.manual-stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 198, 112, 0.07);
+    border: 1px solid rgba(255, 198, 112, 0.18);
+    border-radius: var(--radius-full);
+    padding: 5px 14px;
+}
+
+.manual-stat-pill strong {
+    color: var(--color-accent-primary);
+    font-weight: 800;
+}
+
+/* Stepper row */
+.manual-stepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.manual-stepper__btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 198, 112, 0.08);
+    border: 1px solid rgba(255, 198, 112, 0.22);
+    color: var(--color-accent-primary);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.manual-stepper__btn:active {
+    background: rgba(255, 198, 112, 0.18);
+    transform: scale(0.92);
+}
+
+.manual-stepper__value {
+    flex: 1;
+    text-align: center;
+    font-family: var(--font-family-display);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    border-bottom: 2px solid var(--color-accent-primary);
+    padding-bottom: 4px;
+    letter-spacing: -0.02em;
+    filter: drop-shadow(0 0 8px rgba(255, 198, 112, 0.15));
+}
+
+.manual-log-btn {
+    height: 44px;
+    min-width: 120px;
+    border-radius: 14px;
+    background: var(--color-accent-primary);
+    color: var(--color-bg-primary);
+    font-family: var(--font-family-display);
+    font-weight: 800;
+    font-size: 0.88rem;
+    letter-spacing: 0.03em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 4px 20px rgba(255, 198, 112, 0.28);
+    flex-shrink: 0;
+}
+
+.manual-log-btn:active {
+    transform: scale(0.95);
+}
+
+.manual-log-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Quick buttons */
+.manual-quick-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.manual-quick-btn {
+    height: 34px;
+    min-width: 52px;
+    padding: 0 12px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+.manual-quick-btn:active {
+    background: rgba(255, 198, 112, 0.12);
+    border-color: rgba(255, 198, 112, 0.35);
+    color: var(--color-accent-primary);
+    transform: scale(0.93);
+}
+
+/* Today's sessions */
+.manual-session-list {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 16px;
+    margin-top: 16px;
+}
+
+.manual-session-list__heading {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+    margin-bottom: 12px;
+}
+
+.manual-session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.9rem;
+}
+
+.manual-session-item__time {
+    color: var(--color-text-tertiary);
+}
+
+.manual-session-item__beads {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.manual-session-item--total {
+    border-top: 1px dashed rgba(255, 198, 112, 0.2);
+    border-bottom: none;
+    margin-top: 4px;
+    padding-top: 12px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--color-accent-primary);
 }
