@@ -75,3 +75,6 @@ server/yt-dlp.exe
 temp_outertune/
 OuterTune/
 src/assets/data/final_cleanup.cjs
+test-*
+check-*
+src/services/poson.test.ts

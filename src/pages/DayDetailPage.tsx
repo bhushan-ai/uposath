@@ -121,11 +121,42 @@ const DayDetailPage: React.FC = () => {
 
 
                 {/* Header Info */}
-                <div className="text-center" style={{ marginBottom: '16px' }}>
-                    <h2 className="text-xl font-bold" style={{ color: 'var(--ion-color-primary)' }}>
+                <div className="text-center" style={{
+                    marginBottom: '28px',
+                    paddingTop: '12px'
+                }}>
+                    <div style={{
+                        fontSize: '0.7rem',
+                        fontWeight: '900',
+                        color: 'var(--color-text-tertiary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.2em',
+                        marginBottom: '8px',
+                        opacity: 0.8
+                    }}>
+                        {date.toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })}
+                    </div>
+                    <h2 className="text-3xl font-black" style={{
+                        color: 'var(--ion-color-primary)',
+                        lineHeight: '1',
+                        margin: '12px 0'
+                    }}>
                         {data.status.tithiName}
                     </h2>
-                    <p className="text-sm text-gray-500">{data.status.paksha} Paksha</p>
+                    <p className="text-xs" style={{
+                        color: 'var(--color-text-secondary)',
+                        fontWeight: '800',
+                        marginTop: '8px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        opacity: 0.7
+                    }}>
+                        {data.status.panchangam.masa.isAdhika ? 'Adhika ' : ''}{data.status.panchangam.masa.name} Masa • {data.status.paksha} Paksha
+                    </p>
 
                     {data.status.isUposatha ? (
                         <div style={{
@@ -316,6 +347,15 @@ const DayDetailPage: React.FC = () => {
                                             <span>⚖️</span> Paksha
                                         </div>
                                         <div style={{ fontWeight: '800', color: 'var(--color-text-primary)' }}>{data.status.paksha} Paksha</div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-tertiary)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase' }}>
+                                            <span>📅</span> Masa
+                                        </div>
+                                        <div style={{ fontWeight: '800', color: 'var(--color-text-primary)' }}>
+                                            {data.status.panchangam.masa.isAdhika ? 'Adhika ' : ''}{data.status.panchangam.masa.name}
+                                        </div>
                                     </div>
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

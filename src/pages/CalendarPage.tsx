@@ -143,13 +143,11 @@ const CalendarPage: React.FC = () => {
 
     const getMoonIcon = (status: UposathaStatus) => {
         if (status.isKshaya) return '🌙';
-        if (status.isUposatha) {
-            if (status.isFullMoon) return '🌕';
-            if (status.isNewMoon) return '🌑';
-            if (status.isChaturdashi) return '🌖';
-            return '🌗';
-        }
-        if (status.isOptional) return '○';
+        if (status.isFullMoon) return '🌕';
+        if (status.isNewMoon) return '🌑';
+        if (status.isChaturdashi) return '🌖';
+        if (status.isAshtami) return '🌗';
+        if (status.isOptional && status.isVridhi) return '○';
         return null;
     };
 
@@ -189,7 +187,7 @@ const CalendarPage: React.FC = () => {
                     return (
                         <div
                             key={i}
-                            className={`day-cell ${isToday ? 'today' : ''} ${isUpcomingUposatha ? 'uposatha-day' : ''} ${isToday && day.uposatha.isUposatha ? 'today-uposatha' : ''}`}
+                            className={`day-cell ${isToday ? 'today' : ''} ${isUpcomingUposatha ? 'uposatha-day' : ''} ${isToday && day.uposatha.isUposatha ? 'today-uposatha' : ''} glass-card`}
                             onClick={() => handleDayClick(day.date)}
                         >
                             <span className="day-number">{day.date.getDate()}</span>
@@ -288,16 +286,16 @@ const CalendarPage: React.FC = () => {
             <IonContent fullscreen className="calendar-container">
                 {viewMode === 'month' ? (
                     <>
-                        <div className="insight-card">
+                        <div className="insight-card glass-card">
                             <div className="insight-header">
                                 <span className="insight-masa">{todayData.p.masa.name} Masa</span>
-                                <span className="insight-tithi">{todayData.p.masa.index + 1}th Masa</span>
+                                <span className="insight-tithi">{todayData.p.masa.index + 1}th Month</span>
                             </div>
                             <div className="insight-tithi" style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
                                 <span>{todayData.p.tithi + 1} Tithi — {todayData.p.paksha} Paksha</span>
                                 <span style={{
                                     color: todayData.u.isUposatha ? 'var(--color-accent-primary)' : 'inherit',
-                                    fontWeight: todayData.u.isUposatha ? 'bold' : 'normal'
+                                    fontWeight: todayData.u.isUposatha ? '900' : 'bold'
                                 }}>
                                     {todayData.u.isUposatha
                                         ? `✨ ${todayData.u.paliLabel || 'Uposatha'}`
@@ -307,16 +305,21 @@ const CalendarPage: React.FC = () => {
                                 </span>
                             </div>
                             {todayData.u.isOptional && (
-                                <div style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '8px', lineHeight: '1.3' }}>
+                                <div style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '8px', lineHeight: '1.3', fontWeight: '500' }}>
                                     {todayData.u.isKshaya
                                         ? 'Note: Kshaya (Optional) — This tithi started and ended between sunrises, missing the standard calendar count.'
                                         : 'Note: Vridhi (Extended) — This tithi spans across two sunrises, making today an additional observance day.'}
                                 </div>
                             )}
                             {todayData.f && (
-                                <div className="insight-festival">
-                                    <span style={{ fontSize: '1.2rem' }}>☸️</span>
-                                    <span>{todayData.f.name}</span>
+                                <div className="insight-festival" style={{
+                                    background: `rgba(${getTraditionColors(Array.isArray(todayData.f) ? todayData.f[0].tradition : todayData.f.tradition).primaryRGB}, 0.15)`,
+                                    border: `1px solid rgba(${getTraditionColors(Array.isArray(todayData.f) ? todayData.f[0].tradition : todayData.f.tradition).primaryRGB}, 0.3)`
+                                }}>
+                                    <span style={{ fontSize: '1.25rem' }}>☸️</span>
+                                    <span style={{ color: getTraditionColors(Array.isArray(todayData.f) ? todayData.f[0].tradition : todayData.f.tradition).primary }}>
+                                        {Array.isArray(todayData.f) ? todayData.f.map(f => f.name).join(' & ') : todayData.f.name}
+                                    </span>
                                 </div>
                             )}
                         </div>

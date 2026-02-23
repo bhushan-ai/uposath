@@ -1,3 +1,12 @@
+/* Glassmorphism Core */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+}
+
 .calendar-container {
     --background: var(--color-bg-primary);
     padding-bottom: var(--space-2xl);
@@ -8,10 +17,6 @@
     margin: var(--space-md);
     padding: var(--space-lg);
     border-radius: var(--radius-xl);
-    background: var(--color-bg-card);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: var(--glass-backdrop);
-    -webkit-backdrop-filter: var(--glass-backdrop);
     position: relative;
     overflow: hidden;
     animation: fadeIn var(--transition-slow) ease-out;
@@ -33,32 +38,36 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-sm);
 }
 
 .insight-masa {
     font-family: var(--font-family-display);
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
+    font-size: 1.2rem;
+    font-weight: 900;
     color: var(--color-accent-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .insight-tithi {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    opacity: 0.8;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .insight-festival {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: var(--space-sm) var(--space-md);
-    background: rgba(255, 198, 112, 0.1);
+    gap: 12px;
+    padding: 12px 16px;
     border-radius: var(--radius-lg);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-accent-primary);
-    margin-top: var(--space-sm);
+    font-weight: 800;
+    margin-top: 12px;
+    font-size: 0.95rem;
+    box-shadow: var(--shadow-sm);
 }
 
 /* Calendar Grid */
@@ -71,12 +80,13 @@
 
 .weekday-header {
     text-align: center;
-    font-size: 0.65rem;
-    font-weight: var(--font-weight-bold);
+    font-size: 0.6rem;
+    font-weight: 900;
     color: var(--color-text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding-bottom: var(--space-xs);
+    letter-spacing: 0.15em;
+    padding-bottom: 8px;
+    opacity: 0.6;
 }
 
 .day-cell {
@@ -86,215 +96,108 @@
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--color-border);
     position: relative;
     transition: all var(--transition-base);
+    cursor: pointer;
 }
 
 .day-cell:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
     background: rgba(255, 255, 255, 0.05);
 }
 
-.day-cell.today {
-    border: 2px solid var(--color-accent-primary);
-    box-shadow: 0 0 15px rgba(255, 198, 112, 0.3);
-    background: rgba(255, 198, 112, 0.1);
-    font-weight: 800;
-}
-
-.day-cell.today::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 6px;
-    height: 6px;
-    background: var(--color-accent-primary);
-    border-radius: 50%;
-    box-shadow: 0 0 5px var(--color-accent-primary);
-}
-
 .day-cell.uposatha-day {
-    border: 1px solid rgba(255, 198, 112, 0.4);
-    background: rgba(255, 198, 112, 0.08);
-    position: relative;
-    z-index: 1;
-    animation: uposathaGlow 3s ease-in-out infinite;
-}
-
-/* Today + Uposatha Combined State */
-.day-cell.today-uposatha {
-    border: 2px solid var(--color-accent-primary);
-    background: linear-gradient(135deg, rgba(255, 198, 112, 0.15) 0%, rgba(255, 198, 112, 0.05) 100%);
-    animation: todayUposathaGlow 4s ease-in-out infinite;
-}
-
-@keyframes todayUposathaGlow {
-
-    0%,
-    100% {
-        box-shadow: 0 0 15px rgba(255, 198, 112, 0.4), inset 0 0 8px rgba(255, 198, 112, 0.2);
-    }
-
-    50% {
-        box-shadow: 0 0 35px rgba(255, 198, 112, 0.8), inset 0 0 20px rgba(255, 198, 112, 0.4);
-    }
-}
-
-@keyframes uposathaGlow {
-    0% {
-        box-shadow: 0 0 8px rgba(255, 198, 112, 0.2), inset 0 0 0px rgba(255, 198, 112, 0);
-        border-color: rgba(255, 198, 112, 0.4);
-    }
-
-    50% {
-        box-shadow: 0 0 30px rgba(255, 198, 112, 0.6), inset 0 0 12px rgba(255, 198, 112, 0.3);
-        border-color: rgba(255, 198, 112, 0.9);
-        background: rgba(255, 198, 112, 0.15);
-    }
-
-    100% {
-        box-shadow: 0 0 8px rgba(255, 198, 112, 0.2), inset 0 0 0px rgba(255, 198, 112, 0);
-        border-color: rgba(255, 198, 112, 0.4);
-    }
-}
-
-.day-number {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    z-index: 1;
+    border-color: rgba(255, 198, 112, 0.3);
+    background: rgba(255, 198, 112, 0.04);
 }
 
 /* Indicators */
 .moon-indicator {
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1;
     margin-top: 2px;
 }
 
 .moon-optional {
     color: var(--color-accent-primary);
-    font-weight: 800;
+    font-weight: 900;
+    font-size: 1rem;
 }
 
 .festival-indicator {
     position: absolute;
-    bottom: 4px;
-    width: 4px;
-    height: 4px;
+    bottom: 6px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
-/* Legend Styling */
 /* Legend Styling */
 .calendar-legend {
-    margin: var(--space-xs);
-    padding: var(--space-md);
-    border-radius: var(--radius-xl);
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--color-border);
+    margin: var(--space-md);
+    padding: 24px;
+    border-radius: var(--radius-2xl);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
-}
-
-.legend-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    gap: 24px;
 }
 
 .legend-title {
     font-family: var(--font-family-display);
-    font-size: 0.6rem;
-    font-weight: 800;
+    font-size: 0.7rem;
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     color: var(--color-text-tertiary);
-    margin-bottom: 2px;
-    padding-bottom: 2px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    opacity: 0.8;
 }
 
 .legend-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px 12px;
+    gap: 12px 16px;
 }
 
 .traditions-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 16px;
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.65rem;
+    gap: 8px;
+    font-size: 0.7rem;
     color: var(--color-text-secondary);
-    font-weight: 500;
+    font-weight: 700;
 }
 
-.legend-item span:first-child:not(.tradition-dot) {
-    font-size: 0.8rem;
-    line-height: 1;
-}
-
-/* Tradition Dots */
-.tradition-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.dot-theravada {
-    background: #FF9933;
-    box-shadow: 0 0 4px rgba(255, 153, 51, 0.4);
-}
-
-.dot-mahayana {
-    background: #E34234;
-    box-shadow: 0 0 4px rgba(227, 66, 52, 0.4);
-}
-
-.dot-vajrayana {
-    background: #1E3A5F;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Liturgical Meanings Section */
 /* Liturgical Meanings Section */
 .liturgical-meanings {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--radius-lg);
-    padding: 8px 12px;
+    border-radius: var(--radius-xl);
+    padding: 16px;
     border: 1px solid rgba(255, 255, 255, 0.03);
-    margin-top: 2px;
-}
-
-.liturgical-meanings .legend-title {
-    border-bottom: none;
-    margin-bottom: 4px;
-    color: var(--color-accent-primary);
-    opacity: 0.9;
 }
 
 .liturgical-item {
     display: flex;
-    gap: 6px;
+    gap: 10px;
     align-items: flex-start;
-    font-size: 0.6rem;
-    line-height: 1.4;
+    font-size: 0.7rem;
+    line-height: 1.6;
     color: var(--color-text-secondary);
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+    font-weight: 500;
 }
 
 .liturgical-item:last-child {
@@ -303,14 +206,13 @@
 
 .liturgical-item strong {
     color: var(--color-text-primary);
-    font-weight: 700;
+    font-weight: 900;
 }
 
 .bullet {
     color: var(--color-accent-primary);
-    font-size: 0.8em;
-    line-height: 1.4;
-    margin-top: 0;
+    font-size: 1.2em;
+    line-height: 1;
 }
 
 /* Header styling overhaul */
@@ -321,58 +223,36 @@
 
 .calendar-toolbar {
     --background: transparent;
-    --padding-top: 8px;
+    --padding-top: 12px;
     --padding-bottom: 8px;
 }
 
 .header-date {
     font-family: var(--font-family-display);
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 800;
     color: var(--color-accent-primary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    display: inline-flex;
-    align-items: center;
 }
 
 .header-location-bar {
-    padding: 0 16px 8px;
-    background: transparent;
+    padding: 0 20px 12px;
 }
 
 .location-info {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.7rem;
+    gap: 6px;
+    font-size: 0.75rem;
     color: var(--color-text-tertiary);
-    opacity: 0.8;
-}
-
-.location-info ion-icon {
-    font-size: 0.8rem;
-}
-
-/* Header controls refine */
-ion-toolbar ion-button {
-    --padding-start: 8px;
-    --padding-end: 8px;
-}
-
-ion-toolbar ion-button ion-icon {
-    font-size: 1.2rem;
-    color: var(--color-accent-primary);
-}
-
-.calendar-header-wrapper ion-toolbar ion-buttons[slot="end"] {
-    margin-right: 8px;
+    font-weight: 700;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(8px);
     }
 
     to {

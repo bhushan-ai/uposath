@@ -123,18 +123,21 @@
 
   /* --- Tradition Color Schemes --- */
   --color-theravada-primary: #FF9933;
+  --color-theravada-primary-rgb: 255, 153, 51;
   --color-theravada-secondary: #A0522D;
   --color-theravada-accent: #DAA520;
   --color-theravada-bg: rgba(255, 153, 51, 0.06);
   --color-theravada-text: #f8f0e0;
 
   --color-mahayana-primary: #E34234;
+  --color-mahayana-primary-rgb: 227, 66, 52;
   --color-mahayana-secondary: #FFD700;
   --color-mahayana-accent: #00A86B;
   --color-mahayana-bg: rgba(227, 66, 52, 0.06);
   --color-mahayana-text: #f8e8e6;
 
   --color-vajrayana-primary: #6B8FBF;
+  --color-vajrayana-primary-rgb: 107, 143, 191;
   --color-vajrayana-secondary: #C44D34;
   --color-vajrayana-accent: #C9B037;
   --color-vajrayana-bg: rgba(107, 143, 191, 0.06);

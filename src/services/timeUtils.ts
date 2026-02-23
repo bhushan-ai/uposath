@@ -89,7 +89,7 @@ export const SANSKRIT_WEEKDAYS = [
 export function formatSanskritDate(date: Date): string {
     const day = date.getDate();
     const weekday = SANSKRIT_WEEKDAYS[date.getDay()];
-    return `${day} ${weekday}`;
+    return `${day}  ${weekday}`;
 }
 
 /**

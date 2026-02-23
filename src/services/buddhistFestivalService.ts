@@ -60,7 +60,10 @@ export interface FestivalMatch {
 const MASA_MAP: Record<string, number> = {
     'Chaitra': 0, 'Vaiśākha': 1, 'Jyeṣṭha': 2, 'Āṣāḍha': 3,
     'Śrāvaṇa': 4, 'Bhādrapada': 5, 'Āśvina': 6, 'Kārttika': 7,
-    'Mārgaśīrṣa': 8, 'Pauṣa': 9, 'Māgha': 10, 'Phālguna': 11
+    'Mārgaśīrṣa': 8, 'Pauṣa': 9, 'Māgha': 10, 'Phālguna': 11,
+    'Poson': 2,
+    'Nikini': 4,
+    'Binara': 5,
 };
 
 function parseTithi(tithiStr: string): number | number[] {
@@ -87,11 +90,10 @@ const RAW_THERAVADA_FESTIVALS = [
     { name: "Vesak", lunar_day: "Purnima", masa: "Vaiśākha", desc: "Buddha's Birth, Enlightenment, Parinirvana", region: "Global" },
     { name: "Āsāḷha Pūjā", lunar_day: "Purnima", masa: "Āṣāḍha", desc: "First Sermon (Dhammacakka Day)", region: "Thailand, Myanmar, Sri Lanka" },
     { name: "Pavāraṇā", lunar_day: "Purnima", masa: "Āśvina", desc: "End of Vassa (Rains Retreat)", region: "Theravada Countries" },
-    { name: "Abhidhamma Day", lunar_day: "Purnima", masa: "Āśvina", desc: "Buddha taught Abhidhamma in Tavatimsa", region: "Myanmar" },
     { name: "Madhu Pūrṇimā", lunar_day: "Purnima", masa: "Bhādrapada", desc: "Honey Full Moon — Parileyyaka Forest", region: "Bangladesh, India, Thailand" },
     { name: "Poson Poya", lunar_day: "Purnima", masa: "Jyeṣṭha", desc: "Arrival of Buddhism in Sri Lanka", region: "Sri Lanka" },
-    { name: "Esala Poya", lunar_day: "Purnima", masa: "Āṣāḍha", desc: "Celebration of First Sermon", region: "Sri Lanka" },
-    { name: "Loy Krathong", lunar_day: "Purnima", masa: "Kārttika", desc: "Lantern Festival — Releasing karma", region: "Thailand" },
+    { name: "Kathina", lunar_day: "Purnima", masa: "Kārttika", desc: "Robe offering month starts", region: "Global" },
+
     // Additional Purnima-based entries for months without a named festival
     { name: "Pausha Purnima", lunar_day: "Purnima", masa: "Pauṣa", desc: "Kassapa brothers' conversion; First visit to Lanka", region: "India, Sri Lanka" },
     { name: "Phālguṇa Purnima", lunar_day: "Purnima", masa: "Phālguna", desc: "Buddha's journey to Kapilavatthu with 20,000 Arahants", region: "India, Nepal" },
@@ -107,10 +109,15 @@ const RAW_THERAVADA_FESTIVALS = [
 
 const THERAVADA_FESTIVALS: BuddhistFestival[] = RAW_THERAVADA_FESTIVALS.map(f => {
     const masaIndex = MASA_MAP[f.masa];
-    const purnimaData = getTheravadaPurnimaEvents(masaIndex);
+    const isPurnima = f.lunar_day === 'Purnima';
+
+    const purnimaData = isPurnima
+        ? getTheravadaPurnimaEvents(masaIndex)
+        : undefined;
+
     const paliRefs = purnimaData?.keyEvents
-        .map(e => e.paliReference)
-        .filter((ref): ref is string => !!ref) ?? [];
+        ?.map(e => e.paliReference)
+        ?.filter((ref): ref is string => !!ref) ?? [];
 
     return {
         id: f.name.toLowerCase().replace(/\s+/g, '_'),
@@ -120,8 +127,8 @@ const THERAVADA_FESTIVALS: BuddhistFestival[] = RAW_THERAVADA_FESTIVALS.map(f =>
         description: f.desc,
         tradition: 'Theravada' as BuddhistTradition,
         region: f.region,
-        events: purnimaData?.keyEvents,
-        alsoKnownAs: purnimaData?.alsoKnownAs,
+        events: isPurnima ? purnimaData?.keyEvents : undefined,
+        alsoKnownAs: isPurnima ? purnimaData?.alsoKnownAs : undefined,
         paliReferences: paliRefs.length > 0 ? paliRefs : undefined,
     };
 });
@@ -228,33 +235,37 @@ function checkVijayadashami(
     return null;
 }
 
-function checkTheravadaFestival(
+function checkAllTheravadaFestivals(
     date: Date,
     observer: Observer,
     panchangam?: Panchangam
-): BuddhistFestival | null {
+): BuddhistFestival[] {
     const p = panchangam ?? getPanchangam(date, observer);
 
-    // 1. Check fixed Gregorian date observances
     const gMonth = date.getMonth() + 1;
     const gDay = date.getDate();
     const fixedMatch = FIXED_DATE_FESTIVALS.find(f =>
         f.fixedMonth === gMonth && f.fixedDay === gDay
     );
-    if (fixedMatch) return fixedMatch;
+    if (fixedMatch) return [fixedMatch];
 
-    // 2. Check Ashoka Vijayadashami / Dhamma Diksha (separate tithi logic)
     const vijayadashami = checkVijayadashami(date, observer, p);
-    if (vijayadashami) return vijayadashami;
+    if (vijayadashami) return [vijayadashami];
 
-    // 3. Standard masa/tithi matching
-    return THERAVADA_FESTIVALS.find(f => {
+    return THERAVADA_FESTIVALS.filter(f => {
         if (f.masaIndex !== p.masa.index) return false;
-        if (Array.isArray(f.tithiIndex)) {
-            return f.tithiIndex.includes(p.tithi);
-        }
+        if (p.masa.isAdhika) return false; // Skip intercalary months for standard festivals
+        if (Array.isArray(f.tithiIndex)) return f.tithiIndex.includes(p.tithi);
         return f.tithiIndex === p.tithi;
-    }) ?? null;
+    });
+}
+
+function checkTheravadaFestival(
+    date: Date,
+    observer: Observer,
+    panchangam?: Panchangam
+): BuddhistFestival | null {
+    return checkAllTheravadaFestivals(date, observer, panchangam)[0] ?? null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -501,7 +512,7 @@ const VAJRAYANA_FESTIVAL_DEFS: VajrayanaFestivalDef[] = [
     },
     {
         id: 'lhabab_duchen', name: "Lhabab Düchen",
-        description: "Buddha's descent from Tushita heaven after teaching his mother",
+        description: "Buddha's descent from Trayastriṃśa (Heaven of the 33) after teaching his mother — called 'Tushita' in Tibetan tradition",
         region: "Tibet, Himalaya",
         tibetanMonth: 9, tibetanDay: 22,
         dates: {
@@ -596,8 +607,8 @@ export function checkAllFestivals(
 ): BuddhistFestival[] {
     const results: BuddhistFestival[] = [];
 
-    const theravada = checkTheravadaFestival(date, observer, panchangam);
-    if (theravada) results.push(theravada);
+    const theravadas = checkAllTheravadaFestivals(date, observer, panchangam);
+    results.push(...theravadas);
 
     const vajrayana = checkVajrayanaFestival(date);
     if (vajrayana) results.push(vajrayana);
@@ -664,17 +675,17 @@ export async function getUpcomingFestivals(
         // All traditions for this date
         const allFestivals = checkAllFestivals(current, observer, p);
         for (const fest of allFestivals) {
-            const key = fest.id + current.toISOString().split('T')[0];
-            if (!seenIds.has(key)) {
-                seenIds.add(key);
-                results.push({
-                    festival: fest,
-                    date: new Date(current),
-                    daysRemaining: Math.max(0, Math.ceil(
-                        (current.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-                    )),
-                });
-            }
+            const tithiKey = `${fest.id}-${current.getFullYear()}-${p.masa.index}-${Array.isArray(fest.tithiIndex) ? fest.tithiIndex.join(',') : fest.tithiIndex}`;
+            if (seenIds.has(tithiKey)) continue;
+            seenIds.add(tithiKey);
+
+            results.push({
+                festival: fest,
+                date: new Date(current),
+                daysRemaining: Math.max(0, Math.ceil(
+                    (current.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+                )),
+            });
         }
 
         current.setDate(current.getDate() + 1);
@@ -715,6 +726,7 @@ export function getTraditionColors(tradition: BuddhistTradition) {
     const lower = tradition.toLowerCase();
     return {
         primary: `var(--color-${lower}-primary)`,
+        primaryRGB: `var(--color-${lower}-primary-rgb)`,
         secondary: `var(--color-${lower}-secondary)`,
         accent: `var(--color-${lower}-accent)`,
         background: `var(--color-${lower}-bg)`,
