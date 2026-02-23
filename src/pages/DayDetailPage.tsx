@@ -455,7 +455,7 @@ const DayDetailPage: React.FC = () => {
                                         <div>
                                             <h5 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: '800', color: 'var(--color-text-primary)' }}>Kshaya <small style={{ fontWeight: '500', opacity: 0.5 }}>(Optional Tithi)</small></h5>
                                             <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5', fontWeight: '500' }}>
-                                                Occurs when a lunar day begins and ends between sunrises. It's missing from standard count but valid for practice.
+                                                Occurs when a Tithi starts after one sunrise and ends before the next. It's missing from standard count but valid for practice.
                                             </p>
                                         </div>
                                     </div>
@@ -464,7 +464,7 @@ const DayDetailPage: React.FC = () => {
                                         <div>
                                             <h5 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: '800', color: 'var(--color-text-primary)' }}>Vridhi <small style={{ fontWeight: '500', opacity: 0.5 }}>(Extended Tithi)</small></h5>
                                             <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5', fontWeight: '500' }}>
-                                                Occurs when a lunar day spans across two sunrises, leading to a consecutive observance.
+                                                Tithi spans two sunrises. Counted twice (primary + extended). Skip, Do not Observe Uposatha.
                                             </p>
                                         </div>
                                     </div>

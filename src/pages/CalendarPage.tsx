@@ -337,6 +337,10 @@ const CalendarPage: React.FC = () => {
                         )}
 
                         {renderMonthGrid()}
+                        <div style={{ padding: '16px', marginTop: '-8px', marginBottom: '12px', fontSize: '0.75rem', opacity: 0.6, fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                            <IonIcon icon={todayOutline} style={{ fontSize: '0.9rem', color: 'var(--color-accent-primary)' }} />
+                            <span>Note: Tap a day with🌙🌕🌗🌖🌑 to record your Uposatha observance.</span>
+                        </div>
                     </>
                 ) : (
                     <YearView year={currentDate.getFullYear()} observer={observer} />
@@ -377,7 +381,7 @@ const CalendarPage: React.FC = () => {
                         <div className="legend-title">Liturgical Meanings</div>
                         <div className="liturgical-item">
                             <span className="bullet">•</span>
-                            <span><strong>Kshaya:</strong> Occurs when a Tithi starts after one sunrise and ends before the next.</span>
+                            <span><strong>Kshaya:</strong>  Occurs when a Tithi starts after one sunrise and ends before the next. It's missing from standard count but valid for practice.</span>
                         </div>
                         <div className="liturgical-item">
                             <span className="bullet">•</span>
