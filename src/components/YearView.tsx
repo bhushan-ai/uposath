@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { IonList, IonItem, IonLabel, IonNote, IonIcon, IonItemDivider } from '@ionic/react';
 import { moon } from 'ionicons/icons';
 import { getYearUposathaDays, type UposathaDay, type UposathaStatus } from '../services/uposathaCalculator';
@@ -53,10 +53,32 @@ const YearView: React.FC<YearViewProps> = ({ year, observer }) => {
         return grouped;
     }, [year, observer]);
 
+    const groupRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    useEffect(() => {
+        const today = new Date();
+        const currentMonthName = today.toLocaleString('default', { month: 'long' });
+
+        const currentGroupIndex = uposathaDays.findIndex(g => g.gregorianMonth === currentMonthName);
+
+        if (currentGroupIndex !== -1 && groupRefs.current[currentGroupIndex]) {
+            setTimeout(() => {
+                groupRefs.current[currentGroupIndex]?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        }
+    }, [uposathaDays]);
+
     return (
         <IonList className="year-view-list" lines="none">
             {uposathaDays.map((group, groupIdx) => (
-                <div key={groupIdx} className="year-month-group">
+                <div
+                    key={groupIdx}
+                    className="year-month-group"
+                    ref={el => { groupRefs.current[groupIdx] = el; }}
+                >
                     <div className="year-month-card glass-card">
                         <div className="month-card-accent" />
                         <div className="month-card-content">

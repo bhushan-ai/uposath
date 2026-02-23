@@ -147,8 +147,7 @@
 
 .year-moon-icon.phase-full-moon {
     filter: drop-shadow(0 0 15px rgba(255, 198, 112, 0.4));
-    transform: scale(1.1);
-    animation: amberGlow 4s infinite ease-in-out;
+    animation: premiumShine 4s infinite ease-in-out;
 }
 
 .year-moon-icon.phase-new-moon {
@@ -158,5 +157,5 @@
 .year-moon-icon.phase-chaturdashi,
 .year-moon-icon.phase-ashtami {
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
-    animation: silverGlow 5s infinite ease-in-out;
+    animation: premiumShine 5s infinite ease-in-out;
 }

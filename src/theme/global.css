@@ -426,12 +426,36 @@ ion-tab-button.tab-selected ion-label {
     }
 }
 
+@keyframes premiumShine {
+
+    0%,
+    100% {
+        filter: brightness(1) drop-shadow(0 0 5px rgba(255, 198, 112, 0.2));
+        border-color: rgba(255, 198, 112, 0.2);
+    }
+
+    50% {
+        filter: brightness(1.2) drop-shadow(0 0 15px rgba(255, 198, 112, 0.6));
+        border-color: rgba(255, 198, 112, 0.8);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-150%) skewX(-25deg);
+    }
+
+    100% {
+        transform: translateX(150%) skewX(-25deg);
+    }
+}
+
 .celestial-amber {
-    animation: amberGlow 4s infinite ease-in-out;
+    animation: premiumShine 4s infinite ease-in-out;
 }
 
 .celestial-silver {
-    animation: silverGlow 4s infinite ease-in-out;
+    animation: premiumShine 5s infinite ease-in-out;
 }
 
 /* --- Global Premium Icon Wrapper --- */
