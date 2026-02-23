@@ -107,7 +107,7 @@
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    margin-bottom: var(--space-sm);
+    margin-bottom: 12px;
     padding-left: 4px;
     transition: color 0.3s ease;
 }
@@ -123,15 +123,26 @@
     --background: rgba(0, 0, 0, 0.2);
     --color: var(--color-text-primary);
     --placeholder-color: rgba(255, 255, 255, 0.2);
-    --padding-start: var(--space-md);
-    --padding-end: var(--space-md);
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 14px;
+    --padding-bottom: 14px;
     --border-radius: var(--radius-lg);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
     background: rgba(0, 0, 0, 0.2);
-    min-height: 52px;
+    min-height: 56px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Ensure placeholder is properly positioned and visible */
+.custom-input input,
+.custom-textarea textarea {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 .custom-input:focus-within,

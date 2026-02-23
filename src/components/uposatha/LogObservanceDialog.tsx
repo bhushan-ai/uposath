@@ -122,18 +122,18 @@ const LogObservanceDialog: React.FC<LogObservanceDialogProps> = ({
             style={{ '--background': 'transparent', '--border-radius': '24px' }}
             className="glass-modal"
         >
-            <IonHeader className="ion-no-border">
-                <IonToolbar style={{ '--background': 'transparent', padding: '12px 0' }}>
+            <IonHeader className="ion-no-border" style={{ background: 'var(--glass-bg)', backdropFilter: 'var(--glass-backdrop)', borderBottom: '1px solid var(--glass-border)' }}>
+                <IonToolbar style={{ '--background': 'transparent', paddingTop: 'calc(var(--ion-safe-area-top) + 10px)', paddingBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
                         <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '900', color: 'var(--color-text-primary)' }}>Log Day</h3>
                         <IonButtons>
-                            {existingRecord && onDelete && (
+                            {existingRecord && (
                                 <IonButton onClick={handleDelete} color="danger" style={{ marginRight: '8px' }}>
                                     <IonIcon icon={trashOutline} slot="icon-only" />
                                 </IonButton>
                             )}
-                            <IonButton onClick={onClose} color="medium" style={{ fontWeight: '600' }}>CANCEL</IonButton>
-                            <IonButton onClick={handleSave} style={{ fontWeight: '800', '--color': getStatusColor(status) }}>SAVE</IonButton>
+                            <IonButton onClick={onClose} color="medium" style={{ fontWeight: '600', fontSize: '0.8rem' }}>CANCEL</IonButton>
+                            <IonButton onClick={handleSave} style={{ fontWeight: '900', fontSize: '0.8rem', '--color': getStatusColor(status) }}>SAVE</IonButton>
                         </IonButtons>
                     </div>
                 </IonToolbar>
