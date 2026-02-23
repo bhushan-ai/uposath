@@ -1,5 +1,8 @@
-
 import React, { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { version } from '../../package.json';
+import UpdateService, { ReleaseInfo } from '../services/UpdateService';
+import UpdateDialog from '../components/UpdateDialog';
 import {
     IonContent,
     IonHeader,
@@ -13,7 +16,9 @@ import {
     IonSelect,
     IonSelectOption,
     IonIcon,
-    useIonAlert
+    useIonAlert,
+    useIonToast,
+    IonSpinner
 } from '@ionic/react';
 import { Preferences } from '@capacitor/preferences';
 import { getSavedLocation, saveLocation, type SavedLocation } from '../services/locationManager';
@@ -76,7 +81,8 @@ import {
     sparklesOutline,
     calendarOutline,
     cloudUploadOutline,
-    cloudDownloadOutline
+    cloudDownloadOutline,
+    refreshOutline
 } from 'ionicons/icons';
 
 const SettingsPage: React.FC = () => {
@@ -95,6 +101,11 @@ const SettingsPage: React.FC = () => {
     const [filteredCities, setFilteredCities] = useState<SavedLocation[]>([]);
     const [backupLoading, setBackupLoading] = useState(false);
     const [restoreLoading, setRestoreLoading] = useState(false);
+
+    // Update State
+    const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+    const [updateRelease, setUpdateRelease] = useState<ReleaseInfo | null>(null);
+    const [presentToast] = useIonToast();
 
     useIonViewWillEnter(() => {
         loadSettings();
@@ -377,6 +388,7 @@ const SettingsPage: React.FC = () => {
     };
 
     const handleRestoreBackup = async () => {
+        // ... (existing restore backup omitted for brevity in match target)
         setRestoreLoading(true);
         try {
             const payload = await BackupRestoreService.importFromFile();
@@ -434,6 +446,33 @@ const SettingsPage: React.FC = () => {
             }
         } finally {
             setRestoreLoading(false);
+        }
+    };
+
+    const handleCheckForUpdate = async () => {
+        if (!Capacitor.isNativePlatform()) {
+            presentToast({
+                message: "Updates are only handled on Android devices.",
+                duration: 2000,
+                position: 'bottom',
+                color: 'warning',
+            });
+            return;
+        }
+
+        setIsCheckingUpdate(true);
+        const release = await UpdateService.checkForUpdate();
+        setIsCheckingUpdate(false);
+
+        if (release) {
+            setUpdateRelease(release);
+        } else {
+            presentToast({
+                message: "You're on the latest version",
+                duration: 2000,
+                position: 'bottom',
+                color: 'dark',
+            });
         }
     };
 
@@ -713,19 +752,40 @@ const SettingsPage: React.FC = () => {
                 {/* About Section */}
                 <div className="settings-section">
                     <div className="settings-section-title">About</div>
-                    <div className="glass-card settings-card" style={{ padding: '20px' }}>
-                        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                            <div className="icon-wrapper icon-wrapper--medium icon-wrapper--secondary">
-                                <IonIcon icon={informationCircleOutline} />
+                    <div className="glass-card settings-card">
+                        <div style={{ padding: '20px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                                <div className="icon-wrapper icon-wrapper--medium icon-wrapper--secondary">
+                                    <IonIcon icon={informationCircleOutline} />
+                                </div>
+                                <div className="settings-item-label">
+                                    <h2 style={{ fontSize: '1rem', marginBottom: '8px' }}>Uposatha App</h2>
+                                    <p style={{ fontSize: '0.85rem' }}>
+                                        A spiritual companion for the traditional Buddhist calendar, featuring astronomical Uposatha calculations and Sati meditation tracking.
+                                    </p>
+                                    <p style={{ fontSize: '0.75rem', marginTop: '12px', fontStyle: 'italic' }}>
+                                        Dhammapada texts sourced from public domain project Gutenberg.
+                                    </p>
+                                </div>
                             </div>
-                            <div className="settings-item-label">
-                                <h2 style={{ fontSize: '1rem', marginBottom: '8px' }}>Uposatha App</h2>
-                                <p style={{ fontSize: '0.85rem' }}>
-                                    A spiritual companion for the traditional Buddhist calendar, featuring astronomical Uposatha calculations and Sati meditation tracking.
-                                </p>
-                                <p style={{ fontSize: '0.75rem', marginTop: '12px', fontStyle: 'italic' }}>
-                                    Dhammapada texts sourced from public domain project Gutenberg.
-                                </p>
+                        </div>
+
+                        <div
+                            className={`settings-item clickable ${isCheckingUpdate ? 'disabled' : ''}`}
+                            onClick={!isCheckingUpdate ? handleCheckForUpdate : undefined}
+                        >
+                            <div className="icon-wrapper icon-wrapper--medium settings-item-icon" style={{ color: '#FCD34D', background: 'rgba(252, 211, 77, 0.1)', borderColor: 'rgba(252, 211, 77, 0.25)' }}>
+                                <IonIcon icon={refreshOutline} />
+                            </div>
+                            <div className="settings-item-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                <div>
+                                    <h2>Check for Update</h2>
+                                    <p>See if a new version is available.</p>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    {isCheckingUpdate ? <IonSpinner name="crescent" style={{ width: '20px', height: '20px' }} /> : null}
+                                    <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>v{version}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -736,6 +796,19 @@ const SettingsPage: React.FC = () => {
                     <p>Designed for reflection and awareness.</p>
                 </div>
             </IonContent>
+
+            {updateRelease && (
+                <UpdateDialog
+                    version={updateRelease.version}
+                    changelog={updateRelease.changelog}
+                    onUpdate={async () => {
+                        if (updateRelease.apkUrl) {
+                            await UpdateService.openDownload(updateRelease.apkUrl, updateRelease.version);
+                        }
+                    }}
+                    onDismiss={() => setUpdateRelease(null)}
+                />
+            )}
         </IonPage>
     );
 };

@@ -6,6 +6,10 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization'
 }
 
+// Read version from package.json
+def versionFile = file('../../package.json')
+def packageJsonVersion = (versionFile.text =~ /"version":\s*"([^"]+)"/)[0][1]
+
 android {
     namespace = "com.buddhist.uposatha"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -15,7 +19,7 @@ android {
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
         versionCode 1771778690
-        versionName "1.0.1"
+        versionName packageJsonVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

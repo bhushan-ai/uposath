@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Redirect, Route, useHistory } from 'react-router-dom';
 import {
   IonApp,
@@ -17,6 +18,11 @@ import { bootstrapNotifications } from './services/notificationScheduler';
 import { getSavedLocation } from './services/locationManager';
 import { Observer } from '@ishubhamx/panchangam-js';
 import { UposathaObservanceService } from './services/UposathaObservanceService';
+import { App as CapApp } from '@capacitor/app';
+import { Preferences } from '@capacitor/preferences';
+import UpdateService, { ReleaseInfo } from './services/UpdateService';
+import UpdateDialog from './components/UpdateDialog';
+import { useState } from 'react';
 
 /* Core CSS */
 import '@ionic/react/css/core.css';
@@ -116,6 +122,62 @@ const StorageHygieneManager: React.FC = () => {
   return null;
 };
 
+const UpdateManager: React.FC = () => {
+  const [release, setRelease] = useState<ReleaseInfo | null>(null);
+
+  useEffect(() => {
+    const checkUpdate = async () => {
+      if (!Capacitor.isNativePlatform()) return;
+
+      try {
+        const { value } = await Preferences.get({ key: 'lastUpdateCheck' });
+        const now = Date.now();
+
+        if (value) {
+          const lastCheck = parseInt(value, 10);
+          if (now - lastCheck < 24 * 60 * 60 * 1000) {
+            return;
+          }
+        }
+
+        const update = await UpdateService.checkForUpdate();
+        await Preferences.set({ key: 'lastUpdateCheck', value: now.toString() });
+
+        if (update) {
+          setRelease(update);
+        }
+      } catch (e) {
+        console.error('Update check failed', e);
+      }
+    };
+
+    const handleAppStateChange = CapApp.addListener('appStateChange', (state) => {
+      if (state.isActive) {
+        checkUpdate();
+      }
+    });
+
+    return () => {
+      handleAppStateChange.then(listener => listener.remove());
+    };
+  }, []);
+
+  if (!release) return null;
+
+  return (
+    <UpdateDialog
+      version={release.version}
+      changelog={release.changelog}
+      onUpdate={async () => {
+        if (release.apkUrl) {
+          await UpdateService.openDownload(release.apkUrl, release.version);
+        }
+      }}
+      onDismiss={() => setRelease(null)}
+    />
+  );
+};
+
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -133,6 +195,7 @@ const App: React.FC = () => {
         <FocusManager />
         <SyncManager />
         <StorageHygieneManager />
+        <UpdateManager />
         <IonTabs>
           <IonRouterOutlet>
             <Route exact path="/calendar" component={CalendarPage} />

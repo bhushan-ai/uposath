@@ -1,0 +1,85 @@
+.update-dialog-modal {
+  --height: auto;
+  --width: 90%;
+  --max-width: 400px;
+  --border-radius: 16px;
+  --background: var(--ion-background-color, #121212);
+}
+
+.update-dialog-wrapper {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.update-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ion-text-color, #ffffff);
+}
+
+.update-subtitle {
+  margin: 8px 0 20px 0;
+  font-size: 14px;
+  color: var(--ion-color-medium, #92949c);
+}
+
+.update-changelog-container {
+  position: relative;
+  max-height: 160px;
+  margin-bottom: 24px;
+  background: var(--ion-color-step-50, #1e1e1e);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.update-changelog-text {
+  font-size: 14px;
+  color: var(--ion-text-color, #e0e0e0);
+  white-space: pre-wrap;
+  line-height: 1.5;
+  padding: 12px;
+  padding-bottom: 36px;
+  overflow-y: auto;
+  max-height: 160px;
+}
+
+/* Fade out at the bottom of the container */
+.update-fade-out {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: linear-gradient(to bottom, transparent, var(--ion-color-step-50, #1e1e1e));
+  pointer-events: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.update-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+}
+
+.update-later-btn {
+  background: transparent;
+  color: var(--ion-color-medium, #92949c);
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 16px;
+}
+
+.update-now-btn {
+  background: var(--ion-color-warning, #ffc409);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+}
