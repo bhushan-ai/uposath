@@ -68,99 +68,189 @@ const ObservanceActionCard: React.FC<ObservanceActionCardProps> = ({ date, moonP
     };
 
     if (observance) {
+        const isObserved = observance.status === 'observed';
+        const isSkipped = observance.status === 'skipped';
+
         return (
-            <IonCard style={{ background: observance.status === 'observed' ? 'rgba(16, 185, 129, 0.1)' : observance.status === 'skipped' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(156, 163, 175, 0.1)', border: observance.status === 'observed' ? '1px solid #10B981' : observance.status === 'skipped' ? '1px solid #EF4444' : '1px solid #9CA3AF' }}>
-                <IonCardContent>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                <IonIcon
-                                    icon={observance.status === 'observed' ? checkmarkCircle : observance.status === 'skipped' ? closeCircle : removeCircleOutline}
-                                    style={{ color: observance.status === 'observed' ? '#10B981' : observance.status === 'skipped' ? '#EF4444' : '#9CA3AF', fontSize: '1.5rem' }}
-                                />
-                                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
-                                    {observance.status === 'observed' ? 'Observed' : observance.status === 'skipped' ? 'Skipped' : 'Ignored'}
-                                </span>
-                            </div>
+            <div style={{
+                margin: '20px 0',
+                padding: '20px',
+                background: 'var(--glass-bg)',
+                backdropFilter: 'var(--glass-backdrop)',
+                borderRadius: '24px',
+                border: '1px solid var(--glass-border)',
+                boxShadow: 'var(--shadow-lg)',
+                position: 'relative',
+                overflow: 'hidden'
+            }}>
+                {/* Status indicator line */}
+                <div style={{
+                    position: 'absolute',
+                    left: 0, top: 0, bottom: 0,
+                    width: '6px',
+                    background: isObserved ? '#10B981' : isSkipped ? '#EF4444' : 'var(--color-text-tertiary)'
+                }} />
 
-                            {observance.status === 'observed' && (
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    <IonChip color="success" outline>
-                                        <IonIcon icon={ribbonOutline} />&nbsp;
-                                        {observance.level?.toUpperCase()}
-                                    </IonChip>
-                                    {observance.practiceMinutes && ((observance.practiceMinutes.meditation || 0) + (observance.practiceMinutes.chanting || 0) + (observance.practiceMinutes.study || 0)) > 0 && (
-                                        <IonChip color="secondary" outline>
-                                            <IonIcon icon={timeOutline} />&nbsp;
-                                            {(observance.practiceMinutes.meditation || 0) + (observance.practiceMinutes.chanting || 0) + (observance.practiceMinutes.study || 0)}m
-                                        </IonChip>
-                                    )}
-                                </div>
-                            )}
-
-                            {observance.status === 'skipped' && observance.skipReason && (
-                                <div style={{ marginTop: '4px', color: '#666' }}>
-                                    Reason: {observance.skipReason.charAt(0).toUpperCase() + observance.skipReason.slice(1)}
-                                </div>
-                            )}
-
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: isObserved ? 'rgba(16, 185, 129, 0.15)' : isSkipped ? 'rgba(239, 68, 68, 0.15)' : 'rgba(156, 163, 175, 0.15)',
+                            color: isObserved ? '#10B981' : isSkipped ? '#EF4444' : 'var(--color-text-secondary)'
+                        }}>
+                            <IonIcon
+                                icon={isObserved ? checkmarkCircle : isSkipped ? closeCircle : removeCircleOutline}
+                                style={{ fontSize: '1.5rem' }}
+                            />
                         </div>
-                        <IonButton fill="clear" size="small" color="medium" onClick={handleDelete}>
-                            Edit
-                        </IonButton>
+                        <div>
+                            <div style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.6, marginBottom: '2px' }}>
+                                Observance Status
+                            </div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--color-text-primary)' }}>
+                                {isObserved ? 'Observed' : isSkipped ? 'Skipped' : 'Ignored'}
+                            </div>
+                        </div>
                     </div>
-                </IonCardContent>
-            </IonCard>
+
+                    <IonButton fill="clear" color="medium" onClick={handleDelete} className="premium-button-small">
+                        Change
+                    </IonButton>
+                </div>
+
+                {isObserved && (
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '16px', paddingLeft: '54px' }}>
+                        <div style={{
+                            padding: '4px 10px',
+                            background: 'rgba(16, 185, 129, 0.1)',
+                            border: '1px solid rgba(16, 185, 129, 0.2)',
+                            borderRadius: '8px',
+                            fontSize: '0.75rem',
+                            fontWeight: '700',
+                            color: '#10B981',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                        }}>
+                            <IonIcon icon={ribbonOutline} /> {observance.level?.toUpperCase()}
+                        </div>
+                        {observance.practiceMinutes && ((observance.practiceMinutes.meditation || 0) + (observance.practiceMinutes.chanting || 0) + (observance.practiceMinutes.study || 0)) > 0 && (
+                            <div style={{
+                                padding: '4px 10px',
+                                background: 'rgba(59, 130, 246, 0.1)',
+                                border: '1px solid rgba(59, 130, 246, 0.2)',
+                                borderRadius: '8px',
+                                fontSize: '0.75rem',
+                                fontWeight: '700',
+                                color: '#60A5FA',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px'
+                            }}>
+                                <IonIcon icon={timeOutline} /> {(observance.practiceMinutes.meditation || 0) + (observance.practiceMinutes.chanting || 0) + (observance.practiceMinutes.study || 0)}m
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {isSkipped && observance.skipReason && (
+                    <div style={{ marginTop: '12px', paddingLeft: '54px', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+                        <span style={{ fontWeight: '700', color: '#EF4444' }}>Reason:</span> {observance.skipReason.charAt(0).toUpperCase() + observance.skipReason.slice(1)}
+                    </div>
+                )}
+            </div>
         );
     }
 
     return (
-        <IonCard className="ion-margin-bottom">
-            <IonCardContent>
-                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: "bold", margin: '0 0 4px 0' }}>Uposatha Observance</h3>
-                    <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>Have you observed the precepts today?</p>
+        <div style={{
+            margin: '20px 0',
+            padding: '24px',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'var(--glass-backdrop)',
+            borderRadius: '24px',
+            border: '1px solid var(--glass-border)',
+            boxShadow: 'var(--shadow-lg)',
+            textAlign: 'center'
+        }}>
+            <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--ion-color-primary)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '6px', opacity: 0.8 }}>
+                    Action Required
                 </div>
+                <h3 style={{ fontSize: '1.4rem', fontWeight: '900', margin: '0 0 6px 0', color: 'var(--color-text-primary)' }}>
+                    Uposatha Observance
+                </h3>
+                <p style={{ margin: 0, color: 'var(--color-text-secondary)', fontSize: '0.95rem', fontWeight: '500' }}>
+                    Have you observed the precepts today?
+                </p>
+            </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <IonButton
-                        expand="block"
-                        color="success"
-                        fill="solid"
-                        onClick={() => setShowObservedDialog(true)}
-                    >
-                        <IonIcon slot="start" icon={checkmarkCircle} />
-                        Observed
-                    </IonButton>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <button
+                    onClick={() => setShowObservedDialog(true)}
+                    style={{
+                        padding: '14px',
+                        background: '#10B981',
+                        color: 'white',
+                        borderRadius: '16px',
+                        fontWeight: '800',
+                        fontSize: '0.9rem',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    <IonIcon icon={checkmarkCircle} />
+                    OBSERVED
+                </button>
 
-                    <IonButton
-                        expand="block"
-                        color="danger"
-                        fill="outline"
-                        onClick={() => setShowSkippedDialog(true)}
-                    >
-                        <IonIcon slot="start" icon={closeCircle} />
-                        Skipped
-                    </IonButton>
-                </div>
+                <button
+                    onClick={() => setShowSkippedDialog(true)}
+                    style={{
+                        padding: '14px',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        color: '#EF4444',
+                        borderRadius: '16px',
+                        fontWeight: '800',
+                        fontSize: '0.9rem',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    <IonIcon icon={closeCircle} />
+                    SKIPPED
+                </button>
+            </div>
 
-                <MarkObservedDialog
-                    isOpen={showObservedDialog}
-                    onClose={() => setShowObservedDialog(false)}
-                    onSave={handleSave}
-                    date={date}
-                    tithi={tithi}
-                />
+            <MarkObservedDialog
+                isOpen={showObservedDialog}
+                onClose={() => setShowObservedDialog(false)}
+                onSave={handleSave}
+                date={date}
+                tithi={tithi}
+            />
 
-                <MarkSkippedDialog
-                    isOpen={showSkippedDialog}
-                    onClose={() => setShowSkippedDialog(false)}
-                    onSave={handleSave}
-                    date={date}
-                    tithi={tithi}
-                />
-            </IonCardContent>
-        </IonCard>
+            <MarkSkippedDialog
+                isOpen={showSkippedDialog}
+                onClose={() => setShowSkippedDialog(false)}
+                onSave={handleSave}
+                date={date}
+                tithi={tithi}
+            />
+        </div>
     );
 };
 

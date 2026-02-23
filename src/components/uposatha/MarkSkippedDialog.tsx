@@ -41,52 +41,97 @@ const MarkSkippedDialog: React.FC<MarkSkippedDialogProps> = ({ isOpen, onClose, 
     };
 
     return (
-        <IonModal isOpen={isOpen} onDidDismiss={onClose} initialBreakpoint={0.5} breakpoints={[0, 0.5, 0.75]} style={{ '--background': 'transparent', '--border-radius': '16px' }} className="glass-modal">
+        <IonModal
+            isOpen={isOpen}
+            onDidDismiss={onClose}
+            initialBreakpoint={0.6}
+            breakpoints={[0, 0.6, 0.8]}
+            style={{ '--background': 'transparent', '--border-radius': '24px' }}
+            className="glass-modal"
+        >
             <IonHeader className="ion-no-border">
-                <IonToolbar style={{ '--background': 'transparent' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold' }}>Skip Uposatha</h3>
+                <IonToolbar style={{ '--background': 'transparent', padding: '12px 0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '900', color: 'var(--color-text-primary)' }}>Skip Uposatha</h3>
                         <IonButtons>
-                            <IonButton onClick={onClose} color="medium">Cancel</IonButton>
-                            <IonButton strong color="warning" onClick={handleSave}>Confirm</IonButton>
+                            <IonButton onClick={onClose} color="medium" style={{ fontWeight: '600' }}>CANCEL</IonButton>
+                            <IonButton onClick={handleSave} style={{ fontWeight: '800', '--color': '#EF4444' }}>CONFIRM</IonButton>
                         </IonButtons>
                     </div>
                 </IonToolbar>
             </IonHeader>
             <IonContent className="ion-padding" style={{ '--background': 'transparent' }}>
-                <div className="text-center mb-4 mt-2">
-                    <h2 className="text-lg font-bold">
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
                         {date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
                     </h2>
-                    <p className="text-sm text-gray-400">Life happens. What prevented observance today?</p>
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--color-text-secondary)', fontWeight: '500' }}>
+                        Life happens. What prevented observance today?
+                    </p>
                 </div>
 
-                <IonList inset className="glass-list">
-                    <IonItem className="glass-item">
+                <div style={{ display: 'grid', gap: '20px' }}>
+                    {/* Reason Selection */}
+                    <div style={{
+                        background: 'var(--glass-bg)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '20px',
+                        padding: '16px',
+                        backdropFilter: 'var(--glass-backdrop)'
+                    }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+                            Primary Reason
+                        </div>
                         <IonSelect
-                            label="Reason"
-                            labelPlacement="floating"
+                            mode="ios"
+                            interface="action-sheet"
                             value={reason}
                             onIonChange={e => setReason(e.detail.value)}
+                            style={{
+                                width: '100%',
+                                '--background': 'transparent',
+                                color: 'var(--color-text-primary)',
+                                fontWeight: '700'
+                            }}
                         >
-                            <IonSelectOption value="work">Work / Busy</IonSelectOption>
-                            <IonSelectOption value="travel">Traveling</IonSelectOption>
-                            <IonSelectOption value="health">Health / Illness</IonSelectOption>
-                            <IonSelectOption value="forgot">Forgot</IonSelectOption>
-                            <IonSelectOption value="other">Other</IonSelectOption>
+                            <IonSelectOption value="work">💼 Work / Busy</IonSelectOption>
+                            <IonSelectOption value="travel">✈️ Traveling</IonSelectOption>
+                            <IonSelectOption value="health">🤒 Health / Illness</IonSelectOption>
+                            <IonSelectOption value="forgot">🧠 Forgot</IonSelectOption>
+                            <IonSelectOption value="other">⚙️ Other</IonSelectOption>
                         </IonSelect>
-                    </IonItem>
+                    </div>
 
-                    <IonItem className="glass-item">
-                        <IonTextarea
-                            label="Note (Optional)"
-                            labelPlacement="floating"
+                    {/* Note Input */}
+                    <div style={{
+                        background: 'var(--glass-bg)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '20px',
+                        padding: '16px',
+                        backdropFilter: 'var(--glass-backdrop)'
+                    }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '900', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+                            Additional Context (Optional)
+                        </div>
+                        <textarea
                             rows={3}
                             value={note}
-                            onIonChange={e => setNote(e.detail.value || '')}
+                            onChange={e => setNote(e.target.value)}
+                            placeholder="Add a brief note about why it was skipped..."
+                            style={{
+                                width: '100%',
+                                background: 'transparent',
+                                border: 'none',
+                                borderBottom: '1px solid var(--glass-border)',
+                                color: 'var(--color-text-primary)',
+                                fontWeight: '500',
+                                outline: 'none',
+                                resize: 'none',
+                                fontSize: '0.95rem'
+                            }}
                         />
-                    </IonItem>
-                </IonList>
+                    </div>
+                </div>
             </IonContent>
         </IonModal>
     );

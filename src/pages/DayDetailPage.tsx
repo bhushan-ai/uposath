@@ -16,7 +16,7 @@ import {
 import { useParams } from 'react-router';
 import { Observer } from '@ishubhamx/panchangam-js';
 import { getUposathaStatus } from '../services/uposathaCalculator';
-import { checkFestival } from '../services/buddhistFestivalService';
+import { checkFestival, getTraditionColors } from '../services/buddhistFestivalService';
 import { buildTimelineData } from '../services/panchangTimeline';
 import { computeHoras } from '../services/horaCalculator';
 import { getGrahaCards } from '../services/grahaPositionService';
@@ -129,50 +129,101 @@ const DayDetailPage: React.FC = () => {
 
                     {data.status.isUposatha ? (
                         <div style={{
-                            marginTop: '8px',
-                            padding: '8px',
-                            backgroundColor: 'rgba(var(--ion-color-secondary-rgb), 0.2)',
-                            borderRadius: '8px',
-                            color: 'var(--ion-color-secondary-shade)',
-                            fontWeight: 'bold'
+                            marginTop: '16px',
+                            padding: '12px 16px',
+                            background: 'var(--glass-bg)',
+                            backdropFilter: 'var(--glass-backdrop)',
+                            borderRadius: '16px',
+                            border: '1px solid var(--glass-border)',
+                            color: 'var(--ion-color-primary)',
+                            fontWeight: '800',
+                            fontSize: '0.9rem',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            boxShadow: 'var(--shadow-md)'
                         }}>
+                            <div style={{
+                                position: 'absolute',
+                                left: 0, top: 0, bottom: 0,
+                                width: '4px',
+                                background: 'var(--ion-color-primary)'
+                            }} />
                             {data.status.label}
                         </div>
                     ) : data.status.isOptional ? (
                         <div style={{
-                            marginTop: '8px',
-                            padding: '8px',
-                            backgroundColor: 'rgba(var(--ion-color-primary-rgb), 0.1)',
-                            borderRadius: '8px',
-                            color: 'var(--ion-color-primary)',
-                            fontWeight: 'bold'
+                            marginTop: '16px',
+                            padding: '12px 16px',
+                            background: 'var(--glass-bg)',
+                            backdropFilter: 'var(--glass-backdrop)',
+                            borderRadius: '16px',
+                            border: '1px solid var(--glass-border)',
+                            color: 'var(--color-text-secondary)',
+                            fontWeight: '700',
+                            fontSize: '0.85rem',
+                            position: 'relative',
+                            overflow: 'hidden'
                         }}>
+                            <div style={{
+                                position: 'absolute',
+                                left: 0, top: 0, bottom: 0,
+                                width: '4px',
+                                background: 'var(--color-text-secondary)',
+                                opacity: 0.5
+                            }} />
                             {data.status.label}
                         </div>
                     ) : (
                         <div style={{
-                            marginTop: '8px',
-                            padding: '8px',
-                            backgroundColor: 'rgba(0,0,0,0.05)',
-                            borderRadius: '8px',
-                            color: 'var(--ion-color-medium)',
-                            fontSize: '0.8rem'
+                            marginTop: '16px',
+                            color: 'var(--color-text-muted)',
+                            fontSize: '0.85rem',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
                         }}>
-                            No Uposatha Day
+                            — Ordinary Day —
                         </div>
                     )}
 
                     {data.festival && (
                         <div style={{
-                            marginTop: '8px',
-                            padding: '8px',
-                            backgroundColor: '#FFF3E0',
-                            borderRadius: '8px',
-                            color: '#E65100',
-                            fontWeight: 'bold',
-                            border: '1px solid #FFB74D'
+                            marginTop: '16px',
+                            padding: '16px',
+                            background: 'var(--glass-bg)',
+                            backdropFilter: 'var(--glass-backdrop)',
+                            borderRadius: '20px',
+                            border: '1px solid var(--glass-border)',
+                            boxShadow: 'var(--shadow-lg)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
                         }}>
-                            ☸️ {data.festival.name}
+                            {/* Tradition Accent line */}
+                            <div style={{
+                                position: 'absolute',
+                                left: 0, top: 0, bottom: 0,
+                                width: '4px',
+                                background: getTraditionColors(data.festival.tradition).primary
+                            }} />
+
+                            <span style={{ fontSize: '1.5rem' }}>☸️</span>
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{
+                                    color: getTraditionColors(data.festival.tradition).primary,
+                                    fontSize: '0.7rem',
+                                    fontWeight: '800',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.1em'
+                                }}>
+                                    {data.festival.tradition} Festival
+                                </div>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: 'var(--color-text-primary)' }}>
+                                    {data.festival.name}
+                                </h3>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -230,70 +281,109 @@ const DayDetailPage: React.FC = () => {
                 {activeTab === 'info' && (
                     <div style={{ padding: '8px 0' }}>
                         <div style={{ display: 'grid', gap: '16px' }}>
-                            {/* General Stats Card */}
+                            {/* Day Details Card */}
                             <div style={{
-                                background: 'var(--color-bg-card)',
-                                borderRadius: '20px',
-                                padding: '20px',
-                                border: '1px solid var(--color-border)'
+                                background: 'var(--glass-bg)',
+                                backdropFilter: 'var(--glass-backdrop)',
+                                borderRadius: '24px',
+                                padding: '24px',
+                                border: '1px solid var(--glass-border)',
+                                boxShadow: 'var(--shadow-lg)'
                             }}>
-                                <h3 className="text-lg font-bold" style={{ marginTop: 0, marginBottom: '20px', color: 'var(--color-accent-primary)' }}>Day Details</h3>
+                                <h3 style={{
+                                    marginTop: 0,
+                                    marginBottom: '24px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '900',
+                                    color: 'var(--color-accent-primary)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.15em',
+                                    opacity: 0.8
+                                }}>
+                                    Technical Parameters
+                                </h3>
 
-                                <div style={{ display: 'grid', gap: '16px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ fontSize: '1.2rem', width: '32px', textAlign: 'center' }}>🌙</div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tithi</div>
-                                            <div style={{ fontWeight: '700', color: 'var(--color-text-primary)' }}>{data.status.tithiNumber} — {data.status.tithiName}</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-tertiary)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase' }}>
+                                            <span>🌙</span> Tithi
                                         </div>
+                                        <div style={{ fontWeight: '800', color: 'var(--color-text-primary)' }}>{data.status.tithiNumber} — {data.status.tithiName}</div>
                                     </div>
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ fontSize: '1.2rem', width: '32px', textAlign: 'center' }}>⚖️</div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Paksha</div>
-                                            <div style={{ fontWeight: '700', color: 'var(--color-text-primary)' }}>{data.status.paksha} Paksha</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-tertiary)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase' }}>
+                                            <span>⚖️</span> Paksha
                                         </div>
+                                        <div style={{ fontWeight: '800', color: 'var(--color-text-primary)' }}>{data.status.paksha} Paksha</div>
                                     </div>
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ fontSize: '1.2rem', width: '32px', textAlign: 'center' }}>{data.status.isUposatha ? '✅' : '⚪'}</div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Uposatha</div>
-                                            <div style={{ fontWeight: '700', color: 'var(--color-text-primary)' }}>{data.status.isUposatha ? 'Yes' : 'No'}</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-tertiary)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase' }}>
+                                            <span>☸️</span> Uposatha
+                                        </div>
+                                        <div style={{ fontWeight: '800', color: data.status.isUposatha ? 'var(--ion-color-primary)' : 'var(--color-text-primary)' }}>
+                                            {data.status.isUposatha ? 'YES' : 'NO'}
                                         </div>
                                     </div>
 
                                     {data.status.paliLabel && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <div style={{ fontSize: '1.2rem', width: '32px', textAlign: 'center' }}>🏛️</div>
-                                            <div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pali Name</div>
-                                                <div style={{ fontWeight: '700', color: 'var(--color-text-primary)' }}>{data.status.paliLabel}</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-tertiary)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase' }}>
+                                                <span>📜</span> Pali Name
                                             </div>
+                                            <div style={{ fontWeight: '800', color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>{data.status.paliLabel}</div>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Festival Info */}
+                            {/* Festival Info ... (Already glass, keeping as is) */}
                             {data.festival && (
                                 <div style={{
-                                    background: 'var(--color-festival)',
-                                    borderRadius: '20px',
+                                    background: 'var(--glass-bg)',
+                                    backdropFilter: 'var(--glass-backdrop)',
+                                    borderRadius: '24px',
                                     padding: '24px',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    boxShadow: 'var(--shadow-lg)'
+                                    border: '1px solid var(--glass-border)',
+                                    boxShadow: 'var(--shadow-lg)',
+                                    position: 'relative',
+                                    overflow: 'hidden'
                                 }}>
-                                    <h3 style={{ marginTop: 0, marginBottom: '8px', color: 'white', fontWeight: '800' }}>✨ {data.festival.name}</h3>
-                                    <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', lineHeight: '1.6' }}>{data.festival.description}</p>
                                     <div style={{
-                                        marginTop: '16px',
-                                        fontSize: '0.75rem',
-                                        fontWeight: '700',
-                                        color: 'rgba(255,255,255,0.8)',
+                                        position: 'absolute',
+                                        left: 0, top: 0, bottom: 0,
+                                        width: '6px',
+                                        background: getTraditionColors(data.festival.tradition).primary
+                                    }} />
+
+                                    <h3 style={{
+                                        marginTop: 0,
+                                        marginBottom: '12px',
+                                        color: getTraditionColors(data.festival.tradition).primary,
+                                        fontWeight: '800',
+                                        fontSize: '1.25rem'
+                                    }}>
+                                        ✨ {data.festival.name}
+                                    </h3>
+
+                                    <p style={{
+                                        margin: 0,
+                                        color: 'var(--color-text-primary)',
+                                        lineHeight: '1.6',
+                                        fontSize: '0.95rem'
+                                    }}>
+                                        {data.festival.description}
+                                    </p>
+
+                                    <div style={{
+                                        marginTop: '20px',
+                                        fontSize: '0.7rem',
+                                        fontWeight: '800',
+                                        color: getTraditionColors(data.festival.tradition).primary,
                                         textTransform: 'uppercase',
-                                        letterSpacing: '0.05em'
+                                        letterSpacing: '0.1em',
+                                        opacity: 0.8
                                     }}>
                                         Tradition: {data.festival.tradition}
                                     </div>
@@ -302,25 +392,41 @@ const DayDetailPage: React.FC = () => {
 
                             {/* Terminology Card */}
                             <div style={{
-                                background: 'var(--glass-bg)',
-                                backdropFilter: 'var(--glass-backdrop)',
-                                borderRadius: '20px',
-                                padding: '20px',
-                                border: '1px dashed var(--color-border)'
+                                background: 'rgba(255,255,255,0.02)',
+                                backdropFilter: 'blur(8px)',
+                                borderRadius: '24px',
+                                padding: '24px',
+                                border: '1px dashed var(--glass-border)'
                             }}>
-                                <h4 style={{ marginTop: 0, marginBottom: '16px', fontSize: '0.9rem', color: 'var(--color-accent-primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em' }}> Calculations Reference</h4>
+                                <h4 style={{
+                                    marginTop: 0,
+                                    marginBottom: '20px',
+                                    fontSize: '0.7rem',
+                                    color: 'var(--color-text-tertiary)',
+                                    fontWeight: '900',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.15em'
+                                }}>
+                                    Calculations Reference
+                                </h4>
                                 <div style={{ display: 'grid', gap: '20px' }}>
-                                    <div>
-                                        <h5 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>• Kshaya <span style={{ fontWeight: 'normal', opacity: 0.6 }}>(Optional Tithi)</span></h5>
-                                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
-                                            Occurs when a lunar day begins and ends between two consecutive sunrises. It's skipped in the standard count but remains an optional day for practice.
-                                        </p>
+                                    <div style={{ display: 'flex', gap: '14px' }}>
+                                        <div style={{ fontSize: '1.2rem', opacity: 0.5 }}>•</div>
+                                        <div>
+                                            <h5 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: '800', color: 'var(--color-text-primary)' }}>Kshaya <small style={{ fontWeight: '500', opacity: 0.5 }}>(Optional Tithi)</small></h5>
+                                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5', fontWeight: '500' }}>
+                                                Occurs when a lunar day begins and ends between sunrises. It's missing from standard count but valid for practice.
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h5 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: '700', color: 'var(--color-text-primary)' }}>• Vridhi <span style={{ fontWeight: 'normal', opacity: 0.6 }}>(Extended Tithi)</span></h5>
-                                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
-                                            Occurs when a lunar day is present at two consecutive sunrises. The first day is primary, while the second is secondary.
-                                        </p>
+                                    <div style={{ display: 'flex', gap: '14px' }}>
+                                        <div style={{ fontSize: '1.2rem', opacity: 0.5 }}>•</div>
+                                        <div>
+                                            <h5 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: '800', color: 'var(--color-text-primary)' }}>Vridhi <small style={{ fontWeight: '500', opacity: 0.5 }}>(Extended Tithi)</small></h5>
+                                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5', fontWeight: '500' }}>
+                                                Occurs when a lunar day spans across two sunrises, leading to a consecutive observance.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
