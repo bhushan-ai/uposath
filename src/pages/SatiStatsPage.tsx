@@ -33,6 +33,7 @@ import { trashOutline, createOutline, addOutline } from 'ionicons/icons';
 import { MalaService } from '../services/MalaService';
 import { AnapanasatiService, AnapanasatiStats, AnapanasatiSession } from '../services/AnapanasatiService';
 import { MantraService } from '../services/MantraService';
+import { deityImageService } from '../services/DeityImageService';
 import { EmptinessService } from '../services/EmptinessService';
 import { SatiStatsService } from '../services/SatiStatsService';
 import { MalaEntry, MalaStats, GlobalStats, UnifiedSession, PracticeCategory, EmptinessStats, Mantra, MantraSession, EmptinessSession } from '../types/SatiTypes';
@@ -58,6 +59,7 @@ const SatiStatsPage: React.FC = () => {
     // Mantra Specifics
     const [mantras, setMantras] = useState<any[]>([]);
     const [mantraSessions, setMantraSessions] = useState<any[]>([]);
+    const [imageMap, setImageMap] = useState<Record<string, string>>({});
 
     const [entryToDelete, setEntryToDelete] = useState<{ id: string, category: PracticeCategory } | null>(null);
     const [showTriratnaDetails, setShowTriratnaDetails] = useState(false);
@@ -106,6 +108,12 @@ const SatiStatsPage: React.FC = () => {
             if (results[5].status === 'fulfilled') {
                 mList = results[5].value as Mantra[];
                 setMantras(mList);
+
+                const imgMap: Record<string, string> = {};
+                for (const m of mList) {
+                    imgMap[m.id] = await deityImageService.getDeityImageSrc(m);
+                }
+                setImageMap(imgMap);
             }
             if (results[6].status === 'fulfilled') {
                 mSessions = results[6].value as MantraSession[];
@@ -762,8 +770,8 @@ const SatiStatsPage: React.FC = () => {
                             return (
                                 <div key={mantra.id} className="glass-card type-breakdown-card">
                                     <div className="type-breakdown-header">
-                                        <div className="icon-wrapper icon-wrapper--medium" style={{ borderColor: 'var(--color-mahayana-primary)40', background: 'var(--color-mahayana-primary)10' }}>
-                                            {mantra.basic.icon || '🕉️'}
+                                        <div className="mantra-stats-thumbnail">
+                                            <img src={imageMap[mantra.id]} alt={mantra.basic.name} />
                                         </div>
                                         <div>
                                             <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--color-mahayana-secondary)', fontWeight: '800', fontFamily: 'var(--font-family-display)' }}>

@@ -18,6 +18,7 @@
   "dependencies": {
     "@capacitor/android": "^8.1.0",
     "@capacitor/app": "8.0.0",
+    "@capacitor/camera": "^8.0.1",
     "@capacitor/core": "8.1.0",
     "@capacitor/filesystem": "^8.1.2",
     "@capacitor/haptics": "8.0.0",
@@ -32,6 +33,7 @@
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
     "astronomy-engine": "^2.1.19",
+    "browser-image-compression": "^2.0.2",
     "chinese-lunar-calendar": "^1.0.1",
     "country-state-city": "^3.2.1",
     "ionicons": "^7.4.0",
@@ -61,6 +63,7 @@
     "globals": "^15.15.0",
     "jsdom": "^22.1.0",
     "patch-package": "^8.0.1",
+    "sharp": "^0.34.5",
     "terser": "^5.4.0",
     "typescript": "~5.9.0",
     "typescript-eslint": "^8.24.0",

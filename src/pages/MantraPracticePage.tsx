@@ -6,9 +6,11 @@ import {
     IonSegment, IonSegmentButton, IonLabel
 } from '@ionic/react';
 import { close, volumeHigh, volumeMute, pause, play, add, remove } from 'ionicons/icons';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { useHistory, useParams } from 'react-router-dom';
 import { MantraService } from '../services/MantraService';
 import { MalaService } from '../services/MalaService';
+import { deityImageService } from '../services/DeityImageService';
 import { PaliTransliterator } from '../services/PaliTransliterator';
 import { Mantra, MantraSession, SatiPreferences, DEFAULT_PREFERENCES } from '../types/SatiTypes';
 import MalaCounter from '../components/sati/MalaCounter';
@@ -18,6 +20,7 @@ const MantraPracticePage: React.FC = () => {
     const history = useHistory();
     const { id } = useParams<{ id: string }>();
     const [mantra, setMantra] = useState<Mantra | null>(null);
+    const [imageSrc, setImageSrc] = useState<string>('');
     const [count, setCount] = useState(0);
     const [sessionState, setSessionState] = useState<'running' | 'paused' | 'completed'>('running');
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -50,6 +53,7 @@ const MantraPracticePage: React.FC = () => {
         const found = mantras.find(m => m.id === id);
         if (found) {
             setMantra(found);
+            deityImageService.getDeityImageSrc(found).then(setImageSrc);
             setBellEnabled(found.practice.bellAtCompletion);
 
             // Only set manual count if it hasn't been touched or is default (optional logic, keeping simple for now)
@@ -203,7 +207,9 @@ const MantraPracticePage: React.FC = () => {
                 ) : (
                     <>
                         <div className="practice-header">
-                            <div className="practice-icon">{mantra.basic.icon}</div>
+                            <div className="practice-deity-large">
+                                <img src={imageSrc} alt={mantra.basic.name} />
+                            </div>
                             {mantra.basic.deity && <h2 className="practice-deity">{mantra.basic.deity}</h2>}
                             <h3 className="practice-name">{mantra.basic.name}</h3>
                         </div>
@@ -284,7 +290,10 @@ const MantraPracticePage: React.FC = () => {
 
                                 {/* Bead stepper */}
                                 <div className="manual-stepper">
-                                    <button className="manual-stepper__btn" onClick={() => setManualCount(Math.max(1, manualCount - 1))}>
+                                    <button className="manual-stepper__btn" onClick={async () => {
+                                        try { await Haptics.impact({ style: ImpactStyle.Light }); } catch (e) { }
+                                        setManualCount(Math.max(1, manualCount - 1));
+                                    }}>
                                         <IonIcon icon={remove} />
                                     </button>
 
@@ -292,7 +301,10 @@ const MantraPracticePage: React.FC = () => {
                                         {manualCount}
                                     </div>
 
-                                    <button className="manual-stepper__btn" onClick={() => setManualCount(manualCount + 1)}>
+                                    <button className="manual-stepper__btn" onClick={async () => {
+                                        try { await Haptics.impact({ style: ImpactStyle.Light }); } catch (e) { }
+                                        setManualCount(manualCount + 1);
+                                    }}>
                                         <IonIcon icon={add} />
                                     </button>
 

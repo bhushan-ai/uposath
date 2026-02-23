@@ -107,6 +107,15 @@ const SyncManager: React.FC = () => {
   return null;
 };
 
+const StorageHygieneManager: React.FC = () => {
+  useEffect(() => {
+    import('./services/DeityImageService').then(({ deityImageService }) => {
+      deityImageService.cleanupOrphanedImages();
+    });
+  }, []);
+  return null;
+};
+
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -123,6 +132,7 @@ const App: React.FC = () => {
         <NotificationRouterBridge />
         <FocusManager />
         <SyncManager />
+        <StorageHygieneManager />
         <IonTabs>
           <IonRouterOutlet>
             <Route exact path="/calendar" component={CalendarPage} />

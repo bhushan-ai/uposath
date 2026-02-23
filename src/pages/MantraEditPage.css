@@ -152,6 +152,55 @@
     --padding-bottom: var(--space-md);
 }
 
+/* Image Upload Styling */
+.image-upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.image-preview-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radius-full);
+    background: #000000;
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.image-preview-wrapper:hover {
+    border-color: var(--color-accent-primary);
+    background: rgba(255, 198, 112, 0.05);
+}
+
+.deity-preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+}
+
+.image-actions {
+    display: flex;
+    gap: var(--space-xs);
+    justify-content: center;
+}
+
 /* Save Button Style */
 .save-button-header {
     --color: var(--color-accent-primary);

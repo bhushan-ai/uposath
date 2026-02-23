@@ -3,6 +3,8 @@ import { Mantra, MantraSession, MantraTradition } from '../types/SatiTypes';
 import { BasePracticeRepository } from './BasePracticeRepository';
 import { StatsCalculator } from './StatsCalculator';
 
+// Legacy image imports removed in favor of purely path-based assets
+
 const MANTRA_STORAGE_KEY = 'user_mantras';
 const SESSION_STORAGE_KEY = 'mantra_sessions';
 
@@ -14,7 +16,9 @@ const DEFAULT_MANTRAS: Mantra[] = [
         basic: {
             name: 'Great Compassion Mantra',
             deity: 'Avalokiteśvara',
-            icon: '🌟'
+            icon: '🌟',
+            deityKey: 'avalokitesvara',
+            deityImageType: 'bundled'
         },
         text: {
             primaryScript: 'devanagari',
@@ -42,7 +46,9 @@ const DEFAULT_MANTRAS: Mantra[] = [
         basic: {
             name: 'Green Tārā Mantra',
             deity: 'Green Tārā',
-            icon: '☸️'
+            icon: '☸️',
+            deityKey: 'green-tara',
+            deityImageType: 'bundled'
         },
         text: {
             primaryScript: 'devanagari',
@@ -70,7 +76,9 @@ const DEFAULT_MANTRAS: Mantra[] = [
         basic: {
             name: 'Medicine Buddha Mantra',
             deity: 'Bhaiṣajyaguru',
-            icon: '✨'
+            icon: '✨',
+            deityKey: 'medicine-buddha',
+            deityImageType: 'bundled'
         },
         text: {
             primaryScript: 'devanagari',
@@ -99,12 +107,26 @@ const sessionRepository = new BasePracticeRepository<MantraSession>(SESSION_STOR
 export const MantraService = {
 
     async getMantras(): Promise<Mantra[]> {
-        const mantras = await mantraRepository.getAll();
+        let mantras = await mantraRepository.getAll();
         if (mantras.length === 0) {
             // Seed defaults if empty
             await this.saveMantras(DEFAULT_MANTRAS);
             return DEFAULT_MANTRAS;
         }
+
+        // Backward compatibility pass
+        mantras = mantras.map(m => {
+            if (!m.basic.deityImageType) {
+                m.basic.deityImageType = 'bundled';
+                // If it's a known default, assign its key (heuristics based on name or id)
+                if (m.id === 'default_avalokitesvara') m.basic.deityKey = 'avalokitesvara';
+                else if (m.id === 'default_tara') m.basic.deityKey = 'green-tara';
+                else if (m.id === 'default_medicine_buddha') m.basic.deityKey = 'medicine-buddha';
+                else m.basic.deityKey = undefined;
+            }
+            return m;
+        });
+
         return mantras;
     },
 
@@ -113,9 +135,9 @@ export const MantraService = {
     },
 
     async addMantra(mantra: Mantra): Promise<void> {
-        // Appending to the end traditionally for mantras
+        // Adding to top
         const mantras = await this.getMantras();
-        mantras.push(mantra);
+        mantras.unshift(mantra);
         await this.saveMantras(mantras);
     },
 
@@ -123,7 +145,32 @@ export const MantraService = {
         await mantraRepository.update(updatedMantra);
     },
 
+    async addOrUpdateMantra(mantra: Mantra): Promise<void> {
+        const mantras = await this.getMantras();
+        const exists = mantras.some(m => m.id === mantra.id);
+        if (exists) {
+            await this.updateMantra(mantra);
+        } else {
+            await this.addMantra(mantra);
+        }
+    },
+
     async deleteMantra(id: string): Promise<void> {
+        const mantras = await this.getMantras();
+        const mantra = mantras.find(m => m.id === id);
+
+        if (mantra && mantra.basic.deityImageType === 'user' && mantra.basic.deityImagePath) {
+            try {
+                const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                await Filesystem.deleteFile({
+                    directory: Directory.Data,
+                    path: mantra.basic.deityImagePath
+                });
+            } catch (err) {
+                console.warn('Could not delete user image during mantra deletion:', err);
+            }
+        }
+
         await mantraRepository.delete(id);
     },
 
@@ -182,7 +229,8 @@ export const MantraService = {
             updated: new Date().toISOString(),
             basic: {
                 name: '',
-                icon: '📿'
+                icon: '📿',
+                deityImageType: 'bundled'
             },
             text: {
                 primaryScript: 'roman', // Default

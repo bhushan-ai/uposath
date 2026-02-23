@@ -154,7 +154,11 @@ export type MantraTradition =
 export interface MantraBasicInfo {
     name: string;
     deity?: string; // Optional Deity name
+    deityKey?: string; // lookup key for bundled image, e.g. "avalokitesvara"
+    deityImageType?: 'bundled' | 'user';
+    deityImagePath?: string; // relative path in Filesystem Directory.Data, e.g. "mantra-images/99.jpg"
     icon: string; // Emoji
+    imageUrl?: string; // Base64 image (Legacy, replaced by DeityImageService)
 }
 
 export interface MantraText {
@@ -190,6 +194,8 @@ export interface Mantra {
 
     practice: MantraPracticeSettings;
     stats: MantraStats;
+
+    isPinned?: boolean;
 }
 
 export interface MantraSession {

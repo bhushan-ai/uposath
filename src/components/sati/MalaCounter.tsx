@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { IonButton, IonIcon } from '@ionic/react';
 import { add, remove } from 'ionicons/icons';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { MalaService } from '../../services/MalaService';
 import { MalaEntry, SatiPreferences, PracticeType, PracticeStats } from '../../types/SatiTypes';
 import './MalaCounter.css';
@@ -35,13 +36,8 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
     const [isLogging, setIsLogging] = useState(false);
     const [ripple, setRipple] = useState(false);
 
-    // For active mode haptics
+    // Completion check with guard
     useEffect(() => {
-        if (mode === 'active' && count > 0 && haptic) {
-            if (navigator.vibrate) navigator.vibrate(10);
-        }
-
-        // Completion check with guard
         if (mode === 'active' && count >= target && onComplete) {
             onComplete();
         }
@@ -76,7 +72,12 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
         setBeadsInput(amount);
     };
 
-    const adjustInput = (delta: number) => {
+    const adjustInput = async (delta: number) => {
+        if (haptic) {
+            try {
+                await Haptics.impact({ style: ImpactStyle.Light });
+            } catch (e) { }
+        }
         setBeadsInput(Math.max(1, beadsInput + delta));
     };
 
@@ -100,8 +101,18 @@ const MalaCounter: React.FC<MalaCounterProps> = ({
 
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-    const handleTap = () => {
+    const handleTap = async () => {
         if (!onIncrement) return;
+
+        if (haptic) {
+            try {
+                await Haptics.impact({ style: ImpactStyle.Medium });
+            } catch (e) {
+                // Silent fallback for web browser
+                if (navigator.vibrate) navigator.vibrate(10);
+            }
+        }
+
         setRipple(true);
         setTimeout(() => setRipple(false), 350);
         onIncrement();

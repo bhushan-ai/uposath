@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton,
     IonTitle, IonContent, IonButton, IonItem, IonLabel, IonInput,
     IonSelect, IonSelectOption, IonTextarea, IonList, IonListHeader,
     IonIcon, useIonToast, useIonViewWillEnter, IonProgressBar
 } from '@ionic/react';
-import { settingsOutline, createOutline, leafOutline, statsChartOutline, trashOutline } from 'ionicons/icons';
+import { settingsOutline, createOutline, leafOutline, statsChartOutline, trashOutline, imageOutline, closeCircleOutline } from 'ionicons/icons';
+import imageCompression from 'browser-image-compression';
 import { useHistory, useParams } from 'react-router-dom';
 import { MantraService } from '../services/MantraService';
+import { deityImageService } from '../services/DeityImageService';
+import { imagePickerService } from '../services/ImagePickerService';
 import { Mantra, MantraTradition } from '../types/SatiTypes';
 import './MantraEditPage.css';
 
@@ -15,11 +18,18 @@ const MantraEditPage: React.FC = () => {
     const history = useHistory();
     const { id } = useParams<{ id: string }>();
     const [mantra, setMantra] = useState<Mantra | null>(null);
+    const [imageSrc, setImageSrc] = useState<string>('');
     const [present] = useIonToast();
 
     useIonViewWillEnter(() => {
         loadData();
     });
+
+    React.useEffect(() => {
+        if (mantra) {
+            deityImageService.getDeityImageSrc(mantra).then(setImageSrc);
+        }
+    }, [mantra]);
 
     const loadData = async () => {
         if (id === 'new') {
@@ -43,18 +53,10 @@ const MantraEditPage: React.FC = () => {
             return;
         }
 
-        if (id === 'new') {
-            await MantraService.addMantra({
-                ...mantra,
-                created: new Date().toISOString(),
-                updated: new Date().toISOString()
-            });
-        } else {
-            await MantraService.updateMantra({
-                ...mantra,
-                updated: new Date().toISOString()
-            });
-        }
+        await MantraService.addOrUpdateMantra({
+            ...mantra,
+            updated: new Date().toISOString()
+        });
 
         history.goBack();
     };
@@ -64,7 +66,62 @@ const MantraEditPage: React.FC = () => {
             await MantraService.deleteMantra(id);
             history.goBack();
         }
-    }
+    };
+
+    const handleChangeImage = async () => {
+        if (!mantra) return;
+        try {
+            const oldPath = mantra.basic.deityImageType === 'user' ? mantra.basic.deityImagePath : undefined;
+            const newPath = await imagePickerService.pickAndSaveDeityImage(mantra.id, oldPath);
+
+            if (newPath) {
+                setMantra({
+                    ...mantra,
+                    basic: {
+                        ...mantra.basic,
+                        deityImageType: 'user',
+                        deityImagePath: newPath,
+                        deityKey: undefined
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('Image change failed', e);
+        }
+    };
+
+    const handleResetImage = async () => {
+        if (!mantra) return;
+        try {
+            // Delete user file if it exists
+            if (mantra.basic.deityImageType === 'user' && mantra.basic.deityImagePath) {
+                const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                await Filesystem.deleteFile({
+                    directory: Directory.Data,
+                    path: mantra.basic.deityImagePath
+                });
+            }
+
+            const updatedMantra: Mantra = {
+                ...mantra,
+                basic: {
+                    ...mantra.basic,
+                    deityImageType: 'bundled',
+                    deityImagePath: undefined
+                }
+            };
+
+            // Restore default key if it's a built-in mantra
+            if (updatedMantra.id === 'default_avalokitesvara') updatedMantra.basic.deityKey = 'avalokitesvara';
+            else if (updatedMantra.id === 'default_tara') updatedMantra.basic.deityKey = 'green-tara';
+            else if (updatedMantra.id === 'default_medicine_buddha') updatedMantra.basic.deityKey = 'medicine-buddha';
+            else updatedMantra.basic.deityKey = undefined;
+
+            setMantra(updatedMantra);
+        } catch (e) {
+            console.error('Image reset failed', e);
+        }
+    };
 
     return (
         <IonPage>
@@ -121,14 +178,24 @@ const MantraEditPage: React.FC = () => {
                                     />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">Icon (Emoji)</label>
-                                    <IonInput
-                                        className="custom-input"
-                                        value={mantra.basic.icon}
-                                        placeholder="✨"
-                                        onIonChange={e => setMantra({ ...mantra, basic: { ...mantra.basic, icon: e.detail.value! } })}
-                                    />
+                                    <label className="input-label">Deity Image</label>
+                                    <div className="image-upload-container">
+                                        <div className="image-preview-wrapper" onClick={handleChangeImage}>
+                                            <img src={imageSrc} alt="Deity Preview" className="deity-preview-image" />
+                                        </div>
+                                        <div className="image-actions">
+                                            <IonButton fill="clear" onClick={handleChangeImage}>
+                                                Change Image
+                                            </IonButton>
+                                            {mantra.basic.deityImageType === 'user' && (
+                                                <IonButton fill="clear" color="danger" onClick={handleResetImage}>
+                                                    Reset to Default
+                                                </IonButton>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
 
