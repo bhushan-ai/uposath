@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { IonModal, IonSpinner, IonNote } from '@ionic/react';
+import { marked } from 'marked';
 import { UserCancelledError } from '../services/UpdateService';
 import './UpdateDialog.css';
 
@@ -14,6 +15,9 @@ const UpdateDialog: React.FC<UpdateDialogProps> = ({ version, changelog, onUpdat
     const [isDownloading, setIsDownloading] = useState(false);
     const [warnMsg, setWarnMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+
+    // Parse markdown once — memoized, only re-parses if changelog changes
+    const parsedChangelog = useMemo(() => marked.parse(changelog) as string, [changelog]);
 
     const handleUpdate = async () => {
         setIsDownloading(true);
@@ -39,20 +43,21 @@ const UpdateDialog: React.FC<UpdateDialogProps> = ({ version, changelog, onUpdat
                 <p className="update-subtitle">Version {version} is ready to install</p>
 
                 <div className="update-changelog-container">
-                    <div className="update-changelog-text">
-                        {changelog}
-                    </div>
+                    {/* ✅ dangerouslySetInnerHTML renders parsed markdown HTML */}
+                    <div
+                        className="update-changelog-text"
+                        dangerouslySetInnerHTML={{ __html: parsedChangelog }}
+                    />
                     <div className="update-fade-out"></div>
                 </div>
 
                 {warnMsg && (
-                    <IonNote color="warning" style={{ display: 'block', margin: '12px 0', fontSize: '0.9rem', textAlign: 'left' }}>
+                    <IonNote color="warning" style={{ display: 'block', margin: '12px 0', fontSize: '0.9rem' }}>
                         {warnMsg}
                     </IonNote>
                 )}
-
                 {errorMsg && (
-                    <IonNote color="danger" style={{ display: 'block', margin: '12px 0', fontSize: '0.9rem', textAlign: 'left' }}>
+                    <IonNote color="danger" style={{ display: 'block', margin: '12px 0', fontSize: '0.9rem' }}>
                         {errorMsg}
                     </IonNote>
                 )}
@@ -61,8 +66,11 @@ const UpdateDialog: React.FC<UpdateDialogProps> = ({ version, changelog, onUpdat
                     <button className="update-later-btn" onClick={onDismiss} disabled={isDownloading}>
                         Later
                     </button>
-                    <button className="update-now-btn" onClick={handleUpdate} disabled={isDownloading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {isDownloading ? <><IonSpinner name="crescent" style={{ width: '1em', height: '1em', marginRight: '8px' }} /> Downloading…</> : 'Update Now'}
+                    <button className="update-now-btn" onClick={handleUpdate} disabled={isDownloading}>
+                        {isDownloading
+                            ? <><IonSpinner name="crescent" style={{ width: '1em', height: '1em', marginRight: '8px' }} />Downloading…</>
+                            : 'Update Now'
+                        }
                     </button>
                 </div>
             </div>
