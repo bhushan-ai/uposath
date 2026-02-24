@@ -4,7 +4,7 @@ import {
     IonTitle, IonContent, IonButton, IonIcon, IonFab, IonFabButton,
     useIonViewWillEnter, useIonActionSheet
 } from '@ionic/react';
-import { add, play, star, cameraOutline, createOutline, trashOutline } from 'ionicons/icons';
+import { add, play, star, cameraOutline, createOutline, trashOutline, bookOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { MantraService } from '../services/MantraService';
 import { MalaService } from '../services/MalaService';
@@ -12,6 +12,7 @@ import { deityImageService } from '../services/DeityImageService';
 import { imagePickerService } from '../services/ImagePickerService';
 import { PaliTransliterator } from '../services/PaliTransliterator';
 import { Mantra, SatiPreferences, DEFAULT_PREFERENCES } from '../types/SatiTypes';
+import DailyRoutineRef from '../components/sati/DailyRoutineRef';
 import './MantraListPage.css';
 
 const MantraListPage: React.FC = () => {
@@ -19,6 +20,7 @@ const MantraListPage: React.FC = () => {
     const [mantras, setMantras] = useState<Mantra[]>([]);
     const [imageMap, setImageMap] = useState<Record<string, string>>({});
     const [prefs, setPrefs] = useState<SatiPreferences>(DEFAULT_PREFERENCES);
+    const [showRoutine, setShowRoutine] = useState(false);
     const [presentActionSheet] = useIonActionSheet();
     const pressTimer = React.useRef<NodeJS.Timeout | null>(null);
     const isLongPress = React.useRef(false);
@@ -140,6 +142,15 @@ const MantraListPage: React.FC = () => {
                         <IonBackButton defaultHref="/sati" />
                     </IonButtons>
                     <IonTitle>Custom Mantras</IonTitle>
+                    <IonButtons slot="end">
+                        <IonButton
+                            onClick={() => setShowRoutine(!showRoutine)}
+                            className={`guidance-btn ${showRoutine ? "guidance-btn-active" : ""}`}
+                        >
+                            <IonIcon slot="start" icon={bookOutline} className="btn-icon-pulse" />
+                            Guidance
+                        </IonButton>
+                    </IonButtons>
                 </IonToolbar>
             </IonHeader>
 
@@ -148,6 +159,10 @@ const MantraListPage: React.FC = () => {
                     <h1>My Mantras</h1>
                     <p>Personal collection</p>
                 </div>
+
+                {showRoutine && (
+                    <DailyRoutineRef onClose={() => setShowRoutine(false)} />
+                )}
 
                 {mantras.length === 0 ? (
                     <div className="empty-state">
