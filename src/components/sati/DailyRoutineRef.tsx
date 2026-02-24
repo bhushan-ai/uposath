@@ -40,7 +40,7 @@ const DailyRoutineRef: React.FC<DailyRoutineRefProps> = ({ onClose }) => {
                             <li className="routine-list-item"><strong>Prātimokṣa discipline</strong>: a householder mantrin abandons only the outer monastic signs and rites, and trains in all the rest of the Vinaya <span className="routine-verse-ref">(1.32)</span></li>
                             <li className="routine-list-item"><strong>Find a qualified assistant</strong> — intelligent, clean, inclined toward Dharma, faithful to the Three Jewels <span className="routine-verse-ref">(1.37–1.39)</span></li>
                             <li className="routine-list-item"><strong>Dwelling</strong>: hut near a pleasant town, warm, plastered with clay; door facing east, north, or west — never south <span className="routine-verse-ref">(2.3, 2.10)</span></li>
-                            <li className="routine-list-item"><strong>Shrine</strong>: cloth image of the Victor facing west, or a beautiful wooden image <span className="routine-verse-ref">(2.4–2.7)</span></li>
+                            <li className="routine-list-item"><strong>Shrine</strong>: cloth image of the Tathagata facing west, or a beautiful wooden image <span className="routine-verse-ref">(2.4–2.7)</span></li>
                         </ul>
                     </div>
                 );
@@ -175,7 +175,7 @@ const DailyRoutineRef: React.FC<DailyRoutineRefProps> = ({ onClose }) => {
 
                         <h5 className="sub-heading-routine">The Vajra</h5>
                         <ul className="routine-list">
-                            <li className="routine-list-item"><strong>Pick up the vajra</strong> when recitation begins; place it at the Victor's feet when complete <span className="routine-verse-ref">(4.10)</span></li>
+                            <li className="routine-list-item"><strong>Pick up the vajra</strong> when recitation begins; place it at the Tathagata's feet when complete <span className="routine-verse-ref">(4.10)</span></li>
                             <li className="routine-list-item">No vajra available? <strong>Make a fist and recite with focus</strong> <span className="routine-verse-ref">(4.11)</span></li>
                         </ul>
 
@@ -237,7 +237,7 @@ const DailyRoutineRef: React.FC<DailyRoutineRefProps> = ({ onClose }) => {
                         <h5 className="sub-heading-routine">After Recitation</h5>
                         <ul className="routine-list">
                             <li className="routine-list-item"><strong>Perform rites of protection</strong>, repeat the maṇḍala rites <span className="routine-verse-ref">(4.24)</span></li>
-                            <li className="routine-list-item">Make offerings of fragrance; <strong>bow with faith</strong> and place the vajra at the Victor's feet <span className="routine-verse-ref">(4.10)</span></li>
+                            <li className="routine-list-item">Make offerings of fragrance; <strong>bow with faith</strong> and place the vajra at the Tathagata's feet <span className="routine-verse-ref">(4.10)</span></li>
                             <li className="routine-list-item"><strong>Request the deity's departure</strong> as the ritual specifies <span className="routine-verse-ref">(3.29)</span></li>
                         </ul>
 
@@ -317,7 +317,7 @@ const DailyRoutineRef: React.FC<DailyRoutineRefProps> = ({ onClose }) => {
                         <h4 className="routine-section-heading"><IonIcon icon={shieldCheckmarkOutline} /> 14. The Seven Requisites for Siddhi (11.24–11.25)</h4>
                         <div className="routine-text-block"><span className="routine-verse-ref">(11.24–11.25)</span></div>
                         <blockquote>
-                            <em>"The fundamental root of mantra is discipline, followed by diligence and patience, faith in the victors, bodhicitta, the mantra, and an absence of laziness."</em>
+                            <em>"The fundamental root of mantra is discipline, followed by diligence and patience, faith in the Tathagatas, bodhicitta, the mantra, and an absence of laziness."</em>
                         </blockquote>
                         <blockquote>
                             <em>"Just as a ruler possessing the seven requisites has no trouble subduing any kind of being, so a mantrin possessing these seven requisites will quickly subdue any evil."</em>
@@ -331,7 +331,7 @@ const DailyRoutineRef: React.FC<DailyRoutineRefProps> = ({ onClose }) => {
                                     <tr><td>1</td><td>Discipline</td></tr>
                                     <tr><td>2</td><td>Diligence</td></tr>
                                     <tr><td>3</td><td>Patience</td></tr>
-                                    <tr><td>4</td><td>Faith in the Victors</td></tr>
+                                    <tr><td>4</td><td>Faith in the Tathagatas</td></tr>
                                     <tr><td>5</td><td>Bodhicitta</td></tr>
                                     <tr><td>6</td><td>The Mantra</td></tr>
                                     <tr><td>7</td><td>Absence of laziness</td></tr>
