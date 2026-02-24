@@ -20,7 +20,7 @@
 
   <br>
 
-  [![Download APK](https://img.shields.io/badge/Download-APK_v1.0.0-success?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Stonks007/uposath/releases/download/v1.0.0/Uposatha-v1.0.0.apk)
+  [![Download APK](https://img.shields.io/badge/Download-APK_v1.0.3-success?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Stonks007/uposath/releases/download/v1.0.3/Uposatha-v1.0.3.apk)
 
   <br>
 
@@ -285,7 +285,7 @@ uposath/
 
 If you just want to use the app on your Android device:
 
-**[Download Uposath v1.0.0 APK](https://github.com/Stonks007/uposath/releases/download/v1.0.0/Uposatha-v1.0.0.apk)**
+**[Download Uposath v1.0.3 APK](https://github.com/Stonks007/uposath/releases/download/v1.0.3/Uposatha-v1.0.3.apk)**
 
 ### 🏗️ Build from Source
 

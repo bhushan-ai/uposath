@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - 2026-02-24
+
+### Added
+- **Mantrin's Daily Routine**: Integrated "The Daily Routine of a Mantrin" (Toh 805) with 100% wording fidelity and premium glassmorphic UI.
+- **Structured Practice Layouts**: Implemented specialized grids for the Six Recollections and ritualized numbering for sequential practices.
+- **Tabbed Routine Navigation**: Organized the 14 sections of the liturgical source into 6 intuitive tabs.
+- **Improved Backup & Restore**: User-uploaded deity images are now embedded as Base64 strings in backups, ensuring full data persistence across devices.
+
+### Changed
+- **Premium UI Polish**: Refined the routine component with radial gradients, glow effects, and smooth transitions.
+- **Compact Typography**: Optimized font sizes and table spacing for a high-density, professional mobile experience.
+- **Enhanced Tab UX**: Added the primary accent color and shadow highlights to the active tab for clear visual navigation.
+- **WebP Migration**: Converted internal and user-uploaded deity images to WebP format for superior compression and faster load times.
+
+### Fixed
+- **Liturgical Fidelity**: Audited all text against the source document to ensure verbatim accuracy (e.g., matching "Tathāgata" and exact ritual counts).
+- **Vridhi Tithi Logic**: Corrected lunar display for Vridhi days and disabled adherence tracking for duplicate tithis.
+- **City Search UI**: Resolved layout clipping issues in the city search results on the Settings page.
+- **CSS Compatibility**: Added standard `background-clip` and `background-origin` properties for consistent rendering across browsers.
+
 ## [1.0.2] - 2026-02-24
 
 ### Added
